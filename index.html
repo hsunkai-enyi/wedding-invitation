@@ -1504,14 +1504,18 @@ let footTaps=0,footTimer=null;
 function footClick(){
   if(invStage!==2)return;
   footTaps++;clearTimeout(footTimer);
-  const hint=document.getElementById('foot-hint');
-  const cnt=document.getElementById('foot-cnt');
-  if(footTaps===1)hint.style.opacity='1';
-  const rem=5-footTaps;
-  if(rem>0)cnt.textContent=rem;
-  if(footTaps>=5){footTaps=0;hint.style.opacity='0';showAdmLogin();return;}
-  footTimer=setTimeout(()=>{footTaps=0;hint.style.opacity='0';},3000);
+  // 增加到 10 下，且不顯示提示（賓客不會知道）
+  if(footTaps>=10){footTaps=0;showAdmLogin();return;}
+  footTimer=setTimeout(()=>{footTaps=0;},2000);
 }
+
+// ═══ 你專用的隱藏後台入口 ═══
+// 網址加上 ?admin=true 直接開啟後台登入
+(function(){
+  if(new URLSearchParams(window.location.search).get('admin')==='true'){
+    setTimeout(()=>showAdmLogin(),1000);
+  }
+})();
 
 // ADMIN LOGIN
 function showAdmLogin(){
@@ -2289,6 +2293,242 @@ function toast(msg){document.querySelectorAll('.toast').forEach(t=>t.remove());c
 try { loadCustomPhotos(); } catch(e){ console.error('loadCustomPhotos failed:', e); }
 try { initImages(); } catch(e){ console.error('initImages failed:', e); }
 try { applyContent(); } catch(e){ console.error('applyContent failed:', e); }
+</script>
+
+<!-- ═══ FIREBASE SDK ═══ -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, setDoc, getDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getAuth, signInWithEmailAndPassword, signInAnonymously, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+// ═══ Firebase Config ═══
+const firebaseConfig = {
+  apiKey: "AIzaSyBHleRHrWpSAky4IqR79dGvgGqbyu3I_DE",
+  authDomain: "wedding-2026-3365f.firebaseapp.com",
+  projectId: "wedding-2026-3365f",
+  storageBucket: "wedding-2026-3365f.firebasestorage.app",
+  messagingSenderId: "742007802810",
+  appId: "1:742007802810:web:8a68a46d4e01dab2a46b83"
+};
+
+const ADMIN_EMAIL = 'a0934138511@gmail.com';
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+// ═══ 匿名登入（賓客） ═══
+signInAnonymously(auth).catch(e => console.log('anon auth:', e));
+
+// ═══ 覆寫資料函式：localStorage → Firestore ═══
+
+// 提交 RSVP
+window.submitAttendFB = async function(rsvp) {
+  try {
+    await addDoc(collection(db, 'rsvps'), { ...rsvp, createdAt: serverTimestamp() });
+    return true;
+  } catch(e) { console.error('submitAttend FB:', e); return false; }
+};
+
+// 提交祝福
+window.submitBlessFB = async function(blessing) {
+  try {
+    await addDoc(collection(db, 'blessings'), { ...blessing, createdAt: serverTimestamp() });
+    return true;
+  } catch(e) { console.error('submitBless FB:', e); return false; }
+};
+
+// ═══ Admin 登入 ═══
+window.fbAdminLogin = async function(email, password) {
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    return true;
+  } catch(e) {
+    console.error('admin login:', e);
+    return false;
+  }
+};
+
+window.fbAdminLogout = async function() {
+  await signOut(auth);
+  signInAnonymously(auth);
+};
+
+// ═══ 監聽登入狀態 ═══
+onAuthStateChanged(auth, user => {
+  window._fbUser = user;
+  window._isAdmin = user && user.email === ADMIN_EMAIL;
+
+  // 如果是 admin，啟用即時監聽
+  if(window._isAdmin) {
+    startAdminListeners();
+  }
+});
+
+// ═══ Admin 即時監聽 Firestore ═══
+let unsubRsvp = null, unsubBless = null;
+
+function startAdminListeners() {
+  // 監聽 RSVP
+  if(unsubRsvp) unsubRsvp();
+  unsubRsvp = onSnapshot(collection(db, 'rsvps'), snapshot => {
+    const rsvps = [];
+    snapshot.forEach(doc => rsvps.push({ _id: doc.id, ...doc.data() }));
+    // 轉換格式給現有後台
+    const d = window.gd ? window.gd() : { r: [], b: [] };
+    d.r = rsvps.map(r => ({
+      n: r.n || '', ph: r.ph || '', r: r.r || '',
+      c: r.c || 1, k: r.k || 0, chair: r.chair || 0,
+      meat: r.meat || 0, veg: r.veg || 0,
+      note: r.note || '', status: r.status || '',
+      t: r.createdAt ? new Date(r.createdAt.toMillis()).toLocaleString('zh-TW') : '',
+      _id: r._id
+    }));
+    // 存到 localStorage 供現有 UI 讀取
+    try { localStorage.setItem('hpy_w', JSON.stringify(d)); } catch(e){}
+    if(window.refreshAdmin) window.refreshAdmin();
+    if(window.refreshInv) window.refreshInv();
+  });
+
+  // 監聽祝福留言
+  if(unsubBless) unsubBless();
+  unsubBless = onSnapshot(collection(db, 'blessings'), snapshot => {
+    const blessings = [];
+    snapshot.forEach(doc => blessings.push({ _id: doc.id, ...doc.data() }));
+    const d = window.gd ? window.gd() : { r: [], b: [] };
+    d.b = blessings.map(b => ({
+      n: b.n || '', t: b.t || '',
+      d: b.createdAt ? new Date(b.createdAt.toMillis()).toLocaleString('zh-TW') : '',
+      _id: b._id
+    }));
+    try { localStorage.setItem('hpy_w', JSON.stringify(d)); } catch(e){}
+    if(window.refreshAdmin) window.refreshAdmin();
+  });
+}
+
+// ═══ 刪除賓客（Firestore）═══
+window.fbDeleteRsvp = async function(id) {
+  if(!id) return;
+  try { await deleteDoc(doc(db, 'rsvps', id)); } catch(e) { console.error(e); }
+};
+
+window.fbDeleteBless = async function(id) {
+  if(!id) return;
+  try { await deleteDoc(doc(db, 'blessings', id)); } catch(e) { console.error(e); }
+};
+
+// ═══ 儲存/讀取設定（Firestore）═══
+window.fbSaveConfig = async function(cfg) {
+  if(!window._isAdmin) return;
+  try { await setDoc(doc(db, 'config', 'main'), cfg); } catch(e) { console.error(e); }
+};
+
+window.fbLoadConfig = async function() {
+  try {
+    const snap = await getDoc(doc(db, 'config', 'main'));
+    if(snap.exists()) return snap.data();
+  } catch(e) { console.error(e); }
+  return null;
+};
+
+// ═══ 攔截現有的 submitAttend 和 submitBless ═══
+// 等原本的函式載入後再包裝
+setTimeout(() => {
+  // 包裝 submitAttend
+  const _origSubmitAttend = window.submitAttend;
+  if(_origSubmitAttend) {
+    window.submitAttend = async function() {
+      const name = document.getElementById('a-name').value.trim();
+      const phone = document.getElementById('a-phone').value.trim();
+      const count = parseInt(document.getElementById('a-count').value)||1;
+      const kids = parseInt(document.getElementById('a-kids').value)||0;
+      const meat = parseInt(document.getElementById('a-meat').value)||0;
+      const veg = parseInt(document.getElementById('a-veg').value)||0;
+      const chair = parseInt(document.getElementById('a-chair').value)||0;
+      const note = document.getElementById('a-note').value.trim();
+      const total = count + kids;
+
+      let relation = document.getElementById('a-relation').value;
+      if(relation === '其他') {
+        const other = document.getElementById('a-relation-other').value.trim();
+        if(!other) { window.shakeField && window.shakeField('a-relation-other'); window.toast && window.toast('請填寫您與新人的關係'); return; }
+        relation = other;
+      }
+
+      if(!name){ window.shakeField && window.shakeField('a-name'); window.toast && window.toast('請填寫您的姓名'); return; }
+      if(!phone || phone.replace(/\D/g,'').length<8){ window.shakeField && window.shakeField('a-phone'); window.toast && window.toast('請填寫正確的聯絡電話'); return; }
+      if(meat + veg !== total){ window.toast && window.toast(`葷素總數需等於 ${total} 人`); return; }
+
+      const rsvp = { n: name, ph: phone, r: relation, c: count, k: kids, chair, meat, veg, note, t: new Date().toLocaleString('zh-TW') };
+
+      // 送到 Firestore
+      const ok = await window.submitAttendFB(rsvp);
+      if(ok) {
+        const cm = window.cm;
+        if(cm) cm('m-attend');
+        if(window.burst) window.burst();
+        document.getElementById('success-name').textContent = name;
+        setTimeout(()=>{ if(window.om) window.om('m-success'); if(window.burst) setTimeout(window.burst,200); },400);
+      } else {
+        window.toast && window.toast('送出失敗，請檢查網路連線');
+      }
+    };
+  }
+
+  // 包裝 submitBless
+  const _origSubmitBless = window.submitBless;
+  if(_origSubmitBless) {
+    window.submitBless = async function() {
+      const name = document.getElementById('b-name').value.trim();
+      const text = document.getElementById('b-text').value.trim();
+      if(!text){ window.toast && window.toast('請填寫祝福語'); return; }
+      const ok = await window.submitBlessFB({ n: name || '匿名', t: text });
+      if(ok) {
+        document.getElementById('b-name').value = '';
+        document.getElementById('b-text').value = '';
+        if(window.cm) window.cm('m-bless');
+        if(window.burst) window.burst();
+        window.toast && window.toast('祝福送出 🌸 謝謝您！');
+      } else {
+        window.toast && window.toast('送出失敗，請檢查網路連線');
+      }
+    };
+  }
+
+  // 包裝後台登入
+  const _origCheckAdmLogin = window.checkAdmLogin;
+  if(_origCheckAdmLogin) {
+    window.checkAdmLogin = async function() {
+      const emailEl = document.getElementById('adm-email-inp');
+      const pwdEl = document.getElementById('adm-pwd-inp');
+      const email = emailEl ? emailEl.value.trim() : ADMIN_EMAIL;
+      const pwd = pwdEl ? pwdEl.value : document.getElementById('adm-pwd-inp').value;
+
+      const ok = await window.fbAdminLogin(email, pwd);
+      if(ok) {
+        document.getElementById('adm-login-ov').classList.remove('show');
+        document.getElementById('view-inv').classList.remove('active');
+        document.getElementById('view-admin').classList.add('active');
+        document.getElementById('set-invited').value = window.getInv ? window.getInv() : 80;
+        if(window.loadContentSettings) window.loadContentSettings();
+        if(window.refreshAdmin) window.refreshAdmin();
+      } else {
+        const inp = document.getElementById('adm-pwd-inp');
+        inp.classList.add('err');
+        const err = document.getElementById('adm-err');
+        if(err) err.classList.add('show');
+        inp.value = '';
+        setTimeout(()=>inp.classList.remove('err'),400);
+      }
+    };
+  }
+}, 500);
+
+// ═══ 連線狀態指示 ═══
+window.addEventListener('online', () => window.toast && window.toast('✅ 網路已連線'));
+window.addEventListener('offline', () => window.toast && window.toast('⚠️ 網路中斷，資料將暫存本地'));
+
+console.log('🔥 Firebase 整合完成 — 勛凱 & 恩懿 婚禮喜帖');
 </script>
 </body>
 </html>
