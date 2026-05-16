@@ -1152,7 +1152,15 @@ select.m-field{appearance:none;-webkit-appearance:none;background-image:url("dat
       <div class="ac">
         <div class="ac-ttl"><span>🎛</span>系統設定</div>
         <div class="set-row"><div><div class="set-lbl">預計邀請人數</div><div class="set-desc">影響回覆率計算</div></div><input class="set-inp" id="set-invited" type="number" min="1" max="999"/><button class="set-save" onclick="saveSetting('invited')">儲存</button></div>
-        <div class="set-row"><div><div class="set-lbl">後台管理密碼</div><div class="set-desc">修改後下次進入須輸入新密碼</div></div><input class="set-inp" id="set-pwd" type="password" placeholder="新密碼"/><button class="set-save" onclick="saveSetting('pwd')">儲存</button></div>
+        <div class="set-row" style="display:block;padding:16px 0;">
+          <div style="margin-bottom:12px;"><div class="set-lbl">🔐 修改後台密碼</div><div class="set-desc">修改你的 Firebase 帳號密碼，下次登入使用新密碼</div></div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <input class="set-inp full" id="set-pwd-current" type="password" placeholder="目前密碼" autocomplete="current-password"/>
+            <input class="set-inp full" id="set-pwd-new" type="password" placeholder="新密碼（至少 6 位）" autocomplete="new-password"/>
+            <input class="set-inp full" id="set-pwd-confirm" type="password" placeholder="確認新密碼" autocomplete="new-password"/>
+          </div>
+          <button class="set-save full-btn" style="margin-top:10px;" onclick="changeAdminPassword()">🔐 更新密碼</button>
+        </div>
       </div>
 
       <!-- ═══ 賓客關係選項 ═══ -->
@@ -1611,7 +1619,7 @@ function renderAdmGuests(){
   if(!body)return;
   const tot=d.r.reduce((s,x)=>s+(x.c||1)+(x.k||0),0);
   if(lbl)lbl.textContent=`共 ${d.r.length} 筆 · ${tot} 人`;
-  body.innerHTML=fl.length===0?`<tr><td colspan="11" style="text-align:center;padding:26px;font-size:11px;letter-spacing:3px;opacity:.4;">${q?'查無結果':'尚無賓客回覆'}</td></tr>`:fl.map((x,i)=>`<tr><td class="td-idx">${i+1}</td><td class="td-name">${x.n}</td><td class="td-diet">${x.ph||'—'}</td><td class="td-diet">${x.r||'—'}</td><td class="td-cnt">${x.c||1}</td><td class="td-diet">${x.k||0}</td><td class="td-cnt">${x.meat??'—'}</td><td class="td-cnt">${x.veg??'—'}</td><td class="td-diet" style="max-width:160px;word-break:break-word;white-space:normal;">${x.note||'—'}</td><td class="td-time">${x.t}</td><td><button class="td-del" onclick="deleteGuest('${x.n}')">✕</button></td></tr>`).join('');
+  body.innerHTML=fl.length===0?`<tr><td colspan="11" style="text-align:center;padding:26px;font-size:11px;letter-spacing:3px;opacity:.4;">${q?'查無結果':'尚無賓客回覆'}</td></tr>`:fl.map((x,i)=>`<tr><td class="td-idx">${i+1}</td><td class="td-name">${x.n}</td><td class="td-diet">${x.ph||'—'}</td><td class="td-diet">${x.r||'—'}</td><td class="td-cnt">${x.c||1}</td><td class="td-diet">${x.k||0}</td><td class="td-cnt">${x.meat??'—'}</td><td class="td-cnt">${x.veg??'—'}</td><td class="td-diet" style="max-width:160px;word-break:break-word;white-space:normal;">${x.note||'—'}</td><td class="td-time">${x.t}</td><td><button class="td-del" onclick="deleteGuest('${x._id||''}','${x.n}')">✕</button></td></tr>`).join('');
 }
 function renderAdmBless(){
   const d=gd(),q=(document.getElementById('b-srch')?.value||'').toLowerCase();
@@ -1619,7 +1627,7 @@ function renderAdmBless(){
   const wrap=document.getElementById('adm-b-grid'),empty=document.getElementById('adm-b-empty');
   if(!wrap)return;
   if(fl.length===0){wrap.innerHTML='';if(empty)empty.style.display='block';}
-  else{if(empty)empty.style.display='none';wrap.innerHTML=fl.slice().reverse().map(x=>`<div class="bc2"><button class="bc2-del" onclick="deleteBlessing('${x.ts}')">✕</button><div class="bc2-q">"</div><div class="bc2-auth">💌 ${x.n}</div><div class="bc2-body">${x.t}</div><div class="bc2-time">${x.ts||''}</div></div>`).join('');}
+  else{if(empty)empty.style.display='none';wrap.innerHTML=fl.slice().reverse().map(x=>`<div class="bc2"><button class="bc2-del" onclick="deleteBlessing('${x._id||''}','${x.ts||''}')">✕</button><div class="bc2-q">"</div><div class="bc2-auth">💌 ${x.n}</div><div class="bc2-body">${x.t}</div><div class="bc2-time">${x.ts||''}</div></div>`).join('');}
 }
 
 // ADMIN NAV
@@ -1631,11 +1639,38 @@ function goAdmPage(id,el){
   refreshAdmin();
 }
 
-// CRUD
-function deleteGuest(name){if(!confirm(`確定刪除「${name}」的出席記錄？`))return;const d=gd();d.r=d.r.filter(x=>x.n!==name);sd(d);refreshAdmin();refreshInv();toast(`已刪除 ${name} 的記錄`);}
-function deleteBlessing(ts){if(!confirm('確定刪除此則祝福留言？'))return;const d=gd();d.b=d.b.filter(x=>x.ts!==ts);sd(d);refreshAdmin();refreshInv();toast('已刪除留言');}
-function clearGuests(){if(!confirm('確定清除所有賓客資料？此操作無法復原。'))return;const d=gd();d.r=[];sd(d);refreshAdmin();refreshInv();toast('已清除所有賓客資料');}
-function clearBlessings(){if(!confirm('確定清除所有祝福留言？'))return;const d=gd();d.b=[];sd(d);refreshAdmin();refreshInv();toast('已清除所有祝福留言');}
+// CRUD — 同時刪除 Firestore + localStorage
+async function deleteGuest(fbId, name){
+  if(!confirm(`確定刪除「${name}」的出席記錄？`))return;
+  // 刪 Firestore
+  if(fbId && window.fbDeleteRsvp) await window.fbDeleteRsvp(fbId);
+  // 刪 localStorage（備用）
+  const d=gd(); d.r=d.r.filter(x=>x._id!==fbId && x.n!==name); sd(d);
+  refreshAdmin(); refreshInv(); toast(`已刪除 ${name} 的記錄`);
+}
+async function deleteBlessing(fbId, ts){
+  if(!confirm('確定刪除此則祝福留言？'))return;
+  if(fbId && window.fbDeleteBless) await window.fbDeleteBless(fbId);
+  const d=gd(); d.b=d.b.filter(x=>x._id!==fbId && x.ts!==ts); sd(d);
+  refreshAdmin(); refreshInv(); toast('已刪除留言');
+}
+async function clearGuests(){
+  if(!confirm('確定清除所有賓客資料？此操作無法復原。'))return;
+  // 刪除 Firestore 所有 rsvps
+  const d=gd();
+  if(window.fbDeleteRsvp){
+    for(const r of d.r){ if(r._id) await window.fbDeleteRsvp(r._id); }
+  }
+  d.r=[]; sd(d); refreshAdmin(); refreshInv(); toast('已清除所有賓客資料');
+}
+async function clearBlessings(){
+  if(!confirm('確定清除所有祝福留言？'))return;
+  const d=gd();
+  if(window.fbDeleteBless){
+    for(const b of d.b){ if(b._id) await window.fbDeleteBless(b._id); }
+  }
+  d.b=[]; sd(d); refreshAdmin(); refreshInv(); toast('已清除所有祝福留言');
+}
 function openAddGuest(){['ag-name','ag-diet'].forEach(id=>document.getElementById(id).value='');document.getElementById('ag-count').value='1';om('m-addguest');setTimeout(()=>document.getElementById('ag-name').focus(),280);}
 function addGuest(){
   const name=document.getElementById('ag-name').value.trim();
@@ -2299,7 +2334,7 @@ try { applyContent(); } catch(e){ console.error('applyContent failed:', e); }
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, setDoc, getDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-import { getAuth, signInWithEmailAndPassword, signInAnonymously, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getAuth, signInWithEmailAndPassword, signInAnonymously, onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 // ═══ Firebase Config ═══
 const firebaseConfig = {
@@ -2524,7 +2559,42 @@ setTimeout(() => {
   }
 }, 500);
 
-// ═══ 連線狀態指示 ═══
+// ═══ 修改後台密碼 ═══
+window.changeAdminPassword = async function() {
+  const current = document.getElementById('set-pwd-current').value;
+  const newPwd  = document.getElementById('set-pwd-new').value;
+  const confirm = document.getElementById('set-pwd-confirm').value;
+
+  if(!current){ window.toast && window.toast('請輸入目前密碼'); return; }
+  if(!newPwd || newPwd.length < 6){ window.toast && window.toast('新密碼至少需要 6 位'); return; }
+  if(newPwd !== confirm){ window.toast && window.toast('兩次新密碼不一致'); return; }
+
+  try {
+    const user = auth.currentUser;
+    if(!user){ window.toast && window.toast('請先登入後台'); return; }
+
+    // 重新驗證（Firebase 要求改密碼前重新驗證）
+    const credential = EmailAuthProvider.credential(user.email, current);
+    await reauthenticateWithCredential(user, credential);
+
+    // 更新密碼
+    await updatePassword(user, newPwd);
+
+    // 清空欄位
+    document.getElementById('set-pwd-current').value = '';
+    document.getElementById('set-pwd-new').value = '';
+    document.getElementById('set-pwd-confirm').value = '';
+
+    window.toast && window.toast('✅ 密碼已更新！下次登入使用新密碼');
+  } catch(e) {
+    console.error('changePassword:', e);
+    if(e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential'){
+      window.toast && window.toast('❌ 目前密碼錯誤，請重新輸入');
+    } else {
+      window.toast && window.toast('❌ 更新失敗：' + e.message);
+    }
+  }
+};
 window.addEventListener('online', () => window.toast && window.toast('✅ 網路已連線'));
 window.addEventListener('offline', () => window.toast && window.toast('⚠️ 網路中斷，資料將暫存本地'));
 
