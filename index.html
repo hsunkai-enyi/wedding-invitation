@@ -20,7 +20,7 @@
   --font-sans: 'Noto Sans TC', 'Inter', sans-serif;    /* 現代黑體 — 內文敘述、標籤 */
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-sans);color:var(--ink);font-weight:400;}
+html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-sans);color:var(--ink);font-weight:400;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 #cvs{position:fixed;inset:0;z-index:1;pointer-events:none;}
 /* VIEW SYSTEM */
 .view{position:fixed;inset:0;z-index:10;opacity:0;pointer-events:none;transition:opacity .45s ease;}
@@ -77,7 +77,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-sans);co
 @keyframes btnA{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .enter-btn:hover{transform:translateY(-3px);}
 /* MAIN */
-#st-main{overflow-y:auto;overflow-x:hidden;scrollbar-width:none;background:linear-gradient(160deg,#fff8f3,#fef0e5);}
+#st-main{overflow-y:auto;overflow-x:hidden;scrollbar-width:none;background:linear-gradient(160deg,#fff8f3,#fef0e5);-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;}
 #st-main::-webkit-scrollbar{display:none;}
 #st-main::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 55% at 10% 12%,rgba(253,233,162,.52) 0%,transparent 52%),radial-gradient(ellipse 60% 70% at 90% 8%,rgba(249,123,90,.15) 0%,transparent 48%),radial-gradient(ellipse 70% 45% at 82% 92%,rgba(181,213,160,.38) 0%,transparent 50%);}
 .page-inner{position:relative;z-index:1;max-width:580px;margin:0 auto;padding:24px 16px 70px;}
@@ -186,7 +186,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-sans);co
 .ix-sub{font-size:11px;color:#5b8fd4;letter-spacing:1px;font-weight:500;}
 .ix-arrow{font-size:22px;color:#5b8fd4;font-weight:700;line-height:1;flex-shrink:0;}
 .actions{padding:24px 24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
-.btn{padding:15px 30px;border:none;cursor:pointer;font-family:var(--font-sans);font-size:13px;letter-spacing:4px;border-radius:50px;transition:all .3s;font-weight:500;}
+.btn{padding:15px 30px;border:none;cursor:pointer;font-family:var(--font-sans);font-size:13px;letter-spacing:4px;border-radius:50px;transition:all .3s;font-weight:500;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
 .btn-p{background:linear-gradient(135deg,var(--peach),#d05030);color:white;box-shadow:0 5px 18px rgba(220,80,40,.3);}
 .btn-p:hover{transform:translateY(-3px);}
 .btn-s{background:rgba(253,233,162,.6);color:var(--ink);border:1.5px solid rgba(245,200,66,.4);}
@@ -711,6 +711,70 @@ select.m-field{appearance:none;-webkit-appearance:none;background-image:url("dat
   /* 減少粒子動畫負擔 */
   #cvs{display:none;}
 }
+
+@media(max-width:640px){
+  /* ═══ 消除 300ms 點擊延遲 ═══ */
+  *{touch-action:manipulation;}
+  button,a,.btn,.ic-btn,.wq-btn,.m-close,.gw-opt,.counter-btn,.wiz-choice,.pick-btn{
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+    cursor:pointer;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  
+  /* ═══ 關閉 backdrop-filter（最耗效能）═══ */
+  .icard,.ic,.ac,.modal,.overlay,#adm-login-ov{
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+  }
+  .icard{background:rgba(255,255,255,.98) !important;}
+  .ic{background:rgba(255,255,255,.98) !important;}
+  .overlay{background:rgba(60,20,5,.6) !important;}
+  #adm-login-ov{background:rgba(20,8,4,.75) !important;}
+  
+  /* ═══ 捲動優化 ═══ */
+  .view-body{
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+    will-change:scroll-position;
+  }
+  .im-body{-webkit-overflow-scrolling:touch;}
+  
+  /* ═══ 關閉不必要動畫 ═══ */
+  #cvs{display:none !important;}
+  .hero-stack::before,.hero-stack::after{display:none;}
+  .hstack-back,.hstack-mid{transition:none !important;}
+  .hero-stack:hover .hstack-back,
+  .hero-stack:hover .hstack-mid,
+  .hero-stack:hover .hstack-front{transform:none !important;}
+  
+  /* ═══ 簡化陰影 ═══ */
+  .icard{box-shadow:0 2px 10px rgba(200,90,50,.1) !important;}
+  .ic{box-shadow:0 2px 8px rgba(200,90,50,.1) !important;}
+  .btn-p{box-shadow:0 3px 10px rgba(220,80,40,.3) !important;}
+  
+  /* ═══ 按鈕更大更好按 ═══ */
+  .btn{padding:16px 28px !important;font-size:14px !important;}
+  .counter-btn{width:44px !important;height:44px !important;font-size:22px !important;}
+  .m-close{width:44px !important;height:44px !important;font-size:22px !important;}
+  .wiz-choice{padding:14px 8px !important;min-height:52px;}
+  
+  /* ═══ 表單輸入優化 ═══ */
+  .m-field,.set-inp{
+    font-size:16px !important;  /* 防止 iOS 自動縮放 */
+    padding:14px !important;
+  }
+  select.m-field{font-size:16px !important;}
+  
+  /* ═══ 關閉 hover 效果 ═══ */
+  .ic:hover{transform:none !important;}
+  .ic-btn:hover .ic-arrow{transform:none !important;}
+  .collage-hero:hover,.collage-mini:hover,.collage-wide:hover{transform:none !important;}
+  .photo-slot:hover{transform:none !important;}
+  .wq-btn:hover{transform:none !important;}
+  .ix-btn:hover{transform:none !important;}
+}
 </style>
 </head>
 <body>
@@ -742,7 +806,7 @@ select.m-field{appearance:none;-webkit-appearance:none;background-image:url("dat
       <div class="icard">
         <div class="hero-stack">
           <!-- 三層堆疊：背層 + 中層 + 主層 -->
-          <div class="hstack-layer hstack-back" id="hs-back"></div>
+          <div class="hstack-layer hstack-back" id="hs-back" loading="lazy"></div>
           <div class="hstack-layer hstack-mid" id="hs-mid"></div>
           <div class="hstack-layer hstack-front" id="hs-front">
             <div class="hslide on" id="hs0"></div>
@@ -2223,24 +2287,49 @@ function syncDietToTotal(){
   const total = (parseInt(document.getElementById('a-count').value)||1) + (parseInt(document.getElementById('a-kids').value)||0);
   const meat = parseInt(document.getElementById('a-meat').value)||0;
   const veg = parseInt(document.getElementById('a-veg').value)||0;
-  // If sum doesn't match, auto-adjust meat
-  if(meat + veg !== total){
-    const newMeat = Math.max(0, total - veg);
+  const sum = meat + veg;
+
+  if(sum !== total){
+    // 優先保留素食人數，調整葷食補足
+    const newVeg = Math.min(veg, total);          // 素食不超過 total
+    const newMeat = Math.max(0, total - newVeg);   // 葷食 = 剩下的
     document.getElementById('a-meat').value = newMeat;
     document.getElementById('a-meat-display').textContent = newMeat;
+    document.getElementById('a-veg').value = newVeg;
+    document.getElementById('a-veg-display').textContent = newVeg;
   }
+  updateDietTally();
 }
 
 function adjustDiet(id, delta){
-  const input = document.getElementById(id);
-  const display = document.getElementById(id+'-display');
   const total = (parseInt(document.getElementById('a-count').value)||1) + (parseInt(document.getElementById('a-kids').value)||0);
-  let v = parseInt(input.value)||0;
-  v = Math.max(0, Math.min(total, v+delta));
-  input.value = v;
-  display.textContent = v;
+  const otherId = id === 'a-meat' ? 'a-veg' : 'a-meat';
+
+  const input   = document.getElementById(id);
+  const display = document.getElementById(id+'-display');
+  const otherInput   = document.getElementById(otherId);
+  const otherDisplay = document.getElementById(otherId+'-display');
+
+  let v     = parseInt(input.value)||0;
+  let other = parseInt(otherInput.value)||0;
+
+  // 連動計數器：加這個，自動減另一個
+  const newV = Math.max(0, Math.min(total, v + delta));
+  const diff = newV - v; // 實際變化量（可能被限制）
+  const newOther = Math.max(0, other - diff); // 另一個反向變化
+
+  input.value   = newV;
+  display.textContent = newV;
+  otherInput.value   = newOther;
+  otherDisplay.textContent = newOther;
+
   display.style.transform = 'scale(1.2)';
-  setTimeout(()=>display.style.transform='scale(1)',150);
+  otherDisplay.style.transform = 'scale(1.1)';
+  setTimeout(()=>{
+    display.style.transform = 'scale(1)';
+    otherDisplay.style.transform = 'scale(1)';
+  }, 150);
+
   updateDietTally();
 }
 
@@ -2508,8 +2597,6 @@ setTimeout(() => {
       const phone = document.getElementById('a-phone').value.trim();
       const count = parseInt(document.getElementById('a-count').value)||1;
       const kids = parseInt(document.getElementById('a-kids').value)||0;
-      const meat = parseInt(document.getElementById('a-meat').value)||0;
-      const veg = parseInt(document.getElementById('a-veg').value)||0;
       const chair = parseInt(document.getElementById('a-chair').value)||0;
       const note = document.getElementById('a-note').value.trim();
       const total = count + kids;
@@ -2523,7 +2610,31 @@ setTimeout(() => {
 
       if(!name){ window.shakeField && window.shakeField('a-name'); window.toast && window.toast('請填寫您的姓名'); return; }
       if(!phone || phone.replace(/\D/g,'').length<8){ window.shakeField && window.shakeField('a-phone'); window.toast && window.toast('請填寫正確的聯絡電話'); return; }
-      if(meat + veg !== total){ window.toast && window.toast(`葷素總數需等於 ${total} 人`); return; }
+
+      // ═══ 強制同步葷素 = 總人數 ═══
+      if(window.syncDietToTotal) window.syncDietToTotal();
+
+      const meat = parseInt(document.getElementById('a-meat').value)||0;
+      const veg  = parseInt(document.getElementById('a-veg').value)||0;
+
+      // 最終驗證
+      if(meat + veg !== total){
+        window.toast && window.toast(`⚠️ 葷素總數（${meat+veg}）需等於出席人數（${total}）`);
+        return;
+      }
+
+      // ═══ 送出前確認視窗 ═══
+      const kidsTxt = kids > 0 ? `、兒童 ${kids} 位` : '';
+      const chairTxt = chair > 0 ? `\n🪑 兒童座椅：${chair} 張` : '';
+      const confirmMsg =
+        `📋 請確認出席資訊：\n\n` +
+        `👤 姓名：${name}\n` +
+        `👥 出席：成人 ${count} 位${kidsTxt}\n` +
+        `🍽 飲食：葷食 ${meat} · 素食 ${veg}${chairTxt}\n` +
+        `${note ? '📝 備註：' + note + '\n' : ''}` +
+        `\n確定送出嗎？`;
+
+      if(!confirm(confirmMsg)) return;
 
       const rsvp = { n: name, ph: phone, r: relation, c: count, k: kids, chair, meat, veg, note, t: new Date().toLocaleString('zh-TW') };
 
