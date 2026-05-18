@@ -3358,12 +3358,8 @@ function openCrop(key) {
   _cropImg.src = src;
   
   _cropImg.onload = () => {
-    // 根據 slot 類型決定裁剪比例
-    const isHero = key.startsWith('h_') || key === 'b_kiss';
-    const isWide = key === 'b_close';
-    const ratio = isWide ? 21/9 : (isHero ? 1 : 1);
-    
-    initCropFrame(ratio);
+    // 自由比例，預設裁剪框 = 整張照片，使用者可自由縮放
+    initCropFrame(null);  // null = 不鎖比例
     setupCropDrag();
   };
   
@@ -3378,7 +3374,6 @@ function closeCrop() {
 function initCropFrame(ratio) {
   // 取得圖片實際顯示區域
   const stageRect = _cropStage.getBoundingClientRect();
-  const imgRect = _cropImg.getBoundingClientRect();
   
   // 載入之前儲存的裁剪資訊
   const s = getPhotoSettings();
@@ -3412,16 +3407,11 @@ function initCropFrame(ratio) {
     frameX = imgX + saved.x * imgW;
     frameY = imgY + saved.y * imgH;
   } else {
-    // 預設置中 80%
-    const ratioFit = ratio || (imgW / imgH);
-    frameW = imgW * 0.8;
-    frameH = frameW / ratioFit;
-    if (frameH > imgH * 0.8) {
-      frameH = imgH * 0.8;
-      frameW = frameH * ratioFit;
-    }
-    frameX = imgX + (imgW - frameW) / 2;
-    frameY = imgY + (imgH - frameH) / 2;
+    // 預設：裁剪框 = 整張照片（顯示完整內容）
+    frameW = imgW;
+    frameH = imgH;
+    frameX = imgX;
+    frameY = imgY;
   }
   
   _cropFrame.style.left = frameX + 'px';
