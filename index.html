@@ -1922,6 +1922,57 @@ div.photo-slot .photo-pos-badge {
   box-shadow: 0 4px 14px rgba(249,123,90,.15) !important;
 }
 
+
+/* ═══ 調整尺寸更貼近前台 ═══ */
+.collage-top {
+  height: 320px !important;  /* 從 260 加大到 320 */
+}
+.collage-bottom {
+  height: 140px !important;  /* 從 110 加大到 140 */
+}
+.hero-row .hslot {
+  height: 150px !important;
+  max-height: 150px !important;
+  min-height: 150px !important;
+}
+@media(max-width: 768px) {
+  .collage-top { height: 240px !important; }
+  .collage-bottom { height: 100px !important; }
+  .hero-row .hslot { height: 120px !important; max-height: 120px !important; min-height: 120px !important; }
+}
+
+/* ═══ 確保 .cslot 內 img 不會塞滿整個 collage-left ═══ */
+.collage-left .cslot, .collage-right .cslot, .collage-bottom .cslot {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+
+/* ═══ 拼貼比例精細調整 ═══ */
+.collage-container {
+  max-width: 700px !important;  /* 與前台類似的最大寬度 */
+}
+.collage-top {
+  height: 280px !important;
+}
+.collage-bottom {
+  height: 120px !important;
+}
+.collage-left {
+  flex: 1.45 !important;  /* 主視覺占比約 60% */
+}
+.collage-right {
+  flex: 1 !important;
+}
+.hero-row {
+  max-width: 700px !important;
+}
+@media(max-width: 768px) {
+  .collage-top { height: 220px !important; }
+  .collage-bottom { height: 95px !important; }
+}
+
 </style>
 </head>
 <body>
@@ -2268,7 +2319,7 @@ div.photo-slot .photo-pos-badge {
 <div class="cslot hslot" id="slot-h_kiss">
                 <div class="cslot-imgbox" id="wrap-h_kiss">
                   <img id="prev-h_kiss" alt="Hero 1" draggable="false"/>
-                  <div class="cslot-uhint" id="uhint-h_kiss" onclick="document.getElementById('upload-h_kiss').click()">
+                  <div class="cslot-uhint" id="uhint-h_kiss" onclick="uploadClick(\'h_kiss\')">
                     <div class="cslot-uicon">📷</div>
                     <div class="cslot-ulbl">點擊上傳</div>
                   </div>
@@ -2277,14 +2328,14 @@ div.photo-slot .photo-pos-badge {
                 <div class="cslot-badge">① Hero</div>
                 <div class="cslot-tools">
                   <button class="cslot-btn primary" onclick="openCrop('h_kiss')">✂️</button>
-                  <button class="cslot-btn" onclick="document.getElementById('upload-h_kiss').click()">↻</button>
+                  <button class="cslot-btn" onclick="uploadClick(\'h_kiss\')">↻</button>
                   <button class="cslot-btn" onclick="resetCrop('h_kiss')">重置</button>
                 </div>
               </div>
 <div class="cslot hslot" id="slot-h_fun">
                 <div class="cslot-imgbox" id="wrap-h_fun">
                   <img id="prev-h_fun" alt="Hero 2" draggable="false"/>
-                  <div class="cslot-uhint" id="uhint-h_fun" onclick="document.getElementById('upload-h_fun').click()">
+                  <div class="cslot-uhint" id="uhint-h_fun" onclick="uploadClick(\'h_fun\')">
                     <div class="cslot-uicon">📷</div>
                     <div class="cslot-ulbl">點擊上傳</div>
                   </div>
@@ -2293,14 +2344,14 @@ div.photo-slot .photo-pos-badge {
                 <div class="cslot-badge">② Hero</div>
                 <div class="cslot-tools">
                   <button class="cslot-btn primary" onclick="openCrop('h_fun')">✂️</button>
-                  <button class="cslot-btn" onclick="document.getElementById('upload-h_fun').click()">↻</button>
+                  <button class="cslot-btn" onclick="uploadClick(\'h_fun\')">↻</button>
                   <button class="cslot-btn" onclick="resetCrop('h_fun')">重置</button>
                 </div>
               </div>
 <div class="cslot hslot" id="slot-h_full">
                 <div class="cslot-imgbox" id="wrap-h_full">
                   <img id="prev-h_full" alt="Hero 3" draggable="false"/>
-                  <div class="cslot-uhint" id="uhint-h_full" onclick="document.getElementById('upload-h_full').click()">
+                  <div class="cslot-uhint" id="uhint-h_full" onclick="uploadClick(\'h_full\')">
                     <div class="cslot-uicon">📷</div>
                     <div class="cslot-ulbl">點擊上傳</div>
                   </div>
@@ -2309,14 +2360,14 @@ div.photo-slot .photo-pos-badge {
                 <div class="cslot-badge">③ Hero</div>
                 <div class="cslot-tools">
                   <button class="cslot-btn primary" onclick="openCrop('h_full')">✂️</button>
-                  <button class="cslot-btn" onclick="document.getElementById('upload-h_full').click()">↻</button>
+                  <button class="cslot-btn" onclick="uploadClick(\'h_full\')">↻</button>
                   <button class="cslot-btn" onclick="resetCrop('h_full')">重置</button>
                 </div>
               </div>
 <div class="cslot hslot" id="slot-h_close">
                 <div class="cslot-imgbox" id="wrap-h_close">
                   <img id="prev-h_close" alt="Hero 4" draggable="false"/>
-                  <div class="cslot-uhint" id="uhint-h_close" onclick="document.getElementById('upload-h_close').click()">
+                  <div class="cslot-uhint" id="uhint-h_close" onclick="uploadClick(\'h_close\')">
                     <div class="cslot-uicon">📷</div>
                     <div class="cslot-ulbl">點擊上傳</div>
                   </div>
@@ -2325,7 +2376,7 @@ div.photo-slot .photo-pos-badge {
                 <div class="cslot-badge">④ Hero</div>
                 <div class="cslot-tools">
                   <button class="cslot-btn primary" onclick="openCrop('h_close')">✂️</button>
-                  <button class="cslot-btn" onclick="document.getElementById('upload-h_close').click()">↻</button>
+                  <button class="cslot-btn" onclick="uploadClick(\'h_close\')">↻</button>
                   <button class="cslot-btn" onclick="resetCrop('h_close')">重置</button>
                 </div>
               </div>
@@ -2348,7 +2399,7 @@ div.photo-slot .photo-pos-badge {
                   <div class="cslot" id="slot-b_kiss">
                   <div class="cslot-imgbox" id="wrap-b_kiss">
                     <img id="prev-b_kiss" alt="主視覺照片" draggable="false"/>
-                    <div class="cslot-uhint" id="uhint-b_kiss" onclick="document.getElementById('upload-b_kiss').click()">
+                    <div class="cslot-uhint" id="uhint-b_kiss" onclick="uploadClick(\'b_kiss\')">
                       <div class="cslot-uicon">📷</div>
                       <div class="cslot-ulbl">點擊上傳</div>
                     </div>
@@ -2357,7 +2408,7 @@ div.photo-slot .photo-pos-badge {
                   <div class="cslot-badge">★ FEATURED · ① 主視覺</div>
                   <div class="cslot-tools">
                     <button class="cslot-btn primary" onclick="openCrop('b_kiss')">✂️</button>
-                    <button class="cslot-btn" onclick="document.getElementById('upload-b_kiss').click()">↻</button>
+                    <button class="cslot-btn" onclick="uploadClick(\'b_kiss\')">↻</button>
                     <button class="cslot-btn" onclick="resetCrop('b_kiss')">重置</button>
                   </div>
                 </div>
@@ -2366,7 +2417,7 @@ div.photo-slot .photo-pos-badge {
                   <div class="cslot" id="slot-b_fun">
                   <div class="cslot-imgbox" id="wrap-b_fun">
                     <img id="prev-b_fun" alt="右上方圖" draggable="false"/>
-                    <div class="cslot-uhint" id="uhint-b_fun" onclick="document.getElementById('upload-b_fun').click()">
+                    <div class="cslot-uhint" id="uhint-b_fun" onclick="uploadClick(\'b_fun\')">
                       <div class="cslot-uicon">📷</div>
                       <div class="cslot-ulbl">點擊上傳</div>
                     </div>
@@ -2375,14 +2426,14 @@ div.photo-slot .photo-pos-badge {
                   <div class="cslot-badge">② 右上</div>
                   <div class="cslot-tools">
                     <button class="cslot-btn primary" onclick="openCrop('b_fun')">✂️</button>
-                    <button class="cslot-btn" onclick="document.getElementById('upload-b_fun').click()">↻</button>
+                    <button class="cslot-btn" onclick="uploadClick(\'b_fun\')">↻</button>
                     <button class="cslot-btn" onclick="resetCrop('b_fun')">重置</button>
                   </div>
                 </div>
                   <div class="cslot" id="slot-b_full">
                   <div class="cslot-imgbox" id="wrap-b_full">
                     <img id="prev-b_full" alt="右下方圖" draggable="false"/>
-                    <div class="cslot-uhint" id="uhint-b_full" onclick="document.getElementById('upload-b_full').click()">
+                    <div class="cslot-uhint" id="uhint-b_full" onclick="uploadClick(\'b_full\')">
                       <div class="cslot-uicon">📷</div>
                       <div class="cslot-ulbl">點擊上傳</div>
                     </div>
@@ -2391,7 +2442,7 @@ div.photo-slot .photo-pos-badge {
                   <div class="cslot-badge">③ 右下</div>
                   <div class="cslot-tools">
                     <button class="cslot-btn primary" onclick="openCrop('b_full')">✂️</button>
-                    <button class="cslot-btn" onclick="document.getElementById('upload-b_full').click()">↻</button>
+                    <button class="cslot-btn" onclick="uploadClick(\'b_full\')">↻</button>
                     <button class="cslot-btn" onclick="resetCrop('b_full')">重置</button>
                   </div>
                 </div>
@@ -2401,7 +2452,7 @@ div.photo-slot .photo-pos-badge {
                 <div class="cslot" id="slot-b_close">
                   <div class="cslot-imgbox" id="wrap-b_close">
                     <img id="prev-b_close" alt="底部全寬照片" draggable="false"/>
-                    <div class="cslot-uhint" id="uhint-b_close" onclick="document.getElementById('upload-b_close').click()">
+                    <div class="cslot-uhint" id="uhint-b_close" onclick="uploadClick(\'b_close\')">
                       <div class="cslot-uicon">📷</div>
                       <div class="cslot-ulbl">點擊上傳</div>
                     </div>
@@ -2410,7 +2461,7 @@ div.photo-slot .photo-pos-badge {
                   <div class="cslot-badge">④ 底部全寬</div>
                   <div class="cslot-tools">
                     <button class="cslot-btn primary" onclick="openCrop('b_close')">✂️</button>
-                    <button class="cslot-btn" onclick="document.getElementById('upload-b_close').click()">↻</button>
+                    <button class="cslot-btn" onclick="uploadClick(\'b_close\')">↻</button>
                     <button class="cslot-btn" onclick="resetCrop('b_close')">重置</button>
                   </div>
                 </div>
@@ -4125,6 +4176,26 @@ function cu(id,t){const el=document.getElementById(id);if(!el)return;const s=par
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 function setW(id,v){const el=document.getElementById(id);if(el)el.style.width=v;}
 function toast(msg){document.querySelectorAll('.toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .4s';setTimeout(()=>t.remove(),400);},3200);}
+
+
+// ═══ 強化上傳點擊（修復 input click 不觸發）═══
+window.uploadClick = function(key) {
+  const inp = document.getElementById('upload-' + key);
+  if (!inp) {
+    console.error('Upload input not found:', key);
+    if(window.toast) toast('上傳元件未找到，請重新整理');
+    return;
+  }
+  // 雙保險：直接設定可見並觸發
+  try {
+    inp.style.position = 'absolute';
+    inp.style.opacity = '0';
+    inp.style.pointerEvents = 'none';
+    inp.click();
+  } catch(e) {
+    console.error('Upload click failed:', e);
+  }
+};
 
 // ═══ INITIALIZATION (run last after all consts and functions are defined) ═══
 try { loadCustomPhotos(); } catch(e){ console.error('loadCustomPhotos failed:', e); }
