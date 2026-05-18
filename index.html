@@ -3432,43 +3432,44 @@ function closeCrop() {
   _cropKey = null;
 }
 
+// ═══ 一鍵選取整張照片 ═══
+function cropSelectAll() {
+  if (!_cropStage || !_cropStage._imgArea || !_cropFrame) return;
+  const area = _cropStage._imgArea;
+  _cropFrame.style.left = area.x + 'px';
+  _cropFrame.style.top = area.y + 'px';
+  _cropFrame.style.width = area.w + 'px';
+  _cropFrame.style.height = area.h + 'px';
+  toast('✓ 已選取整張照片');
+}
+
 function initCropFrame(ratio) {
-  // 取得圖片實際顯示區域
+  // 取得圖片實際 DOM 位置（更可靠）
   const stageRect = _cropStage.getBoundingClientRect();
+  const imgRect = _cropImg.getBoundingClientRect();
+  
+  // 用實際渲染位置（相對於 stage）
+  const imgX = imgRect.left - stageRect.left;
+  const imgY = imgRect.top - stageRect.top;
+  const imgW = imgRect.width;
+  const imgH = imgRect.height;
+  
+  // 儲存圖片實際區域
+  _cropStage._imgArea = { x: imgX, y: imgY, w: imgW, h: imgH };
   
   // 載入之前儲存的裁剪資訊
   const s = getPhotoSettings();
   const saved = s[_cropKey] && s[_cropKey].crop;
   
-  // 計算圖片在 stage 中的實際位置（因為 object-fit:contain）
-  const imgNaturalRatio = _cropImg.naturalWidth / _cropImg.naturalHeight;
-  const stageRatio = stageRect.width / stageRect.height;
-  
-  let imgW, imgH, imgX, imgY;
-  if (imgNaturalRatio > stageRatio) {
-    imgW = stageRect.width;
-    imgH = stageRect.width / imgNaturalRatio;
-    imgX = 0;
-    imgY = (stageRect.height - imgH) / 2;
-  } else {
-    imgH = stageRect.height;
-    imgW = stageRect.height * imgNaturalRatio;
-    imgX = (stageRect.width - imgW) / 2;
-    imgY = 0;
-  }
-  
-  // 儲存圖片實際區域（給後續計算用）
-  _cropStage._imgArea = { x: imgX, y: imgY, w: imgW, h: imgH };
-  
   let frameW, frameH, frameX, frameY;
-  if (saved && saved.x !== undefined) {
+  if (saved && saved.x !== undefined && saved.w > 0.05) {
     // 套用儲存的位置
     frameW = saved.w * imgW;
     frameH = saved.h * imgH;
     frameX = imgX + saved.x * imgW;
     frameY = imgY + saved.y * imgH;
   } else {
-    // 預設：裁剪框 = 整張照片（顯示完整內容）
+    // 預設：裁剪框 = 整張照片（100% 完整顯示）
     frameW = imgW;
     frameH = imgH;
     frameX = imgX;
@@ -3479,6 +3480,7 @@ function initCropFrame(ratio) {
   _cropFrame.style.top = frameY + 'px';
   _cropFrame.style.width = frameW + 'px';
   _cropFrame.style.height = frameH + 'px';
+}
 }
 
 function setupCropDrag() {
@@ -4525,9 +4527,10 @@ console.log('🔥 Firebase 整合完成 — 勛凱 & 恩懿 婚禮喜帖');
         <div class="crop-handle br" data-corner="br"></div>
       </div>
     </div>
-    <div class="crop-hint-bar">👆 拖動裁剪框移動 · 拖角縮放</div>
-    <div class="crop-actions">
+    <div class="crop-hint-bar">👆 拖動裁剪框移動 · 拖角縮放 · 點下方按鈕可選全部</div>
+    <div class="crop-actions" style="display:flex;gap:8px;">
       <button class="crop-act-btn cancel" onclick="closeCrop()">取消</button>
+      <button class="crop-act-btn" style="background:rgba(91,143,212,.15);color:#3e6fb3;border:1.5px solid rgba(91,143,212,.4);" onclick="cropSelectAll()">📐 選全部</button>
       <button class="crop-act-btn confirm" onclick="applyCrop()">套用裁剪</button>
     </div>
   </div>
