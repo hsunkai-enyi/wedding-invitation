@@ -835,6 +835,295 @@ select.m-field{appearance:none;-webkit-appearance:none;background-image:url("dat
 .upload-hint-icon{font-size:26px;margin-bottom:4px;}
 .upload-hint-lbl{font-size:11px;letter-spacing:2px;color:#9a6655;font-weight:500;}
 
+
+
+@media(max-width:760px){
+  .hero-photo-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .photo-grid { grid-template-columns: 1fr !important; }
+}
+.photo-slot {
+  position: relative !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  aspect-ratio: 1/1 !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  border-radius: 12px !important;
+  background: #f5ede5 !important;
+  border: 2px solid rgba(249,180,150,.3) !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+.photo-hero-slot, .photo-wide-slot {
+  grid-column: span 2 !important;
+  aspect-ratio: 2/1 !important;
+}
+.photo-slot-img-wrap {
+  position: relative !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  flex: 1 !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  border-radius: 10px !important;
+}
+.photo-slot-img-wrap img,
+.photo-slot img {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  display: block !important;
+  box-sizing: border-box !important;
+}
+.photo-focus-bar, .photo-fit-bar {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  flex-shrink: 0 !important;
+  display: flex !important;
+  gap: 4px !important;
+  padding: 4px !important;
+  box-sizing: border-box !important;
+}
+.focus-btn, .fit-btn {
+  flex: 1 !important;
+  min-width: 0 !important;
+  padding: 4px 2px !important;
+  font-size: 10px !important;
+  border: 1px solid rgba(249,180,150,.3) !important;
+  background: white !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  color: #9a6655 !important;
+}
+.focus-btn.active { background: linear-gradient(135deg,#f97b5a,#d05030) !important; color: white !important; border-color: #f97b5a !important; }
+.fit-btn.active { background: linear-gradient(135deg,#5b8fd4,#3e6fb3) !important; color: white !important; border-color: #5b8fd4 !important; }
+.photo-pos-badge {
+  position: absolute !important;
+  top: 8px !important;
+  left: 8px !important;
+  background: white !important;
+  color: #d05030 !important;
+  padding: 3px 8px !important;
+  border-radius: 50px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  z-index: 5 !important;
+  pointer-events: none !important;
+}
+.upload-hint {
+  position: absolute !important;
+  inset: 0 !important;
+  background: rgba(255,248,243,0.95) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  z-index: 10 !important;
+}
+.upload-hint-icon { font-size: 28px !important; margin-bottom: 4px !important; }
+.upload-hint-lbl { font-size: 11px !important; color: #9a6655 !important; }
+.drag-hint {
+  position: absolute !important;
+  bottom: 4px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background: rgba(249,123,90,.85) !important;
+  color: white !important;
+  font-size: 9px !important;
+  padding: 2px 8px !important;
+  border-radius: 50px !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  transition: opacity .2s !important;
+  z-index: 6 !important;
+  white-space: nowrap !important;
+}
+.photo-slot:hover .drag-hint { opacity: 1 !important; }
+
+
+
+
+/* ═══ 照片裁剪框系統（最終版）═══ */
+.photo-slot {
+  position: relative !important;
+  width: 100% !important;
+  aspect-ratio: 1/1 !important;
+  overflow: visible !important;
+  border-radius: 12px !important;
+  background: #f5ede5 !important;
+  border: 2px solid rgba(249,180,150,.3) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+}
+.photo-hero-slot, .photo-wide-slot { grid-column: span 2 !important; aspect-ratio: 2/1 !important; }
+
+/* 編輯模式按鈕區 */
+.crop-toolbar {
+  display: flex; gap: 4px; padding: 6px; flex-shrink: 0;
+  background: rgba(255,248,243,.95);
+  border-radius: 0 0 10px 10px;
+  border-top: 1px solid rgba(249,180,150,.2);
+}
+.crop-btn {
+  flex: 1; padding: 6px 4px; font-size: 10px;
+  border: 1px solid rgba(249,180,150,.3); background: white;
+  border-radius: 6px; cursor: pointer; color: #9a6655;
+  font-family: var(--font-sans); letter-spacing: 1px;
+  display: flex; align-items: center; justify-content: center; gap: 3px;
+}
+.crop-btn:hover { background: #fff8f3; border-color: var(--peach); }
+.crop-btn.primary { background: linear-gradient(135deg,#f97b5a,#d05030); color: white; border-color: #f97b5a; }
+.crop-btn.danger { color: #c44; }
+
+.photo-slot-img-wrap {
+  position: relative !important;
+  width: 100% !important;
+  flex: 1 !important;
+  overflow: hidden !important;
+  border-radius: 10px 10px 0 0;
+}
+.photo-slot-img-wrap img {
+  position: absolute !important;
+  top: 0 !important; left: 0 !important;
+  width: 100% !important; height: 100% !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  display: block !important;
+  user-select: none !important;
+  -webkit-user-drag: none !important;
+}
+
+/* ═══ 裁剪模式覆蓋層 ═══ */
+.crop-overlay {
+  position: fixed; inset: 0;
+  background: rgba(20,8,4,.92);
+  z-index: 9999;
+  display: none;
+  align-items: center; justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+.crop-overlay.active { display: flex; }
+.crop-modal {
+  background: var(--cream);
+  border-radius: 16px;
+  padding: 16px;
+  max-width: 600px; width: 100%;
+  max-height: 95vh;
+  display: flex; flex-direction: column;
+  gap: 12px;
+}
+.crop-modal-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(249,180,150,.2);
+}
+.crop-modal-title { font-size: 14px; color: var(--ink); font-weight: 600; letter-spacing: 2px; }
+.crop-modal-close {
+  width: 32px; height: 32px; border: none; background: rgba(154,102,85,.15);
+  color: #6b3a20; border-radius: 50%; font-size: 18px; cursor: pointer;
+}
+
+/* 裁剪畫布 */
+.crop-stage {
+  position: relative;
+  background: #000;
+  border-radius: 10px;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  width: 100%;
+  flex: 1;
+  min-height: 250px;
+  max-height: calc(95vh - 200px);
+}
+.crop-stage img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+/* 裁剪框 */
+.crop-frame {
+  position: absolute;
+  border: 2px solid white;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,.55);
+  cursor: move;
+  touch-action: none;
+}
+.crop-frame::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(255,255,255,.3);
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, transparent 33.33%, rgba(255,255,255,.3) 33.33%, rgba(255,255,255,.3) 33.66%, transparent 33.66%, transparent 66.66%, rgba(255,255,255,.3) 66.66%, rgba(255,255,255,.3) 67%, transparent 67%),
+    linear-gradient(to bottom, transparent 33.33%, rgba(255,255,255,.3) 33.33%, rgba(255,255,255,.3) 33.66%, transparent 33.66%, transparent 66.66%, rgba(255,255,255,.3) 66.66%, rgba(255,255,255,.3) 67%, transparent 67%);
+}
+/* 四個角的拖動把手 */
+.crop-handle {
+  position: absolute;
+  width: 18px; height: 18px;
+  background: white;
+  border: 2px solid #f97b5a;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0,0,0,.3);
+  touch-action: none;
+}
+.crop-handle.tl { top: -9px; left: -9px; cursor: nwse-resize; }
+.crop-handle.tr { top: -9px; right: -9px; cursor: nesw-resize; }
+.crop-handle.bl { bottom: -9px; left: -9px; cursor: nesw-resize; }
+.crop-handle.br { bottom: -9px; right: -9px; cursor: nwse-resize; }
+
+/* 底部操作列 */
+.crop-actions {
+  display: flex; gap: 8px; padding-top: 8px;
+}
+.crop-act-btn {
+  flex: 1; padding: 12px;
+  border: none; border-radius: 50px;
+  font-size: 13px; font-weight: 500; letter-spacing: 3px;
+  font-family: var(--font-sans); cursor: pointer;
+}
+.crop-act-btn.cancel { background: rgba(154,102,85,.15); color: #6b3a20; }
+.crop-act-btn.confirm { background: linear-gradient(135deg,#f97b5a,#d05030); color: white; box-shadow: 0 4px 12px rgba(220,80,40,.3); }
+.crop-hint-bar {
+  font-size: 11px; color: #9a6655; text-align: center;
+  letter-spacing: 2px; padding: 4px 0;
+}
+
+.upload-hint {
+  position: absolute !important; inset: 0 !important;
+  background: rgba(255,248,243,.95) !important;
+  display: flex !important; flex-direction: column !important;
+  align-items: center !important; justify-content: center !important;
+  cursor: pointer !important; z-index: 20 !important;
+  border-radius: 10px 10px 0 0;
+}
+.upload-hint-icon { font-size: 28px; margin-bottom: 4px; }
+.upload-hint-lbl { font-size: 11px; color: #9a6655; letter-spacing: 2px; }
+.photo-pos-badge {
+  position: absolute !important; top: 8px !important; left: 8px !important;
+  background: white !important; color: #d05030 !important;
+  padding: 3px 8px !important; border-radius: 50px !important;
+  font-size: 10px !important; font-weight: 600 !important;
+  z-index: 6 !important; pointer-events: none !important;
+}
+
+/* 隱藏舊的 zoom-bar 和 photo-tip-bar */
+.zoom-bar, .photo-tip-bar, .photo-focus-bar, .photo-fit-bar { display: none !important; }
+
 </style>
 </head>
 <body>
@@ -1178,57 +1467,69 @@ select.m-field{appearance:none;-webkit-appearance:none;background-image:url("dat
             </div>
 
             <div class="hero-photo-grid">
-<div class="photo-slot photo-square">
+<div class="photo-slot">
                 <div class="photo-slot-img-wrap" id="wrap-h_kiss">
-                  <img id="prev-h_kiss" alt="Hero 第 1 張" onmousedown="startDrag(event,'h_kiss')" ontouchstart="startDrag(event,'h_kiss')"/>
+                  <img id="prev-h_kiss" alt="Hero 第 1 張" draggable="false"/>
                   <div class="upload-hint" id="uhint-h_kiss" onclick="document.getElementById('upload-h_kiss').click()">
-                    <div class="upload-hint-icon">📷</div><div class="upload-hint-lbl">點擊上傳</div>
+                    <div class="upload-hint-icon">📷</div>
+                    <div class="upload-hint-lbl">點擊上傳</div>
                   </div>
-                  <div class="drag-hint">✥ 拖動調整</div>
                 </div>
                 <input type="file" id="upload-h_kiss" accept="image/*" style="display:none;" onchange="uploadPhoto('h_kiss',this)"/>
                 <div class="photo-pos-badge">① Hero</div>
-                <div class="photo-focus-bar"><button class="focus-btn" onclick="setPhotoFocus('h_kiss','top')" id="fb-h_kiss-top">上</button><button class="focus-btn" onclick="setPhotoFocus('h_kiss','center')" id="fb-h_kiss-center">中</button><button class="focus-btn" onclick="setPhotoFocus('h_kiss','bottom')" id="fb-h_kiss-bottom">下</button><button class="focus-btn" onclick="setPhotoFocus('h_kiss','left')" id="fb-h_kiss-left">左</button><button class="focus-btn" onclick="setPhotoFocus('h_kiss','right')" id="fb-h_kiss-right">右</button></div>
-                <div class="photo-fit-bar"><button class="fit-btn" onclick="setPhotoFit('h_kiss','cover')" id="ff-h_kiss-cover">填滿</button><button class="fit-btn" onclick="setPhotoFit('h_kiss','contain')" id="ff-h_kiss-contain">完整</button></div>
+                <div class="crop-toolbar">
+                  <button class="crop-btn primary" onclick="openCrop('h_kiss')">✂️ 裁剪</button>
+                  <button class="crop-btn" onclick="document.getElementById('upload-h_kiss').click()">↻ 更換</button>
+                  <button class="crop-btn" onclick="resetCrop('h_kiss')">重置</button>
+                </div>
               </div>
-<div class="photo-slot photo-square">
+<div class="photo-slot">
                 <div class="photo-slot-img-wrap" id="wrap-h_fun">
-                  <img id="prev-h_fun" alt="Hero 第 2 張" onmousedown="startDrag(event,'h_fun')" ontouchstart="startDrag(event,'h_fun')"/>
+                  <img id="prev-h_fun" alt="Hero 第 2 張" draggable="false"/>
                   <div class="upload-hint" id="uhint-h_fun" onclick="document.getElementById('upload-h_fun').click()">
-                    <div class="upload-hint-icon">📷</div><div class="upload-hint-lbl">點擊上傳</div>
+                    <div class="upload-hint-icon">📷</div>
+                    <div class="upload-hint-lbl">點擊上傳</div>
                   </div>
-                  <div class="drag-hint">✥ 拖動調整</div>
                 </div>
                 <input type="file" id="upload-h_fun" accept="image/*" style="display:none;" onchange="uploadPhoto('h_fun',this)"/>
                 <div class="photo-pos-badge">② Hero</div>
-                <div class="photo-focus-bar"><button class="focus-btn" onclick="setPhotoFocus('h_fun','top')" id="fb-h_fun-top">上</button><button class="focus-btn" onclick="setPhotoFocus('h_fun','center')" id="fb-h_fun-center">中</button><button class="focus-btn" onclick="setPhotoFocus('h_fun','bottom')" id="fb-h_fun-bottom">下</button><button class="focus-btn" onclick="setPhotoFocus('h_fun','left')" id="fb-h_fun-left">左</button><button class="focus-btn" onclick="setPhotoFocus('h_fun','right')" id="fb-h_fun-right">右</button></div>
-                <div class="photo-fit-bar"><button class="fit-btn" onclick="setPhotoFit('h_fun','cover')" id="ff-h_fun-cover">填滿</button><button class="fit-btn" onclick="setPhotoFit('h_fun','contain')" id="ff-h_fun-contain">完整</button></div>
+                <div class="crop-toolbar">
+                  <button class="crop-btn primary" onclick="openCrop('h_fun')">✂️ 裁剪</button>
+                  <button class="crop-btn" onclick="document.getElementById('upload-h_fun').click()">↻ 更換</button>
+                  <button class="crop-btn" onclick="resetCrop('h_fun')">重置</button>
+                </div>
               </div>
-<div class="photo-slot photo-square">
+<div class="photo-slot">
                 <div class="photo-slot-img-wrap" id="wrap-h_full">
-                  <img id="prev-h_full" alt="Hero 第 3 張" onmousedown="startDrag(event,'h_full')" ontouchstart="startDrag(event,'h_full')"/>
+                  <img id="prev-h_full" alt="Hero 第 3 張" draggable="false"/>
                   <div class="upload-hint" id="uhint-h_full" onclick="document.getElementById('upload-h_full').click()">
-                    <div class="upload-hint-icon">📷</div><div class="upload-hint-lbl">點擊上傳</div>
+                    <div class="upload-hint-icon">📷</div>
+                    <div class="upload-hint-lbl">點擊上傳</div>
                   </div>
-                  <div class="drag-hint">✥ 拖動調整</div>
                 </div>
                 <input type="file" id="upload-h_full" accept="image/*" style="display:none;" onchange="uploadPhoto('h_full',this)"/>
                 <div class="photo-pos-badge">③ Hero</div>
-                <div class="photo-focus-bar"><button class="focus-btn" onclick="setPhotoFocus('h_full','top')" id="fb-h_full-top">上</button><button class="focus-btn" onclick="setPhotoFocus('h_full','center')" id="fb-h_full-center">中</button><button class="focus-btn" onclick="setPhotoFocus('h_full','bottom')" id="fb-h_full-bottom">下</button><button class="focus-btn" onclick="setPhotoFocus('h_full','left')" id="fb-h_full-left">左</button><button class="focus-btn" onclick="setPhotoFocus('h_full','right')" id="fb-h_full-right">右</button></div>
-                <div class="photo-fit-bar"><button class="fit-btn" onclick="setPhotoFit('h_full','cover')" id="ff-h_full-cover">填滿</button><button class="fit-btn" onclick="setPhotoFit('h_full','contain')" id="ff-h_full-contain">完整</button></div>
+                <div class="crop-toolbar">
+                  <button class="crop-btn primary" onclick="openCrop('h_full')">✂️ 裁剪</button>
+                  <button class="crop-btn" onclick="document.getElementById('upload-h_full').click()">↻ 更換</button>
+                  <button class="crop-btn" onclick="resetCrop('h_full')">重置</button>
+                </div>
               </div>
-<div class="photo-slot photo-square">
+<div class="photo-slot">
                 <div class="photo-slot-img-wrap" id="wrap-h_close">
-                  <img id="prev-h_close" alt="Hero 第 4 張" onmousedown="startDrag(event,'h_close')" ontouchstart="startDrag(event,'h_close')"/>
+                  <img id="prev-h_close" alt="Hero 第 4 張" draggable="false"/>
                   <div class="upload-hint" id="uhint-h_close" onclick="document.getElementById('upload-h_close').click()">
-                    <div class="upload-hint-icon">📷</div><div class="upload-hint-lbl">點擊上傳</div>
+                    <div class="upload-hint-icon">📷</div>
+                    <div class="upload-hint-lbl">點擊上傳</div>
                   </div>
-                  <div class="drag-hint">✥ 拖動調整</div>
                 </div>
                 <input type="file" id="upload-h_close" accept="image/*" style="display:none;" onchange="uploadPhoto('h_close',this)"/>
                 <div class="photo-pos-badge">④ Hero</div>
-                <div class="photo-focus-bar"><button class="focus-btn" onclick="setPhotoFocus('h_close','top')" id="fb-h_close-top">上</button><button class="focus-btn" onclick="setPhotoFocus('h_close','center')" id="fb-h_close-center">中</button><button class="focus-btn" onclick="setPhotoFocus('h_close','bottom')" id="fb-h_close-bottom">下</button><button class="focus-btn" onclick="setPhotoFocus('h_close','left')" id="fb-h_close-left">左</button><button class="focus-btn" onclick="setPhotoFocus('h_close','right')" id="fb-h_close-right">右</button></div>
-                <div class="photo-fit-bar"><button class="fit-btn" onclick="setPhotoFit('h_close','cover')" id="ff-h_close-cover">填滿</button><button class="fit-btn" onclick="setPhotoFit('h_close','contain')" id="ff-h_close-contain">完整</button></div>
+                <div class="crop-toolbar">
+                  <button class="crop-btn primary" onclick="openCrop('h_close')">✂️ 裁剪</button>
+                  <button class="crop-btn" onclick="document.getElementById('upload-h_close').click()">↻ 更換</button>
+                  <button class="crop-btn" onclick="resetCrop('h_close')">重置</button>
+                </div>
               </div>
             </div>
           </div>
@@ -1246,55 +1547,67 @@ select.m-field{appearance:none;-webkit-appearance:none;background-image:url("dat
             <div class="photo-grid">
 <div class="photo-slot photo-hero-slot">
                 <div class="photo-slot-img-wrap" id="wrap-b_kiss">
-                  <img id="prev-b_kiss" alt="主視覺照片" onmousedown="startDrag(event,'b_kiss')" ontouchstart="startDrag(event,'b_kiss')"/>
+                  <img id="prev-b_kiss" alt="主視覺照片" draggable="false"/>
                   <div class="upload-hint" id="uhint-b_kiss" onclick="document.getElementById('upload-b_kiss').click()">
-                    <div class="upload-hint-icon">📷</div><div class="upload-hint-lbl">點擊上傳</div>
+                    <div class="upload-hint-icon">📷</div>
+                    <div class="upload-hint-lbl">點擊上傳</div>
                   </div>
-                  <div class="drag-hint">✥ 拖動調整</div>
                 </div>
                 <input type="file" id="upload-b_kiss" accept="image/*" style="display:none;" onchange="uploadPhoto('b_kiss',this)"/>
                 <div class="photo-pos-badge">① 主視覺</div>
-                <div class="photo-focus-bar"><button class="focus-btn" onclick="setPhotoFocus('b_kiss','top')" id="fb-b_kiss-top">上</button><button class="focus-btn" onclick="setPhotoFocus('b_kiss','center')" id="fb-b_kiss-center">中</button><button class="focus-btn" onclick="setPhotoFocus('b_kiss','bottom')" id="fb-b_kiss-bottom">下</button><button class="focus-btn" onclick="setPhotoFocus('b_kiss','left')" id="fb-b_kiss-left">左</button><button class="focus-btn" onclick="setPhotoFocus('b_kiss','right')" id="fb-b_kiss-right">右</button></div>
-                <div class="photo-fit-bar"><button class="fit-btn" onclick="setPhotoFit('b_kiss','cover')" id="ff-b_kiss-cover">填滿</button><button class="fit-btn" onclick="setPhotoFit('b_kiss','contain')" id="ff-b_kiss-contain">完整</button></div>
+                <div class="crop-toolbar">
+                  <button class="crop-btn primary" onclick="openCrop('b_kiss')">✂️ 裁剪</button>
+                  <button class="crop-btn" onclick="document.getElementById('upload-b_kiss').click()">↻ 更換</button>
+                  <button class="crop-btn" onclick="resetCrop('b_kiss')">重置</button>
+                </div>
               </div>
 <div class="photo-slot">
                 <div class="photo-slot-img-wrap" id="wrap-b_fun">
-                  <img id="prev-b_fun" alt="右上方圖" onmousedown="startDrag(event,'b_fun')" ontouchstart="startDrag(event,'b_fun')"/>
+                  <img id="prev-b_fun" alt="右上方圖" draggable="false"/>
                   <div class="upload-hint" id="uhint-b_fun" onclick="document.getElementById('upload-b_fun').click()">
-                    <div class="upload-hint-icon">📷</div><div class="upload-hint-lbl">點擊上傳</div>
+                    <div class="upload-hint-icon">📷</div>
+                    <div class="upload-hint-lbl">點擊上傳</div>
                   </div>
-                  <div class="drag-hint">✥ 拖動調整</div>
                 </div>
                 <input type="file" id="upload-b_fun" accept="image/*" style="display:none;" onchange="uploadPhoto('b_fun',this)"/>
                 <div class="photo-pos-badge">② 右上</div>
-                <div class="photo-focus-bar"><button class="focus-btn" onclick="setPhotoFocus('b_fun','top')" id="fb-b_fun-top">上</button><button class="focus-btn" onclick="setPhotoFocus('b_fun','center')" id="fb-b_fun-center">中</button><button class="focus-btn" onclick="setPhotoFocus('b_fun','bottom')" id="fb-b_fun-bottom">下</button><button class="focus-btn" onclick="setPhotoFocus('b_fun','left')" id="fb-b_fun-left">左</button><button class="focus-btn" onclick="setPhotoFocus('b_fun','right')" id="fb-b_fun-right">右</button></div>
-                <div class="photo-fit-bar"><button class="fit-btn" onclick="setPhotoFit('b_fun','cover')" id="ff-b_fun-cover">填滿</button><button class="fit-btn" onclick="setPhotoFit('b_fun','contain')" id="ff-b_fun-contain">完整</button></div>
+                <div class="crop-toolbar">
+                  <button class="crop-btn primary" onclick="openCrop('b_fun')">✂️ 裁剪</button>
+                  <button class="crop-btn" onclick="document.getElementById('upload-b_fun').click()">↻ 更換</button>
+                  <button class="crop-btn" onclick="resetCrop('b_fun')">重置</button>
+                </div>
               </div>
 <div class="photo-slot">
                 <div class="photo-slot-img-wrap" id="wrap-b_full">
-                  <img id="prev-b_full" alt="右下方圖" onmousedown="startDrag(event,'b_full')" ontouchstart="startDrag(event,'b_full')"/>
+                  <img id="prev-b_full" alt="右下方圖" draggable="false"/>
                   <div class="upload-hint" id="uhint-b_full" onclick="document.getElementById('upload-b_full').click()">
-                    <div class="upload-hint-icon">📷</div><div class="upload-hint-lbl">點擊上傳</div>
+                    <div class="upload-hint-icon">📷</div>
+                    <div class="upload-hint-lbl">點擊上傳</div>
                   </div>
-                  <div class="drag-hint">✥ 拖動調整</div>
                 </div>
                 <input type="file" id="upload-b_full" accept="image/*" style="display:none;" onchange="uploadPhoto('b_full',this)"/>
                 <div class="photo-pos-badge">③ 右下</div>
-                <div class="photo-focus-bar"><button class="focus-btn" onclick="setPhotoFocus('b_full','top')" id="fb-b_full-top">上</button><button class="focus-btn" onclick="setPhotoFocus('b_full','center')" id="fb-b_full-center">中</button><button class="focus-btn" onclick="setPhotoFocus('b_full','bottom')" id="fb-b_full-bottom">下</button><button class="focus-btn" onclick="setPhotoFocus('b_full','left')" id="fb-b_full-left">左</button><button class="focus-btn" onclick="setPhotoFocus('b_full','right')" id="fb-b_full-right">右</button></div>
-                <div class="photo-fit-bar"><button class="fit-btn" onclick="setPhotoFit('b_full','cover')" id="ff-b_full-cover">填滿</button><button class="fit-btn" onclick="setPhotoFit('b_full','contain')" id="ff-b_full-contain">完整</button></div>
+                <div class="crop-toolbar">
+                  <button class="crop-btn primary" onclick="openCrop('b_full')">✂️ 裁剪</button>
+                  <button class="crop-btn" onclick="document.getElementById('upload-b_full').click()">↻ 更換</button>
+                  <button class="crop-btn" onclick="resetCrop('b_full')">重置</button>
+                </div>
               </div>
 <div class="photo-slot photo-wide-slot">
                 <div class="photo-slot-img-wrap" id="wrap-b_close">
-                  <img id="prev-b_close" alt="底部全寬照片" onmousedown="startDrag(event,'b_close')" ontouchstart="startDrag(event,'b_close')"/>
+                  <img id="prev-b_close" alt="底部全寬照片" draggable="false"/>
                   <div class="upload-hint" id="uhint-b_close" onclick="document.getElementById('upload-b_close').click()">
-                    <div class="upload-hint-icon">📷</div><div class="upload-hint-lbl">點擊上傳</div>
+                    <div class="upload-hint-icon">📷</div>
+                    <div class="upload-hint-lbl">點擊上傳</div>
                   </div>
-                  <div class="drag-hint">✥ 拖動調整</div>
                 </div>
                 <input type="file" id="upload-b_close" accept="image/*" style="display:none;" onchange="uploadPhoto('b_close',this)"/>
                 <div class="photo-pos-badge">④ 底部全寬</div>
-                <div class="photo-focus-bar"><button class="focus-btn" onclick="setPhotoFocus('b_close','top')" id="fb-b_close-top">上</button><button class="focus-btn" onclick="setPhotoFocus('b_close','center')" id="fb-b_close-center">中</button><button class="focus-btn" onclick="setPhotoFocus('b_close','bottom')" id="fb-b_close-bottom">下</button><button class="focus-btn" onclick="setPhotoFocus('b_close','left')" id="fb-b_close-left">左</button><button class="focus-btn" onclick="setPhotoFocus('b_close','right')" id="fb-b_close-right">右</button></div>
-                <div class="photo-fit-bar"><button class="fit-btn" onclick="setPhotoFit('b_close','cover')" id="ff-b_close-cover">填滿</button><button class="fit-btn" onclick="setPhotoFit('b_close','contain')" id="ff-b_close-contain">完整</button></div>
+                <div class="crop-toolbar">
+                  <button class="crop-btn primary" onclick="openCrop('b_close')">✂️ 裁剪</button>
+                  <button class="crop-btn" onclick="document.getElementById('upload-b_close').click()">↻ 更換</button>
+                  <button class="crop-btn" onclick="resetCrop('b_close')">重置</button>
+                </div>
               </div>
             </div>
           </div>
@@ -2127,21 +2440,16 @@ function uploadPhoto(key, input){
       const ok = savePhoto(key, dataUrl);
       if(ok) {
         IMGS[key] = dataUrl;
-        const prev = document.getElementById(`prev-${key}`);
-        if(prev){
-          prev.src = dataUrl;
-          prev.classList.remove('no-photo');
-          // 重置偏移
-          prev.style.top = '-25%';
-          prev.style.left = '-25%';
-        }
-        // 隱藏上傳提示，顯示拖動提示
-        const uhint = document.getElementById(`uhint-${key}`);
+        const prev = document.getElementById('prev-'+key);
+        if(prev){ prev.src = dataUrl; prev.classList.remove('no-photo'); }
+        const uhint = document.getElementById('uhint-'+key);
         if(uhint) uhint.style.display = 'none';
-        const dot = document.getElementById(`dot-${key}`);
-        if(dot){ dot.style.left='50%'; dot.style.top='50%'; dot.style.display='block'; }
+        const wrap = document.getElementById('wrap-'+key);
+        if(wrap) wrap.classList.remove('empty');
+        applyCropToImage(key);
         initImages();
-        toast(`✓ 照片已上傳！拖動照片調整顯示位置`);
+        applyCropToFrontend();
+        toast('✓ 照片已上傳！點「裁剪」調整顯示範圍');
       }
     };
     img.src = e.target.result;
@@ -2209,7 +2517,7 @@ function savePhoto(key, dataUrl){
   }
 }
 
-// ═══ 照片拖動定位系統（object-position 版）═══
+// ═══ 照片設定儲存 ═══
 const PHOTO_SETTINGS_KEY = 'hpy_photo_settings';
 
 function getPhotoSettings(){
@@ -2219,142 +2527,385 @@ function savePhotoSettings(s){
   try{ localStorage.setItem(PHOTO_SETTINGS_KEY, JSON.stringify(s)); }catch(e){}
 }
 
-let _drag = null;
-
-function startDrag(e, key){
-  const img = document.getElementById('prev-'+key);
-  if(!img || img.classList.contains('no-photo')) return;
-  e.preventDefault();
-  e.stopPropagation();
-
-  const isTouch = e.type === 'touchstart';
-  const startX = isTouch ? e.touches[0].clientX : e.clientX;
-  const startY = isTouch ? e.touches[0].clientY : e.clientY;
-
+// ═══ 照片編輯系統 v2（點擊設焦點 + 滑桿縮放）═══
+function onPhotoClick(e, key) {
+  const wrap = e.currentTarget;
+  const img = document.getElementById('prev-' + key);
+  if (!img || img.classList.contains('no-photo') || !img.src) return;
+  
+  const rect = wrap.getBoundingClientRect();
+  const x = ((e.clientX || (e.touches && e.touches[0].clientX) || 0) - rect.left) / rect.width * 100;
+  const y = ((e.clientY || (e.touches && e.touches[0].clientY) || 0) - rect.top) / rect.height * 100;
+  
+  const px = Math.max(0, Math.min(100, x));
+  const py = Math.max(0, Math.min(100, y));
+  
   const s = getPhotoSettings();
-  const cur = s[key] || {px:50, py:50};
-  const startPX = cur.px !== undefined ? cur.px : 50;
-  const startPY = cur.py !== undefined ? cur.py : 50;
-
-  img.style.cursor = 'grabbing';
-  _drag = {key, img, startX, startY, startPX, startPY};
-
-  const onMove = (ev) => {
-    if(!_drag) return;
-    ev.preventDefault();
-    const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
-    const cy = ev.touches ? ev.touches[0].clientY : ev.clientY;
-    const dx = (cx - _drag.startX) * 0.4;
-    const dy = (cy - _drag.startY) * 0.4;
-    const newPX = Math.max(0, Math.min(100, _drag.startPX - dx));
-    const newPY = Math.max(0, Math.min(100, _drag.startPY - dy));
-    _drag.img.style.objectPosition = `${newPX}% ${newPY}%`;
-    // 即時存
-    const ss = getPhotoSettings();
-    if(!ss[_drag.key]) ss[_drag.key] = {};
-    ss[_drag.key].px = newPX;
-    ss[_drag.key].py = newPY;
-    savePhotoSettings(ss);
-  };
-
-  const onEnd = () => {
-    if(!_drag) return;
-    _drag.img.style.cursor = 'grab';
-    applyPhotoSettingsToFrontend();
-    _drag = null;
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup', onEnd);
-    document.removeEventListener('touchmove', onMove);
-    document.removeEventListener('touchend', onEnd);
-    toast('✓ 照片位置已儲存');
-  };
-
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('mouseup', onEnd);
-  document.addEventListener('touchmove', onMove, {passive:false});
-  document.addEventListener('touchend', onEnd);
-}
-
-function applyImgOffset(key, px, py, save){
-  const img = document.getElementById('prev-'+key);
-  if(img) img.style.objectPosition = `${px}% ${py}%`;
-  if(save){
-    const s = getPhotoSettings();
-    if(!s[key]) s[key] = {};
-    s[key].px = px; s[key].py = py;
-    savePhotoSettings(s);
+  if (!s[key]) s[key] = {};
+  s[key].px = px; s[key].py = py;
+  savePhotoSettings(s);
+  
+  applyImgPosition(key);
+  applyPhotoSettingsToFrontend();
+  
+  // 顯示準星動畫
+  const cross = document.getElementById('cross-' + key);
+  if (cross) {
+    cross.style.left = px + '%';
+    cross.style.top = py + '%';
+    cross.classList.add('active');
+    setTimeout(() => cross.classList.remove('active'), 1200);
   }
 }
 
-function applyPhotoSettingsToFrontend(){
+function applyImgPosition(key) {
   const s = getPhotoSettings();
-  const map = {b_kiss:'pg0', b_fun:'pg1', b_full:'pg2', b_close:'pg3'};
-  const heroMap = {h_kiss:'hs0', h_fun:'hs1', h_full:'hs2', h_close:'hs3'};
-  Object.keys(map).forEach(key => {
-    const el = document.getElementById(map[key]);
-    if(!el || !s[key]) return;
-    const px = s[key].px !== undefined ? s[key].px : 50;
-    const py = s[key].py !== undefined ? s[key].py : 50;
-    el.style.backgroundPosition = `${px}% ${py}%`;
-    el.style.backgroundSize = s[key].fit === 'contain' ? 'contain' : 'cover';
-  });
-  Object.keys(heroMap).forEach(key => {
-    const el = document.getElementById(heroMap[key]);
-    if(!el || !s[key]) return;
-    const px = s[key].px !== undefined ? s[key].px : 50;
-    const py = s[key].py !== undefined ? s[key].py : 50;
-    el.style.backgroundPosition = `${px}% ${py}%`;
-  });
+  const setting = s[key] || {};
+  const img = document.getElementById('prev-' + key);
+  if (!img) return;
+  const px = setting.px !== undefined ? setting.px : 50;
+  const py = setting.py !== undefined ? setting.py : 50;
+  const zoom = setting.zoom || 100;
+  img.style.objectPosition = px + '% ' + py + '%';
+  img.style.transform = `scale(${zoom/100})`;
+  img.style.transformOrigin = px + '% ' + py + '%';
 }
 
-function loadPhotoSettingsUI(){
+function setPhotoZoom(key, value) {
   const s = getPhotoSettings();
-  const keys = ['h_kiss','h_fun','h_full','h_close','b_kiss','b_fun','b_full','b_close'];
-  keys.forEach(key => {
+  if (!s[key]) s[key] = {};
+  s[key].zoom = parseInt(value);
+  savePhotoSettings(s);
+  applyImgPosition(key);
+  applyPhotoSettingsToFrontend();
+  const lbl = document.getElementById('zoom-val-' + key);
+  if (lbl) lbl.textContent = value + '%';
+}
+
+function resetPhotoEdit(key) {
+  const s = getPhotoSettings();
+  if (!s[key]) s[key] = {};
+  s[key].px = 50; s[key].py = 50; s[key].zoom = 100;
+  savePhotoSettings(s);
+  applyImgPosition(key);
+  applyPhotoSettingsToFrontend();
+  const range = document.getElementById('zoom-' + key);
+  if (range) range.value = 100;
+  const lbl = document.getElementById('zoom-val-' + key);
+  if (lbl) lbl.textContent = '100%';
+  toast('✓ 已重置');
+}
+
+function loadPhotoEditUI() {
+  const s = getPhotoSettings();
+  ['h_kiss','h_fun','h_full','h_close','b_kiss','b_fun','b_full','b_close'].forEach(key => {
     const setting = s[key] || {};
-    const px = setting.px !== undefined ? setting.px : 50;
-    const py = setting.py !== undefined ? setting.py : 50;
-    applyImgOffset(key, px, py, false);
-    // 更新焦點/填滿按鈕
-    ['top','center','bottom','left','right'].forEach(p => {
-      const btn = document.getElementById(`fb-${key}-${p}`);
-      if(btn) btn.classList.toggle('active', p === (setting.position||'center'));
-    });
-    ['cover','contain'].forEach(m => {
-      const btn = document.getElementById(`ff-${key}-${m}`);
-      if(btn) btn.classList.toggle('active', m === (setting.fit||'cover'));
-    });
+    applyImgPosition(key);
+    const range = document.getElementById('zoom-' + key);
+    if (range) range.value = setting.zoom || 100;
+    const lbl = document.getElementById('zoom-val-' + key);
+    if (lbl) lbl.textContent = (setting.zoom || 100) + '%';
   });
 }
 
-function setPhotoFocus(key, pos){
-  const posMap = {top:[50,10], bottom:[50,90], left:[10,50], right:[90,50], center:[50,50]};
-  const [px, py] = posMap[pos] || [50,50];
+// 套用到前台
+function applyPhotoSettingsToFrontend() {
   const s = getPhotoSettings();
-  if(!s[key]) s[key] = {};
-  s[key].position = pos; s[key].px = px; s[key].py = py;
-  savePhotoSettings(s);
-  applyImgOffset(key, px, py, false);
-  applyPhotoSettingsToFrontend();
-  ['top','center','bottom','left','right'].forEach(p => {
-    const btn = document.getElementById(`fb-${key}-${p}`);
-    if(btn) btn.classList.toggle('active', p === pos);
+  const map = { b_kiss: 'pg0', b_fun: 'pg1', b_full: 'pg2', b_close: 'pg3' };
+  const heroMap = { h_kiss: 'hs0', h_fun: 'hs1', h_full: 'hs2', h_close: 'hs3' };
+  
+  [...Object.entries(map), ...Object.entries(heroMap)].forEach(([key, id]) => {
+    const el = document.getElementById(id);
+    if (!el || !s[key]) return;
+    const px = s[key].px !== undefined ? s[key].px : 50;
+    const py = s[key].py !== undefined ? s[key].py : 50;
+    const zoom = s[key].zoom || 100;
+    el.style.backgroundPosition = px + '% ' + py + '%';
+    el.style.backgroundSize = (zoom > 100 ? zoom : 100) + '% auto';
+    if (zoom < 100) el.style.backgroundSize = 'contain';
   });
-  toast(`✓ 焦點已設為「${pos==='top'?'上':pos==='bottom'?'下':pos==='left'?'左':pos==='right'?'右':'中'}」`);
 }
 
-function setPhotoFit(key, mode){
-  const s = getPhotoSettings();
-  if(!s[key]) s[key] = {};
-  s[key].fit = mode;
-  savePhotoSettings(s);
-  applyPhotoSettingsToFrontend();
-  ['cover','contain'].forEach(m => {
-    const btn = document.getElementById(`ff-${key}-${m}`);
-    if(btn) btn.classList.toggle('active', m === mode);
-  });
-  toast(`✓ 顯示方式：${mode==='cover'?'填滿':'完整'}`);
+
+
+// ═══ 裁剪框系統 ═══
+let _cropKey = null;
+let _cropImg = null;
+let _cropFrame = null;
+let _cropStage = null;
+
+function openCrop(key) {
+  const src = IMGS[key];
+  if (!src) { toast('請先上傳照片'); return; }
+  
+  _cropKey = key;
+  _cropImg = document.getElementById('crop-img');
+  _cropFrame = document.getElementById('crop-frame');
+  _cropStage = document.getElementById('crop-stage');
+  
+  _cropImg.src = src;
+  
+  _cropImg.onload = () => {
+    // 根據 slot 類型決定裁剪比例
+    const isHero = key.startsWith('h_') || key === 'b_kiss';
+    const isWide = key === 'b_close';
+    const ratio = isWide ? 21/9 : (isHero ? 1 : 1);
+    
+    initCropFrame(ratio);
+    setupCropDrag();
+  };
+  
+  document.getElementById('crop-overlay').classList.add('active');
 }
+
+function closeCrop() {
+  document.getElementById('crop-overlay').classList.remove('active');
+  _cropKey = null;
+}
+
+function initCropFrame(ratio) {
+  // 取得圖片實際顯示區域
+  const stageRect = _cropStage.getBoundingClientRect();
+  const imgRect = _cropImg.getBoundingClientRect();
+  
+  // 載入之前儲存的裁剪資訊
+  const s = getPhotoSettings();
+  const saved = s[_cropKey] && s[_cropKey].crop;
+  
+  // 計算圖片在 stage 中的實際位置（因為 object-fit:contain）
+  const imgNaturalRatio = _cropImg.naturalWidth / _cropImg.naturalHeight;
+  const stageRatio = stageRect.width / stageRect.height;
+  
+  let imgW, imgH, imgX, imgY;
+  if (imgNaturalRatio > stageRatio) {
+    imgW = stageRect.width;
+    imgH = stageRect.width / imgNaturalRatio;
+    imgX = 0;
+    imgY = (stageRect.height - imgH) / 2;
+  } else {
+    imgH = stageRect.height;
+    imgW = stageRect.height * imgNaturalRatio;
+    imgX = (stageRect.width - imgW) / 2;
+    imgY = 0;
+  }
+  
+  // 儲存圖片實際區域（給後續計算用）
+  _cropStage._imgArea = { x: imgX, y: imgY, w: imgW, h: imgH };
+  
+  let frameW, frameH, frameX, frameY;
+  if (saved && saved.x !== undefined) {
+    // 套用儲存的位置
+    frameW = saved.w * imgW;
+    frameH = saved.h * imgH;
+    frameX = imgX + saved.x * imgW;
+    frameY = imgY + saved.y * imgH;
+  } else {
+    // 預設置中 80%
+    const ratioFit = ratio || (imgW / imgH);
+    frameW = imgW * 0.8;
+    frameH = frameW / ratioFit;
+    if (frameH > imgH * 0.8) {
+      frameH = imgH * 0.8;
+      frameW = frameH * ratioFit;
+    }
+    frameX = imgX + (imgW - frameW) / 2;
+    frameY = imgY + (imgH - frameH) / 2;
+  }
+  
+  _cropFrame.style.left = frameX + 'px';
+  _cropFrame.style.top = frameY + 'px';
+  _cropFrame.style.width = frameW + 'px';
+  _cropFrame.style.height = frameH + 'px';
+}
+
+function setupCropDrag() {
+  // 移除舊的事件
+  _cropFrame.onmousedown = null;
+  _cropFrame.ontouchstart = null;
+  
+  // 拖動框
+  const startDrag = (e) => {
+    if (e.target.classList.contains('crop-handle')) return; // 把手不處理
+    e.preventDefault();
+    const isTouch = e.type === 'touchstart';
+    const startX = isTouch ? e.touches[0].clientX : e.clientX;
+    const startY = isTouch ? e.touches[0].clientY : e.clientY;
+    const startLeft = parseFloat(_cropFrame.style.left);
+    const startTop = parseFloat(_cropFrame.style.top);
+    const area = _cropStage._imgArea;
+    const frameW = parseFloat(_cropFrame.style.width);
+    const frameH = parseFloat(_cropFrame.style.height);
+    
+    const move = (ev) => {
+      ev.preventDefault();
+      const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
+      const cy = ev.touches ? ev.touches[0].clientY : ev.clientY;
+      let nl = startLeft + (cx - startX);
+      let nt = startTop + (cy - startY);
+      nl = Math.max(area.x, Math.min(area.x + area.w - frameW, nl));
+      nt = Math.max(area.y, Math.min(area.y + area.h - frameH, nt));
+      _cropFrame.style.left = nl + 'px';
+      _cropFrame.style.top = nt + 'px';
+    };
+    const end = () => {
+      document.removeEventListener('mousemove', move);
+      document.removeEventListener('mouseup', end);
+      document.removeEventListener('touchmove', move);
+      document.removeEventListener('touchend', end);
+    };
+    document.addEventListener('mousemove', move);
+    document.addEventListener('mouseup', end);
+    document.addEventListener('touchmove', move, {passive:false});
+    document.addEventListener('touchend', end);
+  };
+  
+  _cropFrame.addEventListener('mousedown', startDrag);
+  _cropFrame.addEventListener('touchstart', startDrag, {passive:false});
+  
+  // 把手縮放
+  _cropFrame.querySelectorAll('.crop-handle').forEach(handle => {
+    const startResize = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const corner = handle.dataset.corner;
+      const isTouch = e.type === 'touchstart';
+      const startX = isTouch ? e.touches[0].clientX : e.clientX;
+      const startY = isTouch ? e.touches[0].clientY : e.clientY;
+      const startL = parseFloat(_cropFrame.style.left);
+      const startT = parseFloat(_cropFrame.style.top);
+      const startW = parseFloat(_cropFrame.style.width);
+      const startH = parseFloat(_cropFrame.style.height);
+      const area = _cropStage._imgArea;
+      
+      const move = (ev) => {
+        ev.preventDefault();
+        const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
+        const cy = ev.touches ? ev.touches[0].clientY : ev.clientY;
+        let dx = cx - startX, dy = cy - startY;
+        let nl = startL, nt = startT, nw = startW, nh = startH;
+        
+        if (corner.includes('r')) nw = Math.max(40, startW + dx);
+        if (corner.includes('l')) { nw = Math.max(40, startW - dx); nl = startL + (startW - nw); }
+        if (corner.includes('b')) nh = Math.max(40, startH + dy);
+        if (corner.includes('t')) { nh = Math.max(40, startH - dy); nt = startT + (startH - nh); }
+        
+        // 邊界限制
+        nl = Math.max(area.x, nl);
+        nt = Math.max(area.y, nt);
+        if (nl + nw > area.x + area.w) nw = area.x + area.w - nl;
+        if (nt + nh > area.y + area.h) nh = area.y + area.h - nt;
+        
+        _cropFrame.style.left = nl + 'px';
+        _cropFrame.style.top = nt + 'px';
+        _cropFrame.style.width = nw + 'px';
+        _cropFrame.style.height = nh + 'px';
+      };
+      const end = () => {
+        document.removeEventListener('mousemove', move);
+        document.removeEventListener('mouseup', end);
+        document.removeEventListener('touchmove', move);
+        document.removeEventListener('touchend', end);
+      };
+      document.addEventListener('mousemove', move);
+      document.addEventListener('mouseup', end);
+      document.addEventListener('touchmove', move, {passive:false});
+      document.addEventListener('touchend', end);
+    };
+    handle.addEventListener('mousedown', startResize);
+    handle.addEventListener('touchstart', startResize, {passive:false});
+  });
+}
+
+function applyCrop() {
+  if (!_cropKey || !_cropImg || !_cropFrame) return;
+  
+  const area = _cropStage._imgArea;
+  const fL = parseFloat(_cropFrame.style.left);
+  const fT = parseFloat(_cropFrame.style.top);
+  const fW = parseFloat(_cropFrame.style.width);
+  const fH = parseFloat(_cropFrame.style.height);
+  
+  // 計算裁剪框在圖片中的相對位置（0~1）
+  const relX = (fL - area.x) / area.w;
+  const relY = (fT - area.y) / area.h;
+  const relW = fW / area.w;
+  const relH = fH / area.h;
+  
+  // 儲存
+  const s = getPhotoSettings();
+  if (!s[_cropKey]) s[_cropKey] = {};
+  s[_cropKey].crop = { x: relX, y: relY, w: relW, h: relH };
+  savePhotoSettings(s);
+  
+  // 套用到預覽和前台
+  applyCropToImage(_cropKey);
+  applyCropToFrontend();
+  
+  closeCrop();
+  toast('✓ 裁剪已套用！');
+}
+
+function applyCropToImage(key) {
+  const s = getPhotoSettings();
+  const crop = s[key] && s[key].crop;
+  const img = document.getElementById('prev-' + key);
+  if (!img) return;
+  
+  if (crop) {
+    // 用 object-position 和 transform scale 模擬裁剪
+    const cx = (crop.x + crop.w/2) * 100;
+    const cy = (crop.y + crop.h/2) * 100;
+    const scale = 1 / Math.max(crop.w, crop.h);
+    img.style.objectPosition = cx + '% ' + cy + '%';
+    img.style.transform = `scale(${scale})`;
+    img.style.transformOrigin = cx + '% ' + cy + '%';
+  } else {
+    img.style.objectPosition = 'center center';
+    img.style.transform = 'none';
+  }
+}
+
+function applyCropToFrontend() {
+  const s = getPhotoSettings();
+  const map = { b_kiss: 'pg0', b_fun: 'pg1', b_full: 'pg2', b_close: 'pg3',
+                h_kiss: 'hs0', h_fun: 'hs1', h_full: 'hs2', h_close: 'hs3' };
+  
+  Object.entries(map).forEach(([key, id]) => {
+    const el = document.getElementById(id);
+    if (!el || !s[key] || !s[key].crop) return;
+    const crop = s[key].crop;
+    const cx = (crop.x + crop.w/2) * 100;
+    const cy = (crop.y + crop.h/2) * 100;
+    const scale = 1 / Math.max(crop.w, crop.h);
+    el.style.backgroundPosition = cx + '% ' + cy + '%';
+    el.style.backgroundSize = (scale * 100) + '% auto';
+  });
+}
+
+function resetCrop(key) {
+  const s = getPhotoSettings();
+  if (s[key]) { delete s[key].crop; savePhotoSettings(s); }
+  applyCropToImage(key);
+  applyCropToFrontend();
+  toast('✓ 已重置裁剪');
+}
+
+// 替代舊的 onPhotoClick / applyImgPosition 等
+function onPhotoClick() { /* deprecated */ }
+function applyImgPosition(key) { applyCropToImage(key); }
+function setPhotoZoom() { /* deprecated */ }
+function resetPhotoEdit(key) { resetCrop(key); }
+function loadPhotoEditUI() {
+  ['h_kiss','h_fun','h_full','h_close','b_kiss','b_fun','b_full','b_close'].forEach(applyCropToImage);
+}
+function applyPhotoSettingsToFrontend() { applyCropToFrontend(); }
+
+
+// 相容舊呼叫
+function loadPhotoSettingsUI(){ loadPhotoEditUI(); }
+function setPhotoFocus(k,p){ const map={top:[50,15],bottom:[50,85],left:[15,50],right:[85,50],center:[50,50]}; const [px,py]=map[p]||[50,50]; const s=getPhotoSettings(); if(!s[k])s[k]={}; s[k].px=px; s[k].py=py; savePhotoSettings(s); applyImgPosition(k); applyPhotoSettingsToFrontend(); }
+function setPhotoFit(k,m){ /* deprecated */ }
+function startDrag(){ /* deprecated, click handles it */ }
 
 
 function resetPhotos(){
@@ -2786,6 +3337,7 @@ try {
     }
   });
 } catch(e){}
+try { loadPhotoEditUI(); } catch(e){}
 try { loadPhotoSettingsUI(); } catch(e){}
 </script>
 
@@ -3110,5 +3662,30 @@ window.addEventListener('offline', () => window.toast && window.toast('⚠️ �
 
 console.log('🔥 Firebase 整合完成 — 勛凱 & 恩懿 婚禮喜帖');
 </script>
+
+<!-- ═══ 裁剪 Modal ═══ -->
+<div class="crop-overlay" id="crop-overlay" onclick="if(event.target===this)closeCrop()">
+  <div class="crop-modal">
+    <div class="crop-modal-hdr">
+      <div class="crop-modal-title">✂️ 裁剪照片</div>
+      <button class="crop-modal-close" onclick="closeCrop()">×</button>
+    </div>
+    <div class="crop-stage" id="crop-stage">
+      <img id="crop-img" src="" draggable="false"/>
+      <div class="crop-frame" id="crop-frame">
+        <div class="crop-handle tl" data-corner="tl"></div>
+        <div class="crop-handle tr" data-corner="tr"></div>
+        <div class="crop-handle bl" data-corner="bl"></div>
+        <div class="crop-handle br" data-corner="br"></div>
+      </div>
+    </div>
+    <div class="crop-hint-bar">👆 拖動裁剪框移動 · 拖角縮放</div>
+    <div class="crop-actions">
+      <button class="crop-act-btn cancel" onclick="closeCrop()">取消</button>
+      <button class="crop-act-btn confirm" onclick="applyCrop()">套用裁剪</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
