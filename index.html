@@ -1923,6 +1923,8 @@ function saveSetting(key){
     const v=parseInt(document.getElementById('set-invited').value);
     if(!v||v<1){toast('請輸入有效人數');return;}
     cfg.invited=v;sc(cfg);refreshAdmin();refreshInv();
+    // 同步到 Firebase
+    if(window.fbSaveConfig) window.fbSaveConfig({invited: v});
     toast(`✓ 已更新為 ${v} 人`);
     return;
   }
@@ -1940,8 +1942,9 @@ function saveSetting(key){
     cfg.content.brideFull = document.getElementById('set-bride-full').value.trim() || DEFAULT_CONTENT.brideFull;
     cfg.content.brideShort = document.getElementById('set-bride-short').value.trim() || DEFAULT_CONTENT.brideShort;
     cfg.content.brideEn = document.getElementById('set-bride-en').value.trim() || DEFAULT_CONTENT.brideEn;
-    sc(cfg);applyContent();
-    toast('✓ 姓名已更新');
+    sc(cfg); applyContent();
+    if(window.fbSaveConfig) window.fbSaveConfig({content: cfg.content});
+    toast('✓ 姓名已更新，賓客端即時生效');
     return;
   }
   if(key==='datetime'){
@@ -1949,8 +1952,9 @@ function saveSetting(key){
     cfg.content.dateText = document.getElementById('set-date-text').value.trim() || DEFAULT_CONTENT.dateText;
     cfg.content.timeWelcome = document.getElementById('set-time-welcome').value || DEFAULT_CONTENT.timeWelcome;
     cfg.content.timeDinner = document.getElementById('set-time-dinner').value || DEFAULT_CONTENT.timeDinner;
-    sc(cfg);applyContent();
-    toast('✓ 日期時間已更新');
+    sc(cfg); applyContent();
+    if(window.fbSaveConfig) window.fbSaveConfig({content: cfg.content});
+    toast('✓ 日期時間已更新，賓客端即時生效');
     return;
   }
   if(key==='venue'){
@@ -1959,16 +1963,18 @@ function saveSetting(key){
     cfg.content.hall = document.getElementById('set-hall').value.trim() || DEFAULT_CONTENT.hall;
     cfg.content.venueTel = document.getElementById('set-venue-tel').value.trim() || DEFAULT_CONTENT.venueTel;
     cfg.content.address = document.getElementById('set-address').value.trim() || DEFAULT_CONTENT.address;
-    sc(cfg);applyContent();
-    toast('✓ 場地資訊已更新');
+    sc(cfg); applyContent();
+    if(window.fbSaveConfig) window.fbSaveConfig({content: cfg.content});
+    toast('✓ 場地資訊已更新，賓客端即時生效');
     return;
   }
   if(key==='messages'){
     cfg.content.tagline = document.getElementById('set-tagline').value.trim() || DEFAULT_CONTENT.tagline;
     cfg.content.quoteZh = document.getElementById('set-quote-zh').value.trim() || DEFAULT_CONTENT.quoteZh;
     cfg.content.quoteEn = document.getElementById('set-quote-en').value.trim() || DEFAULT_CONTENT.quoteEn;
-    sc(cfg);applyContent();
-    toast('✓ 邀請語已更新');
+    sc(cfg); applyContent();
+    if(window.fbSaveConfig) window.fbSaveConfig({content: cfg.content});
+    toast('✓ 邀請語已更新，賓客端即時生效');
     return;
   }
 }
@@ -1995,27 +2001,26 @@ function uploadPhoto(key, input){
     const img = new Image();
     img.onload = function(){
       const canvas = document.createElement('canvas');
-      const maxW = 900;
+      // 手機版更積極壓縮，避免 localStorage 超出容量
+      const maxW = window.innerWidth < 640 ? 700 : 900;
       const ratio = Math.min(1, maxW/img.width);
       canvas.width = img.width * ratio;
       canvas.height = img.height * ratio;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-      // Save to localStorage (separate key to avoid bloating main config)
-      try {
-        const photos = JSON.parse(localStorage.getItem('hpy_photos')||'{}');
-        photos[key] = dataUrl;
-        localStorage.setItem('hpy_photos', JSON.stringify(photos));
+      // 先嘗試 quality 0.75，若太大再降到 0.6
+      let dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+      if(dataUrl.length > 400000) {
+        dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+      }
+      // 用帶容量保護的 savePhoto
+      const ok = savePhoto(key, dataUrl);
+      if(ok) {
         IMGS[key] = dataUrl;
-        // Update preview
         const prev = document.getElementById('prev-'+key);
         if(prev) prev.src = dataUrl;
-        // Re-init front-end images
         initImages();
         toast(`✓ ${key} 照片已更新`);
-      } catch(err){
-        toast('儲存失敗：照片可能過大');
       }
     };
     img.src = e.target.result;
@@ -2026,9 +2031,61 @@ function uploadPhoto(key, input){
 
 function loadCustomPhotos(){
   try {
-    const photos = JSON.parse(localStorage.getItem('hpy_photos')||'{}');
-    Object.keys(photos).forEach(k => { if(photos[k]) IMGS[k] = photos[k]; });
-  } catch(err){}
+    const raw = localStorage.getItem('hpy_photos');
+    if(!raw) return;
+    const photos = JSON.parse(raw);
+    if(!photos || typeof photos !== 'object') return;
+    Object.keys(photos).forEach(k => {
+      if(photos[k] && typeof photos[k] === 'string' && photos[k].startsWith('data:image')) {
+        IMGS[k] = photos[k];
+      }
+    });
+  } catch(err){
+    console.warn('loadCustomPhotos failed:', err);
+    // localStorage 損壞或超出容量時清除
+    try { localStorage.removeItem('hpy_photos'); } catch(e){}
+  }
+}
+
+// 儲存照片到 localStorage（帶容量保護）
+function savePhoto(key, dataUrl){
+  try {
+    const raw = localStorage.getItem('hpy_photos');
+    const photos = raw ? JSON.parse(raw) : {};
+    photos[key] = dataUrl;
+    localStorage.setItem('hpy_photos', JSON.stringify(photos));
+    return true;
+  } catch(e) {
+    // 超出容量 → 嘗試刪除其他照片後重試
+    if(e.name === 'QuotaExceededError' || e.code === 22) {
+      try {
+        // 刪除容量最大的舊照片
+        const raw = localStorage.getItem('hpy_photos');
+        const photos = raw ? JSON.parse(raw) : {};
+        // 找出最大的照片刪除
+        let maxKey = null, maxLen = 0;
+        Object.keys(photos).forEach(k => {
+          if(k !== key && photos[k] && photos[k].length > maxLen){
+            maxLen = photos[k].length;
+            maxKey = k;
+          }
+        });
+        if(maxKey) {
+          delete photos[maxKey];
+          photos[key] = dataUrl;
+          localStorage.setItem('hpy_photos', JSON.stringify(photos));
+          toast('⚠️ 儲存空間接近上限，已自動清除較舊的照片');
+          return true;
+        }
+      } catch(e2){
+        console.error('savePhoto retry failed:', e2);
+      }
+      toast('❌ 儲存空間不足！請先清除其他照片再上傳');
+      return false;
+    }
+    console.error('savePhoto failed:', e);
+    return false;
+  }
 }
 
 // 還原所有照片為原始預設
@@ -2520,6 +2577,10 @@ onAuthStateChanged(auth, user => {
   }
 });
 
+// ═══ 所有人（包含賓客）都監聽設定變更 ═══
+// 這樣後台一改，賓客端也即時更新
+startConfigListener();
+
 // ═══ Admin 即時監聽 Firestore ═══
 let unsubRsvp = null, unsubBless = null;
 
@@ -2572,19 +2633,44 @@ window.fbDeleteBless = async function(id) {
   try { await deleteDoc(doc(db, 'blessings', id)); } catch(e) { console.error(e); }
 };
 
-// ═══ 儲存/讀取設定（Firestore）═══
-window.fbSaveConfig = async function(cfg) {
+// ═══ 儲存設定（Firestore）═══
+window.fbSaveConfig = async function(partial) {
   if(!window._isAdmin) return;
-  try { await setDoc(doc(db, 'config', 'main'), cfg); } catch(e) { console.error(e); }
+  try {
+    // merge with existing config
+    const snap = await getDoc(doc(db, 'config', 'main'));
+    const existing = snap.exists() ? snap.data() : {};
+    // deep merge content
+    const merged = { ...existing, ...partial };
+    if(partial.content && existing.content) {
+      merged.content = { ...existing.content, ...partial.content };
+    }
+    await setDoc(doc(db, 'config', 'main'), merged);
+  } catch(e) { console.error('fbSaveConfig:', e); }
 };
 
 window.fbLoadConfig = async function() {
   try {
     const snap = await getDoc(doc(db, 'config', 'main'));
     if(snap.exists()) return snap.data();
-  } catch(e) { console.error(e); }
+  } catch(e) { console.error('fbLoadConfig:', e); }
   return null;
 };
+
+// ═══ 賓客端即時監聽設定（賓客打開喜帖自動套用）═══
+function startConfigListener() {
+  onSnapshot(doc(db, 'config', 'main'), (snap) => {
+    if(!snap.exists()) return;
+    const data = snap.data();
+    // 把雲端設定 merge 進 localStorage（供 applyContent 使用）
+    const cfg = (() => { try{ return JSON.parse(localStorage.getItem('hpy_cfg')||'{}'); }catch{ return{}; } })();
+    if(data.content) cfg.content = { ...cfg.content, ...data.content };
+    if(data.invited) cfg.invited = data.invited;
+    try { localStorage.setItem('hpy_cfg', JSON.stringify(cfg)); } catch(e){}
+    // 套用到前台
+    if(window.applyContent) window.applyContent();
+  });
+}
 
 // ═══ 攔截現有的 submitAttend 和 submitBless ═══
 // 等原本的函式載入後再包裝
