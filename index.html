@@ -1826,6 +1826,53 @@ div.photo-slot .photo-pos-badge {
   .hero-row > .hslot { flex: 0 0 calc(50% - 4px) !important; height: 120px !important; }
 }
 
+
+/* ═══ 裁剪 Modal 改善 ═══ */
+.crop-stage {
+  background: #1a0e0a !important;
+  position: relative !important;
+  overflow: hidden !important;
+  border-radius: 10px !important;
+  min-height: 350px !important;
+  max-height: 60vh !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.crop-stage img {
+  display: block !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain !important;
+  user-select: none !important;
+  -webkit-user-drag: none !important;
+}
+.crop-frame {
+  position: absolute !important;
+  border: 2px solid white !important;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,.55) !important;
+  cursor: move !important;
+  touch-action: none !important;
+  box-sizing: border-box !important;
+}
+.crop-handle {
+  position: absolute !important;
+  width: 22px !important;
+  height: 22px !important;
+  background: white !important;
+  border: 3px solid #f97b5a !important;
+  border-radius: 50% !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,.4) !important;
+  touch-action: none !important;
+  z-index: 10 !important;
+}
+.crop-handle.tl { top: -11px !important; left: -11px !important; cursor: nwse-resize !important; }
+.crop-handle.tr { top: -11px !important; right: -11px !important; cursor: nesw-resize !important; }
+.crop-handle.bl { bottom: -11px !important; left: -11px !important; cursor: nesw-resize !important; }
+.crop-handle.br { bottom: -11px !important; right: -11px !important; cursor: nwse-resize !important; }
+
 </style>
 </head>
 <body>
@@ -2331,7 +2378,20 @@ div.photo-slot .photo-pos-badge {
             <div class="ptip-item">📌 兩區可用完全不同照片，也可上傳同一張到不同位置</div>
           </div>
 
-          <button class="set-save full-btn" style="background:linear-gradient(135deg,#9a6655,#6b3a20);margin-top:14px;" onclick="resetPhotos()">↺ 還原預設照片</button>
+          <!-- 儲存狀態顯示 -->
+          <div id="photo-save-status" style="margin-top:18px;padding:14px;background:linear-gradient(135deg,#EAF3DE,#d9e8c4);border-radius:12px;border:1px solid rgba(76,175,130,.3);">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="font-size:22px;">✅</div>
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:600;color:#2e7d52;letter-spacing:1px;">照片已自動儲存</div>
+                <div style="font-size:11px;color:#3B6D11;margin-top:2px;">每張照片上傳後立即儲存到雲端，賓客即時看到</div>
+              </div>
+              <div id="photo-count-lbl" style="font-size:11px;color:#3B6D11;background:white;padding:4px 10px;border-radius:50px;font-weight:600;">0 / 8 張</div>
+            </div>
+          </div>
+          
+          <button class="set-save full-btn" style="background:linear-gradient(135deg,#5b8fd4,#3e6fb3);margin-top:10px;color:white;" onclick="syncAllPhotosToCloud()">☁️ 強制同步到雲端（重新儲存所有照片）</button>
+          <button class="set-save full-btn" style="background:linear-gradient(135deg,#9a6655,#6b3a20);margin-top:8px;" onclick="resetPhotos()">↺ 還原預設照片</button>
         </div>
       </div>
 
@@ -3161,6 +3221,7 @@ function uploadPhoto(key, input){
         applyCropToImage(key);
         initImages();
         applyCropToFrontend();
+        updatePhotoCount();
         toast('✓ 照片已上傳！點「裁剪」調整顯示範圍');
       }
     };
@@ -3592,6 +3653,68 @@ function resetCrop(key) {
   toast('✓ 已重置裁剪');
 }
 
+// ═══ 更新照片儲存狀態指示 ═══
+function updatePhotoCount() {
+  try {
+    const keys = ['h_kiss','h_fun','h_full','h_close','b_kiss','b_fun','b_full','b_close'];
+    let uploaded = 0;
+    const photos = JSON.parse(localStorage.getItem('hpy_photos') || '{}');
+    keys.forEach(k => { if (photos[k]) uploaded++; });
+    const lbl = document.getElementById('photo-count-lbl');
+    if (lbl) lbl.textContent = `${uploaded} / 8 張`;
+    const status = document.getElementById('photo-save-status');
+    if (status) {
+      if (uploaded === 0) {
+        status.style.background = 'linear-gradient(135deg,#FFF6E5,#fdebc0)';
+        status.style.borderColor = 'rgba(245,200,66,.3)';
+        status.querySelector('div div:nth-child(2) div:first-child').style.color = '#7d5500';
+        status.querySelector('div div:nth-child(2) div:first-child').textContent = '尚未上傳照片';
+        status.querySelector('div div:nth-child(2) div:last-child').textContent = '點擊照片框中的「📷 點擊上傳」開始';
+        status.querySelector('div div:first-child').textContent = '📷';
+      } else {
+        status.style.background = 'linear-gradient(135deg,#EAF3DE,#d9e8c4)';
+        status.style.borderColor = 'rgba(76,175,130,.3)';
+        status.querySelector('div div:nth-child(2) div:first-child').style.color = '#2e7d52';
+        status.querySelector('div div:nth-child(2) div:first-child').textContent = `✅ 已儲存 ${uploaded} 張照片`;
+        status.querySelector('div div:nth-child(2) div:last-child').textContent = '照片自動儲存到雲端，賓客即時看到';
+        status.querySelector('div div:first-child').textContent = '✅';
+      }
+    }
+  } catch(e) { console.warn('updatePhotoCount:', e); }
+}
+
+// ═══ 強制同步所有照片到雲端 ═══
+async function syncAllPhotosToCloud() {
+  try {
+    const photos = JSON.parse(localStorage.getItem('hpy_photos') || '{}');
+    const settings = JSON.parse(localStorage.getItem('hpy_photo_settings') || '{}');
+    const count = Object.keys(photos).length;
+    
+    if (count === 0) {
+      toast('⚠️ 尚未上傳任何照片');
+      return;
+    }
+    
+    toast(`🔄 正在同步 ${count} 張照片...`);
+    
+    // 同步照片設定到 Firebase
+    if (window.fbSaveConfig) {
+      await window.fbSaveConfig({
+        photoSettings: settings,
+        photosUpdatedAt: new Date().toISOString()
+      });
+    }
+    
+    setTimeout(() => {
+      toast(`✅ 同步完成！${count} 張照片已儲存`);
+      updatePhotoCount();
+    }, 800);
+  } catch(e) {
+    console.error('syncAllPhotos:', e);
+    toast('❌ 同步失敗，請重試');
+  }
+}
+
 // 替代舊的 onPhotoClick / applyImgPosition 等
 function onPhotoClick() { /* deprecated */ }
 function applyImgPosition(key) { applyCropToImage(key); }
@@ -3599,6 +3722,7 @@ function setPhotoZoom() { /* deprecated */ }
 function resetPhotoEdit(key) { resetCrop(key); }
 function loadPhotoEditUI() {
   ['h_kiss','h_fun','h_full','h_close','b_kiss','b_fun','b_full','b_close'].forEach(applyCropToImage);
+  updatePhotoCount();
 }
 function applyPhotoSettingsToFrontend() { applyCropToFrontend(); }
 
