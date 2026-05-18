@@ -3363,6 +3363,36 @@ function loadCustomPhotos(){
   }
 }
 
+// ═══ 載入後台預覽圖（從 IMGS 寫到 <img id="prev-XXX">）═══
+function loadAdminPreviews() {
+  try {
+    const keys = ['h_kiss','h_fun','h_full','h_close','b_kiss','b_fun','b_full','b_close'];
+    const photos = JSON.parse(localStorage.getItem('hpy_photos') || '{}');
+    keys.forEach(k => {
+      const img = document.getElementById('prev-' + k);
+      const uhint = document.getElementById('uhint-' + k);
+      if (!img) return;
+      if (photos[k] && photos[k].startsWith('data:image')) {
+        // 有自訂照片
+        img.src = photos[k];
+        img.classList.remove('no-photo');
+        if (uhint) uhint.style.display = 'none';
+      } else if (IMGS[k] && IMGS[k].startsWith('data:image')) {
+        // 預設照片（也是 base64）
+        img.src = IMGS[k];
+        img.classList.remove('no-photo');
+        if (uhint) uhint.style.display = 'none';
+      } else {
+        // 沒有照片
+        img.removeAttribute('src');
+        if (uhint) uhint.style.display = 'flex';
+      }
+    });
+  } catch(e) {
+    console.warn('loadAdminPreviews:', e);
+  }
+}
+
 // 儲存照片到 localStorage（帶容量保護）
 function savePhoto(key, dataUrl){
   try {
@@ -3445,73 +3475,17 @@ function onPhotoClick(e, key) {
   }
 }
 
-function applyImgPosition(key) {
-  const s = getPhotoSettings();
-  const setting = s[key] || {};
-  const img = document.getElementById('prev-' + key);
-  if (!img) return;
-  const px = setting.px !== undefined ? setting.px : 50;
-  const py = setting.py !== undefined ? setting.py : 50;
-  const zoom = setting.zoom || 100;
-  img.style.objectPosition = px + '% ' + py + '%';
-  img.style.transform = `scale(${zoom/100})`;
-  img.style.transformOrigin = px + '% ' + py + '%';
+// 舊版函式（已被裁剪系統取代，留空保留向後相容）
+function applyImgPosition_OLD() {}
+function setPhotoZoom_OLD() {}
+function resetPhotoEdit_OLD() {}
+
+function loadPhotoEditUI_OLD() {
+  // 舊版（已被下方新版取代）
 }
 
-function setPhotoZoom(key, value) {
-  const s = getPhotoSettings();
-  if (!s[key]) s[key] = {};
-  s[key].zoom = parseInt(value);
-  savePhotoSettings(s);
-  applyImgPosition(key);
-  applyPhotoSettingsToFrontend();
-  const lbl = document.getElementById('zoom-val-' + key);
-  if (lbl) lbl.textContent = value + '%';
-}
-
-function resetPhotoEdit(key) {
-  const s = getPhotoSettings();
-  if (!s[key]) s[key] = {};
-  s[key].px = 50; s[key].py = 50; s[key].zoom = 100;
-  savePhotoSettings(s);
-  applyImgPosition(key);
-  applyPhotoSettingsToFrontend();
-  const range = document.getElementById('zoom-' + key);
-  if (range) range.value = 100;
-  const lbl = document.getElementById('zoom-val-' + key);
-  if (lbl) lbl.textContent = '100%';
-  toast('✓ 已重置');
-}
-
-function loadPhotoEditUI() {
-  const s = getPhotoSettings();
-  ['h_kiss','h_fun','h_full','h_close','b_kiss','b_fun','b_full','b_close'].forEach(key => {
-    const setting = s[key] || {};
-    applyImgPosition(key);
-    const range = document.getElementById('zoom-' + key);
-    if (range) range.value = setting.zoom || 100;
-    const lbl = document.getElementById('zoom-val-' + key);
-    if (lbl) lbl.textContent = (setting.zoom || 100) + '%';
-  });
-}
-
-// 套用到前台
-function applyPhotoSettingsToFrontend() {
-  const s = getPhotoSettings();
-  const map = { b_kiss: 'pg0', b_fun: 'pg1', b_full: 'pg2', b_close: 'pg3' };
-  const heroMap = { h_kiss: 'hs0', h_fun: 'hs1', h_full: 'hs2', h_close: 'hs3' };
-  
-  [...Object.entries(map), ...Object.entries(heroMap)].forEach(([key, id]) => {
-    const el = document.getElementById(id);
-    if (!el || !s[key]) return;
-    const px = s[key].px !== undefined ? s[key].px : 50;
-    const py = s[key].py !== undefined ? s[key].py : 50;
-    const zoom = s[key].zoom || 100;
-    el.style.backgroundPosition = px + '% ' + py + '%';
-    el.style.backgroundSize = (zoom > 100 ? zoom : 100) + '% auto';
-    if (zoom < 100) el.style.backgroundSize = 'contain';
-  });
-}
+// 套用到前台（已被新版取代）
+function applyPhotoSettingsToFrontend_OLD() {}
 
 
 
@@ -3849,6 +3823,7 @@ function applyImgPosition(key) { applyCropToImage(key); }
 function setPhotoZoom() { /* deprecated */ }
 function resetPhotoEdit(key) { resetCrop(key); }
 function loadPhotoEditUI() {
+  loadAdminPreviews();  // 載入後台所有預覽圖
   ['h_kiss','h_fun','h_full','h_close','b_kiss','b_fun','b_full','b_close'].forEach(applyCropToImage);
   updatePhotoCount();
 }
