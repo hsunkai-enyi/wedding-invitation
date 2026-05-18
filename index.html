@@ -788,70 +788,51 @@ select.m-field{appearance:none;-webkit-appearance:none;background-image:url("dat
 .photo-slot{flex-direction:column;display:flex;overflow:hidden;position:relative;}
 
 
-/* ═══ 照片拖動定位框 ═══ */
+/* ═══ 照片定位框（簡化穩定版） ═══ */
 .photo-slot-img-wrap{
   position:relative;
   overflow:hidden;
-  cursor:grab;
-  user-select:none;
-  -webkit-user-select:none;
   width:100%;
-  height:160px;  /* 固定高度，不會跑版 */
-  flex:1;
+  height:150px;
   display:block;
+  border-radius:10px;
+  background:#f5ede5;
 }
-.photo-slot-img-wrap.dragging{cursor:grabbing;}
 .photo-slot-img-wrap img{
-  position:absolute;
-  width:150%;
-  height:150%;
-  top:-25%;
-  left:-25%;
-  object-fit:cover;
-  transition:none;
-  pointer-events:none;
-  will-change:transform;
-}
-.photo-slot-img-wrap img.no-photo{
   width:100%;
   height:100%;
-  top:0;
-  left:0;
-  object-fit:contain;
-  opacity:.3;
+  object-fit:cover;
+  object-position:center center;
+  display:block;
+  cursor:grab;
+  pointer-events:auto;
+  transition:object-position .15s;
 }
-/* 拖動提示覆蓋層 */
+.photo-slot-img-wrap img.no-photo{
+  object-fit:contain;
+  opacity:.25;
+  cursor:default;
+}
+/* 拖動提示 */
 .drag-hint{
-  position:absolute;inset:0;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:rgba(249,123,90,.08);
-  border:2px dashed rgba(249,123,90,.4);
-  border-radius:12px;
-  color:#f97b5a;font-size:11px;letter-spacing:2px;
+  position:absolute;bottom:6px;left:50%;transform:translateX(-50%);
+  background:rgba(249,123,90,.85);
+  color:white;font-size:9px;letter-spacing:1px;
+  padding:3px 8px;border-radius:50px;
   pointer-events:none;
   opacity:0;transition:opacity .2s;
-  z-index:5;
+  white-space:nowrap;z-index:5;
 }
 .photo-slot-img-wrap:hover .drag-hint{opacity:1;}
-.drag-hint-icon{font-size:20px;margin-bottom:4px;}
-/* 定位指示點 */
-.pos-dot{
-  position:absolute;width:12px;height:12px;
-  background:white;border:2px solid #f97b5a;border-radius:50%;
-  box-shadow:0 2px 6px rgba(0,0,0,.3);
-  transform:translate(-50%,-50%);
-  pointer-events:none;z-index:10;
-  transition:all .1s;
-}
-/* 上傳按鈕覆蓋（只在沒照片時顯示） */
+/* 上傳提示 */
 .upload-hint{
   position:absolute;inset:0;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:rgba(255,248,243,.9);
+  background:rgba(255,248,243,.92);
   cursor:pointer;z-index:20;
-  border-radius:12px;
+  border-radius:10px;
 }
-.upload-hint-icon{font-size:28px;margin-bottom:6px;}
+.upload-hint-icon{font-size:26px;margin-bottom:4px;}
 .upload-hint-lbl{font-size:11px;letter-spacing:2px;color:#9a6655;font-weight:500;}
 
 </style>
@@ -1198,8 +1179,8 @@ select.m-field{appearance:none;-webkit-appearance:none;background-image:url("dat
 
             <div class="hero-photo-grid">
               <div class="photo-slot photo-square" id="slot-h_kiss">
-                <div class="photo-slot-img-wrap" id="wrap-h_kiss" onmousedown="startDrag(event,'h_kiss')" ontouchstart="startDrag(event,'h_kiss')">
-                  <img id="prev-h_kiss" class="no-photo" alt="Hero 第 1 張"/>
+                <div class="photo-slot-img-wrap" id="wrap-h_kiss">
+                  <img id="prev-h_kiss" class="no-photo" onmousedown="startDrag(event,'h_kiss')" ontouchstart="startDrag(event,'h_kiss')" alt="Hero 第 1 張"/>
                 <input type="file" id="upload-h_kiss" accept="image/*" style="display:none;" onchange="uploadPhoto('h_kiss',this)"/>
                 <div class="photo-pos-badge">① Hero</div>
                 <div class="photo-overlay" onclick="document.getElementById('upload-h_kiss').click()">
@@ -1211,8 +1192,8 @@ select.m-field{appearance:none;-webkit-appearance:none;background-image:url("dat
                 <div class="photo-fit-bar"><button class="fit-btn" onclick="setPhotoFit('h_kiss','cover')" id="ff-h_kiss-cover">填滿</button><button class="fit-btn" onclick="setPhotoFit('h_kiss','contain')" id="ff-h_kiss-contain">完整</button></div>
               </div>
               <div class="photo-slot photo-square" id="slot-h_fun">
-                <div class="photo-slot-img-wrap" id="wrap-h_fun" onmousedown="startDrag(event,'h_fun')" ontouchstart="startDrag(event,'h_fun')">
-                  <img id="prev-h_fun" class="no-photo" alt="Hero 第 2 張"/>
+                <div class="photo-slot-img-wrap" id="wrap-h_fun">
+                  <img id="prev-h_fun" class="no-photo" onmousedown="startDrag(event,'h_fun')" ontouchstart="startDrag(event,'h_fun')" alt="Hero 第 2 張"/>
                 <input type="file" id="upload-h_fun" accept="image/*" style="display:none;" onchange="uploadPhoto('h_fun',this)"/>
                 <div class="photo-pos-badge">② Hero</div>
                 <div class="photo-overlay" onclick="document.getElementById('upload-h_fun').click()">
@@ -1224,8 +1205,8 @@ select.m-field{appearance:none;-webkit-appearance:none;background-image:url("dat
                 <div class="photo-fit-bar"><button class="fit-btn" onclick="setPhotoFit('h_fun','cover')" id="ff-h_fun-cover">填滿</button><button class="fit-btn" onclick="setPhotoFit('h_fun','contain')" id="ff-h_fun-contain">完整</button></div>
               </div>
               <div class="photo-slot photo-square" id="slot-h_full">
-                <div class="photo-slot-img-wrap" id="wrap-h_full" onmousedown="startDrag(event,'h_full')" ontouchstart="startDrag(event,'h_full')">
-                  <img id="prev-h_full" class="no-photo" alt="Hero 第 3 張"/>
+                <div class="photo-slot-img-wrap" id="wrap-h_full">
+                  <img id="prev-h_full" class="no-photo" onmousedown="startDrag(event,'h_full')" ontouchstart="startDrag(event,'h_full')" alt="Hero 第 3 張"/>
                 <input type="file" id="upload-h_full" accept="image/*" style="display:none;" onchange="uploadPhoto('h_full',this)"/>
                 <div class="photo-pos-badge">③ Hero</div>
                 <div class="photo-overlay" onclick="document.getElementById('upload-h_full').click()">
@@ -1237,8 +1218,8 @@ select.m-field{appearance:none;-webkit-appearance:none;background-image:url("dat
                 <div class="photo-fit-bar"><button class="fit-btn" onclick="setPhotoFit('h_full','cover')" id="ff-h_full-cover">填滿</button><button class="fit-btn" onclick="setPhotoFit('h_full','contain')" id="ff-h_full-contain">完整</button></div>
               </div>
               <div class="photo-slot photo-square" id="slot-h_close">
-                <div class="photo-slot-img-wrap" id="wrap-h_close" onmousedown="startDrag(event,'h_close')" ontouchstart="startDrag(event,'h_close')">
-                  <img id="prev-h_close" class="no-photo" alt="Hero 第 4 張"/>
+                <div class="photo-slot-img-wrap" id="wrap-h_close">
+                  <img id="prev-h_close" class="no-photo" onmousedown="startDrag(event,'h_close')" ontouchstart="startDrag(event,'h_close')" alt="Hero 第 4 張"/>
                 <input type="file" id="upload-h_close" accept="image/*" style="display:none;" onchange="uploadPhoto('h_close',this)"/>
                 <div class="photo-pos-badge">④ Hero</div>
                 <div class="photo-overlay" onclick="document.getElementById('upload-h_close').click()">
@@ -1264,7 +1245,7 @@ select.m-field{appearance:none;-webkit-appearance:none;background-image:url("dat
 
             <div class="photo-grid">
               <div class="photo-slot photo-hero-slot">
-                <img id="prev-b_kiss" alt="主視覺照片"/>
+                <img id="prev-b_kiss" class="no-photo" alt="主視覺照片" onmousedown="startDrag(event,'b_kiss')" ontouchstart="startDrag(event,'b_kiss')"/>
                 <input type="file" id="upload-b_kiss" accept="image/*" style="display:none;" onchange="uploadPhoto('b_kiss',this)"/>
                 <div class="photo-pos-badge">① 主視覺</div>
                 <div class="photo-overlay" onclick="document.getElementById('upload-b_kiss').click()">
@@ -1276,7 +1257,7 @@ select.m-field{appearance:none;-webkit-appearance:none;background-image:url("dat
                 <div class="photo-fit-bar"><button class="fit-btn" onclick="setPhotoFit('b_kiss','cover')" id="ff-b_kiss-cover">填滿</button><button class="fit-btn" onclick="setPhotoFit('b_kiss','contain')" id="ff-b_kiss-contain">完整</button></div>
               </div>
               <div class="photo-slot">
-                <img id="prev-b_fun" alt="右上方圖"/>
+                <img id="prev-b_fun" class="no-photo" alt="右上方圖" onmousedown="startDrag(event,'b_fun')" ontouchstart="startDrag(event,'b_fun')"/>
                 <input type="file" id="upload-b_fun" accept="image/*" style="display:none;" onchange="uploadPhoto('b_fun',this)"/>
                 <div class="photo-pos-badge">② 右上</div>
                 <div class="photo-overlay" onclick="document.getElementById('upload-b_fun').click()">
@@ -1288,7 +1269,7 @@ select.m-field{appearance:none;-webkit-appearance:none;background-image:url("dat
                 <div class="photo-fit-bar"><button class="fit-btn" onclick="setPhotoFit('b_fun','cover')" id="ff-b_fun-cover">填滿</button><button class="fit-btn" onclick="setPhotoFit('b_fun','contain')" id="ff-b_fun-contain">完整</button></div>
               </div>
               <div class="photo-slot">
-                <img id="prev-b_full" alt="右下方圖"/>
+                <img id="prev-b_full" class="no-photo" alt="右下方圖" onmousedown="startDrag(event,'b_full')" ontouchstart="startDrag(event,'b_full')"/>
                 <input type="file" id="upload-b_full" accept="image/*" style="display:none;" onchange="uploadPhoto('b_full',this)"/>
                 <div class="photo-pos-badge">③ 右下</div>
                 <div class="photo-overlay" onclick="document.getElementById('upload-b_full').click()">
@@ -1300,7 +1281,7 @@ select.m-field{appearance:none;-webkit-appearance:none;background-image:url("dat
                 <div class="photo-fit-bar"><button class="fit-btn" onclick="setPhotoFit('b_full','cover')" id="ff-b_full-cover">填滿</button><button class="fit-btn" onclick="setPhotoFit('b_full','contain')" id="ff-b_full-contain">完整</button></div>
               </div>
               <div class="photo-slot photo-wide-slot">
-                <img id="prev-b_close" alt="底部全寬照片"/>
+                <img id="prev-b_close" class="no-photo" alt="底部全寬照片" onmousedown="startDrag(event,'b_close')" ontouchstart="startDrag(event,'b_close')"/>
                 <input type="file" id="upload-b_close" accept="image/*" style="display:none;" onchange="uploadPhoto('b_close',this)"/>
                 <div class="photo-pos-badge">④ 底部全寬</div>
                 <div class="photo-overlay" onclick="document.getElementById('upload-b_close').click()">
@@ -2224,7 +2205,7 @@ function savePhoto(key, dataUrl){
   }
 }
 
-// ═══ 照片拖動定位系統 ═══
+// ═══ 照片拖動定位系統（object-position 版）═══
 const PHOTO_SETTINGS_KEY = 'hpy_photo_settings';
 
 function getPhotoSettings(){
@@ -2234,48 +2215,48 @@ function savePhotoSettings(s){
   try{ localStorage.setItem(PHOTO_SETTINGS_KEY, JSON.stringify(s)); }catch(e){}
 }
 
-// 拖動狀態
 let _drag = null;
 
 function startDrag(e, key){
-  const wrap = document.getElementById('wrap-'+key);
-  const img  = document.getElementById('prev-'+key);
-  if(!wrap || !img || img.classList.contains('no-photo')) return;
-
+  const img = document.getElementById('prev-'+key);
+  if(!img || img.classList.contains('no-photo')) return;
   e.preventDefault();
+  e.stopPropagation();
+
   const isTouch = e.type === 'touchstart';
   const startX = isTouch ? e.touches[0].clientX : e.clientX;
   const startY = isTouch ? e.touches[0].clientY : e.clientY;
 
-  // 讀取目前偏移
   const s = getPhotoSettings();
-  const cur = s[key] || {offsetX: 0, offsetY: 0};
-  const startOffX = cur.offsetX || 0;
-  const startOffY = cur.offsetY || 0;
+  const cur = s[key] || {px:50, py:50};
+  const startPX = cur.px !== undefined ? cur.px : 50;
+  const startPY = cur.py !== undefined ? cur.py : 50;
 
-  wrap.classList.add('dragging');
-
-  _drag = { key, wrap, img, startX, startY, startOffX, startOffY };
+  img.style.cursor = 'grabbing';
+  _drag = {key, img, startX, startY, startPX, startPY};
 
   const onMove = (ev) => {
     if(!_drag) return;
+    ev.preventDefault();
     const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
     const cy = ev.touches ? ev.touches[0].clientY : ev.clientY;
-    const dx = cx - _drag.startX;
-    const dy = cy - _drag.startY;
-    const newOffX = Math.max(-25, Math.min(25, _drag.startOffX + dx * 0.3));
-    const newOffY = Math.max(-25, Math.min(25, _drag.startOffY + dy * 0.3));
-    applyImgOffset(_drag.key, newOffX, newOffY, true);
+    const dx = (cx - _drag.startX) * 0.4;
+    const dy = (cy - _drag.startY) * 0.4;
+    const newPX = Math.max(0, Math.min(100, _drag.startPX - dx));
+    const newPY = Math.max(0, Math.min(100, _drag.startPY - dy));
+    _drag.img.style.objectPosition = `${newPX}% ${newPY}%`;
+    // 即時存
+    const ss = getPhotoSettings();
+    if(!ss[_drag.key]) ss[_drag.key] = {};
+    ss[_drag.key].px = newPX;
+    ss[_drag.key].py = newPY;
+    savePhotoSettings(ss);
   };
 
-  const onEnd = (ev) => {
+  const onEnd = () => {
     if(!_drag) return;
-    const finalS = getPhotoSettings();
-    const fin = finalS[_drag.key] || {};
-    // 儲存並同步前台
-    savePhotoSettings(finalS);
+    _drag.img.style.cursor = 'grab';
     applyPhotoSettingsToFrontend();
-    _drag.wrap.classList.remove('dragging');
     _drag = null;
     document.removeEventListener('mousemove', onMove);
     document.removeEventListener('mouseup', onEnd);
@@ -2290,48 +2271,35 @@ function startDrag(e, key){
   document.addEventListener('touchend', onEnd);
 }
 
-function applyImgOffset(key, offX, offY, live){
+function applyImgOffset(key, px, py, save){
   const img = document.getElementById('prev-'+key);
-  if(!img) return;
-  // 計算 top/left（圖片是 150% 大，中心在 -25%）
-  const t = -25 + offY;
-  const l = -25 + offX;
-  img.style.top  = t + '%';
-  img.style.left = l + '%';
-
-  // 更新指示點位置
-  const dot = document.getElementById('dot-'+key);
-  if(dot){
-    const pctX = 50 + offX * 2;
-    const pctY = 50 + offY * 2;
-    dot.style.left = Math.max(5,Math.min(95,pctX)) + '%';
-    dot.style.top  = Math.max(5,Math.min(95,pctY)) + '%';
-    dot.style.display = 'block';
-  }
-
-  // 記錄到 settings
-  if(live){
+  if(img) img.style.objectPosition = `${px}% ${py}%`;
+  if(save){
     const s = getPhotoSettings();
     if(!s[key]) s[key] = {};
-    s[key].offsetX = offX;
-    s[key].offsetY = offY;
-    // 同步轉成 background-position 給前台用
-    const bgX = Math.max(0, Math.min(100, 50 + offX * 2));
-    const bgY = Math.max(0, Math.min(100, 50 + offY * 2));
-    s[key].bgPosition = `${bgX}% ${bgY}%`;
+    s[key].px = px; s[key].py = py;
     savePhotoSettings(s);
   }
 }
 
 function applyPhotoSettingsToFrontend(){
   const s = getPhotoSettings();
-  // 套用到 collage 背景層
   const map = {b_kiss:'pg0', b_fun:'pg1', b_full:'pg2', b_close:'pg3'};
+  const heroMap = {h_kiss:'hs0', h_fun:'hs1', h_full:'hs2', h_close:'hs3'};
   Object.keys(map).forEach(key => {
     const el = document.getElementById(map[key]);
     if(!el || !s[key]) return;
-    el.style.backgroundPosition = s[key].bgPosition || 'center center';
+    const px = s[key].px !== undefined ? s[key].px : 50;
+    const py = s[key].py !== undefined ? s[key].py : 50;
+    el.style.backgroundPosition = `${px}% ${py}%`;
     el.style.backgroundSize = s[key].fit === 'contain' ? 'contain' : 'cover';
+  });
+  Object.keys(heroMap).forEach(key => {
+    const el = document.getElementById(heroMap[key]);
+    if(!el || !s[key]) return;
+    const px = s[key].px !== undefined ? s[key].px : 50;
+    const py = s[key].py !== undefined ? s[key].py : 50;
+    el.style.backgroundPosition = `${px}% ${py}%`;
   });
 }
 
@@ -2340,41 +2308,35 @@ function loadPhotoSettingsUI(){
   const keys = ['h_kiss','h_fun','h_full','h_close','b_kiss','b_fun','b_full','b_close'];
   keys.forEach(key => {
     const setting = s[key] || {};
-    // 套用偏移到預覽圖
-    if(setting.offsetX !== undefined || setting.offsetY !== undefined){
-      applyImgOffset(key, setting.offsetX||0, setting.offsetY||0, false);
-    }
+    const px = setting.px !== undefined ? setting.px : 50;
+    const py = setting.py !== undefined ? setting.py : 50;
+    applyImgOffset(key, px, py, false);
     // 更新焦點/填滿按鈕
-    const pos = setting.position || 'center';
-    const fit = setting.fit || 'cover';
     ['top','center','bottom','left','right'].forEach(p => {
       const btn = document.getElementById(`fb-${key}-${p}`);
-      if(btn) btn.classList.toggle('active', p === pos);
+      if(btn) btn.classList.toggle('active', p === (setting.position||'center'));
     });
     ['cover','contain'].forEach(m => {
       const btn = document.getElementById(`ff-${key}-${m}`);
-      if(btn) btn.classList.toggle('active', m === fit);
+      if(btn) btn.classList.toggle('active', m === (setting.fit||'cover'));
     });
   });
 }
 
 function setPhotoFocus(key, pos){
+  const posMap = {top:[50,10], bottom:[50,90], left:[10,50], right:[90,50], center:[50,50]};
+  const [px, py] = posMap[pos] || [50,50];
   const s = getPhotoSettings();
   if(!s[key]) s[key] = {};
-  s[key].position = pos;
-  // 轉成 offsetX/Y
-  const offMap = {top:[0,-15], bottom:[0,15], left:[-15,0], right:[15,0], center:[0,0]};
-  const [ox, oy] = offMap[pos] || [0,0];
-  s[key].offsetX = ox; s[key].offsetY = oy;
-  s[key].bgPosition = pos === 'center' ? 'center center' : pos;
+  s[key].position = pos; s[key].px = px; s[key].py = py;
   savePhotoSettings(s);
-  applyImgOffset(key, ox, oy, false);
+  applyImgOffset(key, px, py, false);
   applyPhotoSettingsToFrontend();
   ['top','center','bottom','left','right'].forEach(p => {
     const btn = document.getElementById(`fb-${key}-${p}`);
     if(btn) btn.classList.toggle('active', p === pos);
   });
-  toast('✓ 焦點已更新');
+  toast(`✓ 焦點已設為「${pos==='top'?'上':pos==='bottom'?'下':pos==='left'?'左':pos==='right'?'右':'中'}」`);
 }
 
 function setPhotoFit(key, mode){
@@ -2387,8 +2349,9 @@ function setPhotoFit(key, mode){
     const btn = document.getElementById(`ff-${key}-${m}`);
     if(btn) btn.classList.toggle('active', m === mode);
   });
-  toast(`✓ 顯示方式：${mode === 'cover' ? '填滿' : '完整'}`);
+  toast(`✓ 顯示方式：${mode==='cover'?'填滿':'完整'}`);
 }
+
 
 function resetPhotos(){
   if(!confirm('確定恢復所有照片為原始預設嗎？\n（已上傳的照片將被清除，無法復原）')) return;
