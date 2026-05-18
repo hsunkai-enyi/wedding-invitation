@@ -250,7 +250,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-sans);co
 .foot-txt{font-family:var(--font-script);font-size:18px;color:var(--peach);letter-spacing:3px;transition:opacity .3s;font-weight:400;line-height:1.3;}
 .foot-hint{font-family:var(--font-sans);font-size:11px;letter-spacing:3px;color:#6b3a20;opacity:0;margin-top:10px;transition:opacity .5s;font-weight:500;}
 /* ADMIN */
-#view-admin{display:flex;background:#f0e8e0;}
+#view-admin{display:flex;background:#f0e8e0;overflow:hidden;}
 .adm-sb{width:210px;min-height:100vh;flex-shrink:0;background:var(--sidebar);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;}
 .sb-logo{padding:28px 22px 22px;border-bottom:1px solid rgba(255,255,255,.12);}
 .sb-ttl{font-family:var(--font-name);font-size:20px;color:#fff;letter-spacing:6px;font-weight:700;}
@@ -264,7 +264,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-sans);co
 .sb-btm{margin-top:auto;padding:18px;text-align:center;}
 .sb-couple{font-family:var(--font-name);font-size:14px;color:rgba(249,180,150,.7);letter-spacing:5px;font-weight:500;}
 .sb-date{font-size:11px;letter-spacing:3px;color:rgba(255,255,255,.4);margin-top:4px;}
-.adm-main{flex:1;height:100vh;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(249,180,150,.2) transparent;}
+.adm-main{flex:1;height:100vh;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:rgba(249,180,150,.2) transparent;}
 .apage{display:none;padding:28px 26px 60px;max-width:1020px;}
 .apage.active{display:block;}
 .apage-hdr{margin-bottom:22px;}
@@ -346,7 +346,7 @@ tbody tr:hover td{background:rgba(249,180,150,.06);}
 
 /* ═══ 照片上傳網格 ═══ */
 .photo-grid{display:grid;grid-template-columns:1.4fr 1fr;grid-template-rows:auto auto auto;gap:8px;}
-.photo-slot{position:relative;aspect-ratio:1/1;border-radius:14px;overflow:hidden;border:2px solid rgba(249,180,150,.3);background:rgba(255,248,243,.6);transition:all .3s;}
+.photo-slot{position:relative;aspect-ratio:1/1;border-radius:14px;overflow:hidden;border:2px solid rgba(249,180,150,.3);background:rgba(255,248,243,.6);transition:all .3s;max-width:100%;}
 .photo-hero-slot{grid-column:1;grid-row:1/3;aspect-ratio:auto;min-height:220px;}
 .photo-wide-slot{grid-column:1/-1;aspect-ratio:21/9;min-height:100px;}
 .photo-slot:hover{border-color:var(--peach);transform:translateY(-3px);box-shadow:0 8px 24px rgba(200,90,50,.2);}
@@ -372,7 +372,7 @@ tbody tr:hover td{background:rgba(249,180,150,.06);}
 .ph-section-sub{font-family:var(--font-sans);font-size:11px;color:var(--muted);letter-spacing:1px;font-weight:500;margin-top:2px;}
 
 /* Hero 4 等分網格（給輪播照片用） */
-.hero-photo-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;}
+.hero-photo-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;overflow:hidden;}
 .photo-square{aspect-ratio:1/1 !important;}
 @media(max-width:560px){
   .hero-photo-grid{grid-template-columns:1fr 1fr;}
@@ -785,25 +785,38 @@ select.m-field{appearance:none;-webkit-appearance:none;background-image:url("dat
 .fit-btn{flex:1;padding:4px 2px;background:#fff;border:1.5px solid rgba(249,180,150,.3);border-radius:6px;font-size:10px;cursor:pointer;text-align:center;transition:all .2s;color:#9a6655;font-family:var(--font-sans);}
 .fit-btn:hover{border-color:var(--peach);}
 .fit-btn.active{background:linear-gradient(135deg,#5b8fd4,#3e6fb3);color:white;border-color:#5b8fd4;}
-.photo-slot{flex-direction:column;display:flex;}
+.photo-slot{flex-direction:column;display:flex;overflow:hidden;position:relative;}
 
 
 /* ═══ 照片拖動定位框 ═══ */
-.photo-slot-img-wrap{position:relative;overflow:hidden;cursor:grab;user-select:none;-webkit-user-select:none;}
+.photo-slot-img-wrap{
+  position:relative;
+  overflow:hidden;
+  cursor:grab;
+  user-select:none;
+  -webkit-user-select:none;
+  width:100%;
+  height:160px;  /* 固定高度，不會跑版 */
+  flex:1;
+  display:block;
+}
 .photo-slot-img-wrap.dragging{cursor:grabbing;}
 .photo-slot-img-wrap img{
   position:absolute;
-  /* 預設比框大，讓使用者可以拖動 */
-  width:150%;height:150%;
-  top:-25%;left:-25%;
+  width:150%;
+  height:150%;
+  top:-25%;
+  left:-25%;
   object-fit:cover;
   transition:none;
   pointer-events:none;
   will-change:transform;
 }
 .photo-slot-img-wrap img.no-photo{
-  width:100%;height:100%;
-  top:0;left:0;
+  width:100%;
+  height:100%;
+  top:0;
+  left:0;
   object-fit:contain;
   opacity:.3;
 }
