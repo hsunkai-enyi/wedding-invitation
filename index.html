@@ -1125,55 +1125,7 @@ select.m-field{appearance:none;-webkit-appearance:none;background-image:url("dat
 .zoom-bar, .photo-tip-bar, .photo-focus-bar, .photo-fit-bar { display: none !important; }
 
 
-/* ═══ 強制限制照片管理區尺寸 ═══ */
-#ap-settings .photo-section {
-  max-width: 100% !important;
-  overflow: hidden !important;
-}
-#ap-settings .photo-grid,
-#ap-settings .hero-photo-grid {
-  width: 100% !important;
-  max-width: 100% !important;
-  overflow: hidden !important;
-  box-sizing: border-box !important;
-}
-#ap-settings .photo-slot {
-  width: 100% !important;
-  max-width: 100% !important;
-  max-height: 220px !important;
-  aspect-ratio: 1/1 !important;
-  overflow: hidden !important;
-  box-sizing: border-box !important;
-  display: flex !important;
-  flex-direction: column !important;
-}
-#ap-settings .photo-slot.photo-hero-slot,
-#ap-settings .photo-slot.photo-wide-slot {
-  aspect-ratio: auto !important;
-  height: 220px !important;
-  max-height: 220px !important;
-  grid-column: span 2 !important;
-}
-#ap-settings .photo-slot-img-wrap {
-  width: 100% !important;
-  max-width: 100% !important;
-  flex: 1 !important;
-  overflow: hidden !important;
-  position: relative !important;
-  min-height: 0 !important;
-}
-#ap-settings .photo-slot-img-wrap img {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
-  object-fit: cover !important;
-  display: block !important;
-  transform: none !important;
-}
+
 /* 確保上傳提示在範圍內 */
 #ap-settings .upload-hint {
   position: absolute !important;
@@ -1411,17 +1363,7 @@ div.photo-slot .photo-pos-badge {
 }
 
 
-/* ═══ 最終強制拼貼版型（覆蓋所有之前的規則）═══ */
-#ap-settings div.photo-grid {
-  display: grid !important;
-  grid-template-columns: 1.6fr 1fr !important;
-  grid-template-rows: 130px 130px 110px !important;
-  gap: 8px !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  overflow: hidden !important;
-  box-sizing: border-box !important;
-}
+
 /* 取消所有 photo-hero-slot / photo-wide-slot 的 grid-column: span 2 */
 #ap-settings div.photo-grid div.photo-slot.photo-hero-slot,
 #ap-settings div.photo-grid div.photo-slot:nth-child(1) {
@@ -1511,21 +1453,6 @@ div.photo-slot .photo-pos-badge {
 }
 
 
-/* ═══ 終極拼貼版型（grid-template-areas）═══ */
-#ap-settings .photo-grid {
-  display: grid !important;
-  grid-template-columns: 1.6fr 1fr !important;
-  grid-template-rows: 130px 130px 110px !important;
-  grid-template-areas:
-    "main right1"
-    "main right2"
-    "wide wide" !important;
-  gap: 8px !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-  padding: 4px !important;
-}
 
 /* 用順序而不是 class 來定位 */
 #ap-settings .photo-grid > div.photo-slot:nth-of-type(1),
@@ -1661,73 +1588,7 @@ div.photo-slot .photo-pos-badge {
 }
 
 
-/* ═══ 拼貼版型（class 版，最可靠）═══ */
-#ap-settings .photo-grid {
-  display: grid !important;
-  grid-template-columns: 1.6fr 1fr !important;
-  grid-template-rows: 130px 130px 110px !important;
-  grid-template-areas:
-    "main right1"
-    "main right2"
-    "wide wide" !important;
-  gap: 8px !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-  padding: 4px !important;
-}
-#ap-settings .photo-grid .collage-main {
-  grid-area: main !important;
-  grid-column: unset !important;
-  grid-row: unset !important;
-  height: auto !important;
-  max-height: none !important;
-  min-height: 0 !important;
-  aspect-ratio: auto !important;
-  position: relative !important;
-  display: flex !important;
-  flex-direction: column !important;
-  width: 100% !important;
-}
-#ap-settings .photo-grid .collage-r1 {
-  grid-area: right1 !important;
-  grid-column: unset !important;
-  grid-row: unset !important;
-  height: auto !important;
-  max-height: none !important;
-  min-height: 0 !important;
-  aspect-ratio: auto !important;
-  position: relative !important;
-  display: flex !important;
-  flex-direction: column !important;
-  width: 100% !important;
-}
-#ap-settings .photo-grid .collage-r2 {
-  grid-area: right2 !important;
-  grid-column: unset !important;
-  grid-row: unset !important;
-  height: auto !important;
-  max-height: none !important;
-  min-height: 0 !important;
-  aspect-ratio: auto !important;
-  position: relative !important;
-  display: flex !important;
-  flex-direction: column !important;
-  width: 100% !important;
-}
-#ap-settings .photo-grid .collage-wide {
-  grid-area: wide !important;
-  grid-column: unset !important;
-  grid-row: unset !important;
-  height: auto !important;
-  max-height: none !important;
-  min-height: 0 !important;
-  aspect-ratio: auto !important;
-  position: relative !important;
-  display: flex !important;
-  flex-direction: column !important;
-  width: 100% !important;
-}
+
 /* ★ FEATURED 標籤套到 collage-main */
 #ap-settings .photo-grid .collage-main::before {
   content: '★ FEATURED' !important;
@@ -1752,44 +1613,6 @@ div.photo-slot .photo-pos-badge {
 }
 
 
-/* ═══ 全新拼貼版型（用獨立 class 避免衝突）═══ */
-.collage-container {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 8px !important;
-  width: 100% !important;
-  padding: 4px !important;
-  box-sizing: border-box !important;
-}
-.collage-top {
-  display: flex !important;
-  gap: 8px !important;
-  height: 260px !important;
-}
-.collage-left {
-  flex: 1.6 !important;
-  display: flex !important;
-  min-width: 0 !important;
-}
-.collage-right {
-  flex: 1 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 8px !important;
-  min-width: 0 !important;
-}
-.collage-bottom {
-  width: 100% !important;
-  height: 110px !important;
-}
-.collage-left .cslot, .collage-bottom .cslot {
-  width: 100% !important;
-  height: 100% !important;
-}
-.collage-right .cslot {
-  flex: 1 !important;
-  min-height: 0 !important;
-}
 
 /* Hero row */
 .hero-row {
@@ -1971,6 +1794,36 @@ div.photo-slot .photo-pos-badge {
 @media(max-width: 768px) {
   .collage-top { height: 220px !important; }
   .collage-bottom { height: 95px !important; }
+}
+
+
+/* ═══ 拼貼管理版型最終版（僅調整尺寸）═══ */
+.collage-container { display: flex !important; flex-direction: column !important; gap: 8px !important; width: 100% !important; }
+.collage-top { display: flex !important; gap: 8px !important; height: 300px !important; }
+.collage-left { flex: 1.4 !important; min-width: 0 !important; display: flex !important; }
+.collage-right { flex: 1 !important; min-width: 0 !important; display: flex !important; flex-direction: column !important; gap: 8px !important; }
+.collage-bottom { height: 130px !important; width: 100% !important; }
+.collage-left > .cslot { width: 100% !important; height: 100% !important; }
+.collage-right > .cslot { flex: 1 !important; min-height: 0 !important; width: 100% !important; }
+.collage-bottom > .cslot { width: 100% !important; height: 100% !important; }
+.hero-row { display: flex !important; gap: 8px !important; width: 100% !important; }
+.hero-row > .hslot { flex: 1 !important; height: 150px !important; min-width: 0 !important; }
+.cslot { position: relative !important; display: flex !important; flex-direction: column !important; background: #f5ede5 !important; border: 2px solid rgba(249,180,150,.35) !important; border-radius: 10px !important; overflow: hidden !important; box-sizing: border-box !important; transition: border-color .2s !important; }
+.cslot:hover { border-color: #f97b5a !important; }
+.cslot-imgbox { position: relative !important; flex: 1 !important; min-height: 0 !important; width: 100% !important; overflow: hidden !important; background: #f5ede5 !important; }
+.cslot-imgbox > img { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important; }
+.cslot-uhint { position: absolute !important; inset: 0 !important; background: rgba(255,248,243,.95) !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; z-index: 10 !important; gap: 4px !important; }
+.cslot-uicon { font-size: 22px !important; }
+.cslot-ulbl { font-size: 10px !important; color: #9a6655 !important; letter-spacing: 1px !important; }
+.cslot-badge { position: absolute !important; top: 6px !important; left: 6px !important; background: linear-gradient(135deg,#f97b5a,#d05030) !important; color: white !important; padding: 3px 9px !important; border-radius: 50px !important; font-size: 9px !important; font-weight: 700 !important; letter-spacing: 1px !important; z-index: 6 !important; pointer-events: none !important; box-shadow: 0 2px 6px rgba(0,0,0,.15) !important; }
+.cslot-tools { flex-shrink: 0 !important; height: 32px !important; display: flex !important; gap: 3px !important; padding: 3px !important; background: rgba(255,248,243,.95) !important; border-top: 1px solid rgba(249,180,150,.2) !important; box-sizing: border-box !important; }
+.cslot-btn { flex: 1 !important; min-width: 0 !important; padding: 3px !important; font-size: 10px !important; border: 1px solid rgba(249,180,150,.3) !important; background: white !important; border-radius: 4px !important; cursor: pointer !important; color: #9a6655 !important; white-space: nowrap !important; font-family: var(--font-sans) !important; }
+.cslot-btn.primary { background: linear-gradient(135deg,#f97b5a,#d05030) !important; color: white !important; border-color: #f97b5a !important; }
+@media(max-width:768px) {
+  .collage-top { height: 220px !important; }
+  .collage-bottom { height: 100px !important; }
+  .hero-row { flex-wrap: wrap !important; }
+  .hero-row > .hslot { flex: 0 0 calc(50% - 4px) !important; height: 120px !important; }
 }
 
 </style>
@@ -2319,7 +2172,7 @@ div.photo-slot .photo-pos-badge {
 <div class="cslot hslot" id="slot-h_kiss">
                 <div class="cslot-imgbox" id="wrap-h_kiss">
                   <img id="prev-h_kiss" alt="Hero 1" draggable="false"/>
-                  <div class="cslot-uhint" id="uhint-h_kiss" onclick="uploadClick(\'h_kiss\')">
+                  <div class="cslot-uhint" id="uhint-h_kiss" onclick="uploadClick('h_kiss')">
                     <div class="cslot-uicon">📷</div>
                     <div class="cslot-ulbl">點擊上傳</div>
                   </div>
@@ -2328,14 +2181,14 @@ div.photo-slot .photo-pos-badge {
                 <div class="cslot-badge">① Hero</div>
                 <div class="cslot-tools">
                   <button class="cslot-btn primary" onclick="openCrop('h_kiss')">✂️</button>
-                  <button class="cslot-btn" onclick="uploadClick(\'h_kiss\')">↻</button>
+                  <button class="cslot-btn" onclick="uploadClick('h_kiss')">↻</button>
                   <button class="cslot-btn" onclick="resetCrop('h_kiss')">重置</button>
                 </div>
               </div>
 <div class="cslot hslot" id="slot-h_fun">
                 <div class="cslot-imgbox" id="wrap-h_fun">
                   <img id="prev-h_fun" alt="Hero 2" draggable="false"/>
-                  <div class="cslot-uhint" id="uhint-h_fun" onclick="uploadClick(\'h_fun\')">
+                  <div class="cslot-uhint" id="uhint-h_fun" onclick="uploadClick('h_fun')">
                     <div class="cslot-uicon">📷</div>
                     <div class="cslot-ulbl">點擊上傳</div>
                   </div>
@@ -2344,14 +2197,14 @@ div.photo-slot .photo-pos-badge {
                 <div class="cslot-badge">② Hero</div>
                 <div class="cslot-tools">
                   <button class="cslot-btn primary" onclick="openCrop('h_fun')">✂️</button>
-                  <button class="cslot-btn" onclick="uploadClick(\'h_fun\')">↻</button>
+                  <button class="cslot-btn" onclick="uploadClick('h_fun')">↻</button>
                   <button class="cslot-btn" onclick="resetCrop('h_fun')">重置</button>
                 </div>
               </div>
 <div class="cslot hslot" id="slot-h_full">
                 <div class="cslot-imgbox" id="wrap-h_full">
                   <img id="prev-h_full" alt="Hero 3" draggable="false"/>
-                  <div class="cslot-uhint" id="uhint-h_full" onclick="uploadClick(\'h_full\')">
+                  <div class="cslot-uhint" id="uhint-h_full" onclick="uploadClick('h_full')">
                     <div class="cslot-uicon">📷</div>
                     <div class="cslot-ulbl">點擊上傳</div>
                   </div>
@@ -2360,14 +2213,14 @@ div.photo-slot .photo-pos-badge {
                 <div class="cslot-badge">③ Hero</div>
                 <div class="cslot-tools">
                   <button class="cslot-btn primary" onclick="openCrop('h_full')">✂️</button>
-                  <button class="cslot-btn" onclick="uploadClick(\'h_full\')">↻</button>
+                  <button class="cslot-btn" onclick="uploadClick('h_full')">↻</button>
                   <button class="cslot-btn" onclick="resetCrop('h_full')">重置</button>
                 </div>
               </div>
 <div class="cslot hslot" id="slot-h_close">
                 <div class="cslot-imgbox" id="wrap-h_close">
                   <img id="prev-h_close" alt="Hero 4" draggable="false"/>
-                  <div class="cslot-uhint" id="uhint-h_close" onclick="uploadClick(\'h_close\')">
+                  <div class="cslot-uhint" id="uhint-h_close" onclick="uploadClick('h_close')">
                     <div class="cslot-uicon">📷</div>
                     <div class="cslot-ulbl">點擊上傳</div>
                   </div>
@@ -2376,7 +2229,7 @@ div.photo-slot .photo-pos-badge {
                 <div class="cslot-badge">④ Hero</div>
                 <div class="cslot-tools">
                   <button class="cslot-btn primary" onclick="openCrop('h_close')">✂️</button>
-                  <button class="cslot-btn" onclick="uploadClick(\'h_close\')">↻</button>
+                  <button class="cslot-btn" onclick="uploadClick('h_close')">↻</button>
                   <button class="cslot-btn" onclick="resetCrop('h_close')">重置</button>
                 </div>
               </div>
@@ -2399,7 +2252,7 @@ div.photo-slot .photo-pos-badge {
                   <div class="cslot" id="slot-b_kiss">
                   <div class="cslot-imgbox" id="wrap-b_kiss">
                     <img id="prev-b_kiss" alt="主視覺照片" draggable="false"/>
-                    <div class="cslot-uhint" id="uhint-b_kiss" onclick="uploadClick(\'b_kiss\')">
+                    <div class="cslot-uhint" id="uhint-b_kiss" onclick="uploadClick('b_kiss')">
                       <div class="cslot-uicon">📷</div>
                       <div class="cslot-ulbl">點擊上傳</div>
                     </div>
@@ -2408,7 +2261,7 @@ div.photo-slot .photo-pos-badge {
                   <div class="cslot-badge">★ FEATURED · ① 主視覺</div>
                   <div class="cslot-tools">
                     <button class="cslot-btn primary" onclick="openCrop('b_kiss')">✂️</button>
-                    <button class="cslot-btn" onclick="uploadClick(\'b_kiss\')">↻</button>
+                    <button class="cslot-btn" onclick="uploadClick('b_kiss')">↻</button>
                     <button class="cslot-btn" onclick="resetCrop('b_kiss')">重置</button>
                   </div>
                 </div>
@@ -2417,7 +2270,7 @@ div.photo-slot .photo-pos-badge {
                   <div class="cslot" id="slot-b_fun">
                   <div class="cslot-imgbox" id="wrap-b_fun">
                     <img id="prev-b_fun" alt="右上方圖" draggable="false"/>
-                    <div class="cslot-uhint" id="uhint-b_fun" onclick="uploadClick(\'b_fun\')">
+                    <div class="cslot-uhint" id="uhint-b_fun" onclick="uploadClick('b_fun')">
                       <div class="cslot-uicon">📷</div>
                       <div class="cslot-ulbl">點擊上傳</div>
                     </div>
@@ -2426,14 +2279,14 @@ div.photo-slot .photo-pos-badge {
                   <div class="cslot-badge">② 右上</div>
                   <div class="cslot-tools">
                     <button class="cslot-btn primary" onclick="openCrop('b_fun')">✂️</button>
-                    <button class="cslot-btn" onclick="uploadClick(\'b_fun\')">↻</button>
+                    <button class="cslot-btn" onclick="uploadClick('b_fun')">↻</button>
                     <button class="cslot-btn" onclick="resetCrop('b_fun')">重置</button>
                   </div>
                 </div>
                   <div class="cslot" id="slot-b_full">
                   <div class="cslot-imgbox" id="wrap-b_full">
                     <img id="prev-b_full" alt="右下方圖" draggable="false"/>
-                    <div class="cslot-uhint" id="uhint-b_full" onclick="uploadClick(\'b_full\')">
+                    <div class="cslot-uhint" id="uhint-b_full" onclick="uploadClick('b_full')">
                       <div class="cslot-uicon">📷</div>
                       <div class="cslot-ulbl">點擊上傳</div>
                     </div>
@@ -2442,7 +2295,7 @@ div.photo-slot .photo-pos-badge {
                   <div class="cslot-badge">③ 右下</div>
                   <div class="cslot-tools">
                     <button class="cslot-btn primary" onclick="openCrop('b_full')">✂️</button>
-                    <button class="cslot-btn" onclick="uploadClick(\'b_full\')">↻</button>
+                    <button class="cslot-btn" onclick="uploadClick('b_full')">↻</button>
                     <button class="cslot-btn" onclick="resetCrop('b_full')">重置</button>
                   </div>
                 </div>
@@ -2452,7 +2305,7 @@ div.photo-slot .photo-pos-badge {
                 <div class="cslot" id="slot-b_close">
                   <div class="cslot-imgbox" id="wrap-b_close">
                     <img id="prev-b_close" alt="底部全寬照片" draggable="false"/>
-                    <div class="cslot-uhint" id="uhint-b_close" onclick="uploadClick(\'b_close\')">
+                    <div class="cslot-uhint" id="uhint-b_close" onclick="uploadClick('b_close')">
                       <div class="cslot-uicon">📷</div>
                       <div class="cslot-ulbl">點擊上傳</div>
                     </div>
@@ -2461,7 +2314,7 @@ div.photo-slot .photo-pos-badge {
                   <div class="cslot-badge">④ 底部全寬</div>
                   <div class="cslot-tools">
                     <button class="cslot-btn primary" onclick="openCrop('b_close')">✂️</button>
-                    <button class="cslot-btn" onclick="uploadClick(\'b_close\')">↻</button>
+                    <button class="cslot-btn" onclick="uploadClick('b_close')">↻</button>
                     <button class="cslot-btn" onclick="resetCrop('b_close')">重置</button>
                   </div>
                 </div>
