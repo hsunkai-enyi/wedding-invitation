@@ -1873,6 +1873,120 @@ div.photo-slot .photo-pos-badge {
 .crop-handle.bl { bottom: -11px !important; left: -11px !important; cursor: nesw-resize !important; }
 .crop-handle.br { bottom: -11px !important; right: -11px !important; cursor: nwse-resize !important; }
 
+
+/* ═══ 裁剪 Modal — 新版（自適應圖片尺寸）═══ */
+.crop-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(20,8,4,.92) !important;
+  z-index: 9999 !important;
+  display: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 20px !important;
+  box-sizing: border-box !important;
+}
+.crop-overlay.active { display: flex !important; }
+.crop-modal {
+  background: var(--cream) !important;
+  border-radius: 16px !important;
+  padding: 16px !important;
+  max-width: 720px !important;
+  width: 100% !important;
+  max-height: 95vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  box-sizing: border-box !important;
+}
+.crop-modal-hdr {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding-bottom: 8px !important;
+  border-bottom: 1px solid rgba(249,180,150,.2) !important;
+  flex-shrink: 0 !important;
+}
+.crop-modal-title { font-size: 14px !important; color: var(--ink) !important; font-weight: 600 !important; letter-spacing: 2px !important; }
+.crop-modal-close {
+  width: 32px !important; height: 32px !important; border: none !important;
+  background: rgba(154,102,85,.15) !important;
+  color: #6b3a20 !important; border-radius: 50% !important; font-size: 18px !important; cursor: pointer !important;
+}
+/* 重要：stage-wrap 處理捲動和置中 */
+.crop-stage-wrap {
+  flex: 1 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #1a0e0a !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+/* stage 只包圖片，尺寸 = 圖片實際渲染尺寸 */
+.crop-stage {
+  position: relative !important;
+  display: inline-block !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  line-height: 0 !important;
+}
+.crop-stage img {
+  display: block !important;
+  max-width: 100% !important;
+  max-height: calc(95vh - 220px) !important;
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain !important;
+  user-select: none !important;
+  -webkit-user-drag: none !important;
+}
+/* 裁剪框就在 stage 內，跟圖片重疊 */
+.crop-frame {
+  position: absolute !important;
+  border: 2px solid white !important;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,.55) !important;
+  cursor: move !important;
+  touch-action: none !important;
+  box-sizing: border-box !important;
+}
+.crop-frame::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  pointer-events: none !important;
+  background-image:
+    linear-gradient(to right, transparent calc(33.33% - 1px), rgba(255,255,255,.4) 33.33%, rgba(255,255,255,.4) calc(33.33% + 1px), transparent calc(33.33% + 1px), transparent calc(66.66% - 1px), rgba(255,255,255,.4) 66.66%, rgba(255,255,255,.4) calc(66.66% + 1px), transparent calc(66.66% + 1px)),
+    linear-gradient(to bottom, transparent calc(33.33% - 1px), rgba(255,255,255,.4) 33.33%, rgba(255,255,255,.4) calc(33.33% + 1px), transparent calc(33.33% + 1px), transparent calc(66.66% - 1px), rgba(255,255,255,.4) 66.66%, rgba(255,255,255,.4) calc(66.66% + 1px), transparent calc(66.66% + 1px)) !important;
+}
+.crop-handle {
+  position: absolute !important;
+  width: 22px !important;
+  height: 22px !important;
+  background: white !important;
+  border: 3px solid #f97b5a !important;
+  border-radius: 50% !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,.4) !important;
+  touch-action: none !important;
+  z-index: 10 !important;
+}
+.crop-handle.tl { top: -11px !important; left: -11px !important; cursor: nwse-resize !important; }
+.crop-handle.tr { top: -11px !important; right: -11px !important; cursor: nesw-resize !important; }
+.crop-handle.bl { bottom: -11px !important; left: -11px !important; cursor: nesw-resize !important; }
+.crop-handle.br { bottom: -11px !important; right: -11px !important; cursor: nwse-resize !important; }
+.crop-hint-bar { font-size: 11px !important; color: #9a6655 !important; text-align: center !important; letter-spacing: 2px !important; padding: 4px 0 !important; flex-shrink: 0 !important; }
+.crop-actions { padding-top: 8px !important; flex-shrink: 0 !important; }
+.crop-act-btn {
+  flex: 1 !important; padding: 12px !important;
+  border: none !important; border-radius: 50px !important;
+  font-size: 13px !important; font-weight: 500 !important; letter-spacing: 3px !important;
+  font-family: var(--font-sans) !important; cursor: pointer !important;
+}
+.crop-act-btn.cancel { background: rgba(154,102,85,.15) !important; color: #6b3a20 !important; }
+.crop-act-btn.confirm { background: linear-gradient(135deg,#f97b5a,#d05030) !important; color: white !important; box-shadow: 0 4px 12px rgba(220,80,40,.3) !important; }
+
 </style>
 </head>
 <body>
@@ -3416,15 +3530,22 @@ function openCrop(key) {
   _cropFrame = document.getElementById('crop-frame');
   _cropStage = document.getElementById('crop-stage');
   
-  _cropImg.src = src;
-  
-  _cropImg.onload = () => {
-    // 自由比例，預設裁剪框 = 整張照片，使用者可自由縮放
-    initCropFrame(null);  // null = 不鎖比例
-    setupCropDrag();
-  };
-  
+  // 先顯示 overlay，再設 src（讓圖片在可見容器中載入）
   document.getElementById('crop-overlay').classList.add('active');
+  
+  // 設定 src，圖片載入後會自動呼叫 onCropImgLoad
+  _cropImg.src = src;
+}
+
+// 圖片載入完成後初始化裁剪框
+function onCropImgLoad() {
+  if (!_cropImg || !_cropFrame || !_cropStage) return;
+  if (!_cropKey) return;
+  
+  // 等一個 frame 確保佈局穩定
+  requestAnimationFrame(() => {
+    setTimeout(() => initCropFrame(), 50);
+  });
 }
 
 function closeCrop() {
@@ -3434,28 +3555,33 @@ function closeCrop() {
 
 // ═══ 一鍵選取整張照片 ═══
 function cropSelectAll() {
-  if (!_cropStage || !_cropStage._imgArea || !_cropFrame) return;
-  const area = _cropStage._imgArea;
-  _cropFrame.style.left = area.x + 'px';
-  _cropFrame.style.top = area.y + 'px';
-  _cropFrame.style.width = area.w + 'px';
-  _cropFrame.style.height = area.h + 'px';
+  if (!_cropImg || !_cropFrame) return;
+  // 取得圖片實際渲染尺寸
+  const w = _cropImg.offsetWidth;
+  const h = _cropImg.offsetHeight;
+  _cropFrame.style.left = '0px';
+  _cropFrame.style.top = '0px';
+  _cropFrame.style.width = w + 'px';
+  _cropFrame.style.height = h + 'px';
+  // 儲存到 _imgArea
+  if (_cropStage) _cropStage._imgArea = { x: 0, y: 0, w: w, h: h };
   toast('✓ 已選取整張照片');
 }
 
-function initCropFrame(ratio) {
-  // 取得圖片實際 DOM 位置（更可靠）
-  const stageRect = _cropStage.getBoundingClientRect();
-  const imgRect = _cropImg.getBoundingClientRect();
+function initCropFrame() {
+  if (!_cropImg) return;
+  // 取得圖片實際渲染尺寸（相對於 stage 為 0,0）
+  const w = _cropImg.offsetWidth;
+  const h = _cropImg.offsetHeight;
   
-  // 用實際渲染位置（相對於 stage）
-  const imgX = imgRect.left - stageRect.left;
-  const imgY = imgRect.top - stageRect.top;
-  const imgW = imgRect.width;
-  const imgH = imgRect.height;
+  if (w <= 0 || h <= 0) {
+    // 圖片還沒渲染好，再試一次
+    setTimeout(initCropFrame, 100);
+    return;
+  }
   
-  // 儲存圖片實際區域
-  _cropStage._imgArea = { x: imgX, y: imgY, w: imgW, h: imgH };
+  // 儲存圖片實際區域（stage 內座標）
+  _cropStage._imgArea = { x: 0, y: 0, w: w, h: h };
   
   // 載入之前儲存的裁剪資訊
   const s = getPhotoSettings();
@@ -3463,24 +3589,24 @@ function initCropFrame(ratio) {
   
   let frameW, frameH, frameX, frameY;
   if (saved && saved.x !== undefined && saved.w > 0.05) {
-    // 套用儲存的位置
-    frameW = saved.w * imgW;
-    frameH = saved.h * imgH;
-    frameX = imgX + saved.x * imgW;
-    frameY = imgY + saved.y * imgH;
+    frameW = saved.w * w;
+    frameH = saved.h * h;
+    frameX = saved.x * w;
+    frameY = saved.y * h;
   } else {
-    // 預設：裁剪框 = 整張照片（100% 完整顯示）
-    frameW = imgW;
-    frameH = imgH;
-    frameX = imgX;
-    frameY = imgY;
+    // 預設：包住整張照片
+    frameW = w;
+    frameH = h;
+    frameX = 0;
+    frameY = 0;
   }
   
   _cropFrame.style.left = frameX + 'px';
   _cropFrame.style.top = frameY + 'px';
   _cropFrame.style.width = frameW + 'px';
   _cropFrame.style.height = frameH + 'px';
-}
+  
+  setupCropDrag();
 }
 
 function setupCropDrag() {
@@ -4511,23 +4637,25 @@ window.addEventListener('offline', () => window.toast && window.toast('⚠️ �
 console.log('🔥 Firebase 整合完成 — 勛凱 & 恩懿 婚禮喜帖');
 </script>
 
-<!-- ═══ 裁剪 Modal ═══ -->
+<!-- ═══ 裁剪 Modal（重新設計：照片完整顯示 + 浮動裁剪框）═══ -->
 <div class="crop-overlay" id="crop-overlay" onclick="if(event.target===this)closeCrop()">
   <div class="crop-modal">
     <div class="crop-modal-hdr">
       <div class="crop-modal-title">✂️ 裁剪照片</div>
       <button class="crop-modal-close" onclick="closeCrop()">×</button>
     </div>
-    <div class="crop-stage" id="crop-stage">
-      <img id="crop-img" src="" draggable="false"/>
-      <div class="crop-frame" id="crop-frame">
-        <div class="crop-handle tl" data-corner="tl"></div>
-        <div class="crop-handle tr" data-corner="tr"></div>
-        <div class="crop-handle bl" data-corner="bl"></div>
-        <div class="crop-handle br" data-corner="br"></div>
+    <div class="crop-stage-wrap">
+      <div class="crop-stage" id="crop-stage">
+        <img id="crop-img" src="" draggable="false" onload="onCropImgLoad()"/>
+        <div class="crop-frame" id="crop-frame">
+          <div class="crop-handle tl" data-corner="tl"></div>
+          <div class="crop-handle tr" data-corner="tr"></div>
+          <div class="crop-handle bl" data-corner="bl"></div>
+          <div class="crop-handle br" data-corner="br"></div>
+        </div>
       </div>
     </div>
-    <div class="crop-hint-bar">👆 拖動裁剪框移動 · 拖角縮放 · 點下方按鈕可選全部</div>
+    <div class="crop-hint-bar">👆 拖動裁剪框移動 · 拖角縮放 · 點「選全部」恢復整張</div>
     <div class="crop-actions" style="display:flex;gap:8px;">
       <button class="crop-act-btn cancel" onclick="closeCrop()">取消</button>
       <button class="crop-act-btn" style="background:rgba(91,143,212,.15);color:#3e6fb3;border:1.5px solid rgba(91,143,212,.4);" onclick="cropSelectAll()">📐 選全部</button>
