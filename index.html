@@ -2701,45 +2701,43 @@ IMGS.map = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFB
 
 // Setup image src
 function initImages() {
-  const setImg = (id, src) => { const el=document.getElementById(id); if(el) el.style.backgroundImage=`url('${src}')`; };
   const s = getPhotoSettings ? getPhotoSettings() : {};
 
-  // === Hero 三層堆疊（4 張獨立輪播照片）===
-  setImg('hs0', IMGS.h_kiss || IMGS.kiss);
-  setImg('hs1', IMGS.h_fun || IMGS.fun);
-  setImg('hs2', IMGS.h_full || IMGS.full);
-  const hs3=document.getElementById('hs3');
-  if(hs3){
-    hs3.style.backgroundImage = `url('${IMGS.h_close || IMGS.close}')`;
-    hs3.style.backgroundPosition = (s.h_close && s.h_close.position) || 'center 30%';
-  }
-  // 背層/中層套用焦點
-  ['hs-back','hs-mid'].forEach(id => {
+  // Helper: 安全設定背景圖（有圖才設）
+  const setImgBg = (id, src, key) => {
     const el = document.getElementById(id);
-    if(el) el.style.backgroundPosition = 'center';
-  });
+    if (!el) return;
+    if (!src || src === 'undefined' || src === 'null' || src.length < 10) return;
+    el.style.backgroundImage = `url('${src}')`;
+    // 套用裁剪設定
+    const crop = s[key] && s[key].crop;
+    if (crop && crop.x !== undefined) {
+      const cx = (crop.x + crop.w/2) * 100;
+      const cy = (crop.y + crop.h/2) * 100;
+      const scale = 1 / Math.max(crop.w, crop.h);
+      el.style.backgroundPosition = `${cx}% ${cy}%`;
+      el.style.backgroundSize = `${scale * 100}% auto`;
+    } else {
+      el.style.backgroundPosition = 'center center';
+      el.style.backgroundSize = 'cover';
+    }
+  };
 
-  // === 內文 Our Love Story 拼貼（4 張獨立照片）===
-  const pKeys = ['b_kiss','b_fun','b_full','b_close'];
-  const pIds  = ['pg0','pg1','pg2','pg3'];
-  const pImgs = [
-    IMGS.b_kiss || IMGS.kiss,
-    IMGS.b_fun  || IMGS.fun,
-    IMGS.b_full || IMGS.full,
-    IMGS.b_close|| IMGS.close
-  ];
-  pIds.forEach((id, i) => {
-    const el = document.getElementById(id);
-    if(!el) return;
-    el.style.backgroundImage = `url('${pImgs[i]}')`;
-    const ps = s[pKeys[i]] || {};
-    el.style.backgroundPosition = ps.position || 'center';
-    el.style.backgroundSize = ps.fit === 'contain' ? 'contain' : 'cover';
-  });
+  // === Hero 輪播（4 張）===
+  setImgBg('hs0', IMGS.h_kiss || IMGS.kiss, 'h_kiss');
+  setImgBg('hs1', IMGS.h_fun  || IMGS.fun,  'h_fun');
+  setImgBg('hs2', IMGS.h_full || IMGS.full,  'h_full');
+  setImgBg('hs3', IMGS.h_close|| IMGS.close, 'h_close');
+
+  // === 內文拼貼（4 張）===
+  setImgBg('pg0', IMGS.b_kiss || IMGS.kiss,  'b_kiss');
+  setImgBg('pg1', IMGS.b_fun  || IMGS.fun,   'b_fun');
+  setImgBg('pg2', IMGS.b_full || IMGS.full,   'b_full');
+  setImgBg('pg3', IMGS.b_close|| IMGS.close,  'b_close');
 
   // Hotel map
   const mapImg = document.getElementById('wi-map-img');
-  if(mapImg && IMGS.map) mapImg.src = IMGS.map;
+  if (mapImg && IMGS.map) mapImg.src = IMGS.map;
 }
 // Initialization moved to end of script (after all consts/functions defined)
 
@@ -3376,29 +3374,43 @@ let _cropFrame = null;
 let _cropStage = null;
 
 function openCrop(key) {
-  const src = IMGS[key];
-  if (!src) { toast('請先上傳照片'); return; }
+  // 優先從 localStorage 取得上傳的照片
+  let src = null;
+  try {
+    const photos = JSON.parse(localStorage.getItem('hpy_photos') || '{}');
+    src = photos[key] || IMGS[key];
+  } catch(e) {
+    src = IMGS[key];
+  }
+  
+  if (!src || src.length < 10) { toast('請先上傳照片'); return; }
   
   _cropKey = key;
   _cropImg = document.getElementById('crop-img');
   _cropFrame = document.getElementById('crop-frame');
   _cropStage = document.getElementById('crop-stage');
   
-  // 先顯示 overlay，再設 src（讓圖片在可見容器中載入）
+  // 先清除舊圖，再設新 src
+  _cropImg.src = '';
+  
+  // 顯示 overlay
   document.getElementById('crop-overlay').classList.add('active');
   
-  // 設定 src，圖片載入後會自動呼叫 onCropImgLoad
-  _cropImg.src = src;
+  // 設定 src（onload 會呼叫 onCropImgLoad）
+  setTimeout(() => { _cropImg.src = src; }, 50);
 }
 
 // 圖片載入完成後初始化裁剪框
 function onCropImgLoad() {
   if (!_cropImg || !_cropFrame || !_cropStage) return;
   if (!_cropKey) return;
+  if (!_cropImg.naturalWidth) return;
   
-  // 等一個 frame 確保佈局穩定
+  // 確保 overlay 可見後才計算尺寸
   requestAnimationFrame(() => {
-    setTimeout(() => initCropFrame(), 50);
+    requestAnimationFrame(() => {
+      initCropFrame();
+    });
   });
 }
 
