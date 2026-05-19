@@ -2021,6 +2021,21 @@ label.cslot-uhint.hidden {
   pointer-events: none !important;
 }
 
+
+/* ═══ 終極修復：有 src 的照片一律 100% 顯示 ═══ */
+img[id^="prev-"][src] {
+  opacity: 1 !important;
+  display: block !important;
+  object-fit: cover !important;
+  z-index: 2 !important;
+}
+img[id^="prev-"].no-photo {
+  opacity: 0.25 !important;
+}
+img[id^="prev-"][src].no-photo {
+  opacity: 1 !important;
+}
+
 </style>
 </head>
 <body>
@@ -3361,7 +3376,13 @@ function uploadPhoto(key, input){
       if(ok) {
         IMGS[key] = dataUrl;
         const prev = document.getElementById('prev-'+key);
-        if(prev){ prev.src = dataUrl; prev.classList.remove('no-photo'); }
+        if(prev){
+          prev.src = dataUrl;
+          prev.className = '';  // 清除所有 class（包含 no-photo）
+          prev.style.opacity = '1';
+          prev.style.objectFit = 'cover';
+          prev.style.display = 'block';
+        }
         const uhint = document.getElementById('uhint-'+key);
         if(uhint) uhint.classList.add('hidden');
         const wrap = document.getElementById('wrap-'+key);
@@ -3409,12 +3430,18 @@ function loadAdminPreviews() {
       if (photos[k] && photos[k].startsWith('data:image')) {
         // 有自訂照片
         img.src = photos[k];
-        img.classList.remove('no-photo');
+        img.className = '';
+        img.style.opacity = '1';
+        img.style.objectFit = 'cover';
+        img.style.display = 'block';
         if (uhint) uhint.classList.add('hidden');
       } else if (IMGS[k] && IMGS[k].startsWith('data:image')) {
         // 預設照片（也是 base64）
         img.src = IMGS[k];
-        img.classList.remove('no-photo');
+        img.className = '';
+        img.style.opacity = '1';
+        img.style.objectFit = 'cover';
+        img.style.display = 'block';
         if (uhint) uhint.classList.add('hidden');
       } else {
         // 沒有照片
