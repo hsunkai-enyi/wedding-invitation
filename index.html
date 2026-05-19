@@ -221,9 +221,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-sans);co
 .collage-wide{grid-column:1/-1;grid-row:3;}
 
 .collage-hero,.collage-mini,.collage-wide{position:relative;border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(200,90,50,.15);transition:all .35s cubic-bezier(.4,0,.2,1);cursor:pointer;}
-.collage-hero{aspect-ratio:auto;min-height:260px;}
+.collage-hero{aspect-ratio:auto;min-height:260px;max-height:520px;}
 .collage-mini{aspect-ratio:1/1;min-height:125px;}
-.collage-wide{aspect-ratio:21/9;min-height:120px;}
+.collage-wide{aspect-ratio:16/9;min-height:160px;overflow:hidden;}
 
 .collage-hero:hover,.collage-mini:hover,.collage-wide:hover{transform:translateY(-4px) scale(1.01);box-shadow:0 10px 30px rgba(200,90,50,.25);}
 
@@ -599,7 +599,7 @@ select.m-field{appearance:none;-webkit-appearance:none;background-image:url("dat
   .photo-collage{grid-template-columns:1.4fr 1fr;gap:6px;}
   .collage-hero{min-height:200px;}
   .collage-mini{min-height:96px;}
-  .collage-wide{min-height:100px;}
+  .collage-wide{min-height:120px;}
   .collage-cap-hero{font-size:12px;letter-spacing:3px;padding:14px 12px 12px;}
   .collage-cap-wide{font-size:11px;letter-spacing:2px;padding:10px 12px;}
   .collage-hero::before{font-size:9px;padding:3px 8px;letter-spacing:2px;top:10px;left:10px;}
@@ -1653,9 +1653,10 @@ div.photo-slot .photo-pos-badge {
 /* 底部全寬：21:9 */
 .collage-bottom {
   width: 100%;
-  aspect-ratio: 21 / 9;
-  min-height: 100px;
+  aspect-ratio: 16 / 9;
+  min-height: 160px;
   flex-shrink: 0;
+  overflow: hidden;
 }
 .collage-bottom > .cslot {
   width: 100% !important;
@@ -3618,13 +3619,19 @@ function applyCropToFrontend() {
   
   Object.entries(map).forEach(([key, id]) => {
     const el = document.getElementById(id);
-    if (!el || !s[key] || !s[key].crop) return;
-    const crop = s[key].crop;
-    const cx = (crop.x + crop.w/2) * 100;
-    const cy = (crop.y + crop.h/2) * 100;
-    const scale = 1 / Math.max(crop.w, crop.h);
-    el.style.backgroundPosition = cx + '% ' + cy + '%';
-    el.style.backgroundSize = (scale * 100) + '% auto';
+    if (!el) return;
+    if (s[key] && s[key].crop) {
+      const crop = s[key].crop;
+      const cx = (crop.x + crop.w/2) * 100;
+      const cy = (crop.y + crop.h/2) * 100;
+      const scale = 1 / Math.max(crop.w, crop.h);
+      el.style.backgroundPosition = cx + '% ' + cy + '%';
+      el.style.backgroundSize = (scale * 100) + '% auto';
+    } else {
+      // 沒裁剪設定：恢復預設
+      el.style.backgroundPosition = 'center center';
+      el.style.backgroundSize = 'cover';
+    }
   });
 }
 
