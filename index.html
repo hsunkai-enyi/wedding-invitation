@@ -2013,6 +2013,14 @@ div.photo-slot .photo-pos-badge {
   z-index: 5 !important;
 }
 
+
+/* ═══ 隱藏上傳提示（用 class 控制，解決 !important 衝突）═══ */
+.cslot-uhint.hidden,
+label.cslot-uhint.hidden {
+  display: none !important;
+  pointer-events: none !important;
+}
+
 </style>
 </head>
 <body>
@@ -3355,7 +3363,7 @@ function uploadPhoto(key, input){
         const prev = document.getElementById('prev-'+key);
         if(prev){ prev.src = dataUrl; prev.classList.remove('no-photo'); }
         const uhint = document.getElementById('uhint-'+key);
-        if(uhint) uhint.style.display = 'none';
+        if(uhint) uhint.classList.add('hidden');
         const wrap = document.getElementById('wrap-'+key);
         if(wrap) wrap.classList.remove('empty');
         applyCropToImage(key);
@@ -3402,16 +3410,16 @@ function loadAdminPreviews() {
         // 有自訂照片
         img.src = photos[k];
         img.classList.remove('no-photo');
-        if (uhint) uhint.style.display = 'none';
+        if (uhint) uhint.classList.add('hidden');
       } else if (IMGS[k] && IMGS[k].startsWith('data:image')) {
         // 預設照片（也是 base64）
         img.src = IMGS[k];
         img.classList.remove('no-photo');
-        if (uhint) uhint.style.display = 'none';
+        if (uhint) uhint.classList.add('hidden');
       } else {
         // 沒有照片
         img.removeAttribute('src');
-        if (uhint) uhint.style.display = 'flex';
+        if (uhint) uhint.classList.remove('hidden');
       }
     });
   } catch(e) {
@@ -4308,7 +4316,7 @@ try {
   keys.forEach(key => {
     if(IMGS[key] && !IMGS[key].includes('placeholder')){
       const uhint = document.getElementById(`uhint-${key}`);
-      if(uhint) uhint.style.display = 'none';
+      if(uhint) uhint.classList.add('hidden');
       const prev = document.getElementById(`prev-${key}`);
       if(prev) prev.classList.remove('no-photo');
     }
