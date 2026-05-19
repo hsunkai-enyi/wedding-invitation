@@ -1987,6 +1987,32 @@ div.photo-slot .photo-pos-badge {
 .crop-act-btn.cancel { background: rgba(154,102,85,.15) !important; color: #6b3a20 !important; }
 .crop-act-btn.confirm { background: linear-gradient(135deg,#f97b5a,#d05030) !important; color: white !important; box-shadow: 0 4px 12px rgba(220,80,40,.3) !important; }
 
+
+/* ═══ 強制顯示後台預覽圖（最終版）═══ */
+.cslot-imgbox img[src] {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  opacity: 1 !important;
+  display: block !important;
+  z-index: 1 !important;
+}
+.cslot-imgbox img:not([src]) {
+  display: none !important;
+}
+/* 移除 no-photo 的低透明度限制 */
+.cslot-imgbox img.no-photo[src] {
+  opacity: 1 !important;
+  object-fit: cover !important;
+}
+/* 上傳提示在最上層，但有 src 後要隱藏 */
+.cslot-uhint {
+  z-index: 5 !important;
+}
+
 </style>
 </head>
 <body>
@@ -3714,9 +3740,9 @@ function applyCropToImage(key) {
   const s = getPhotoSettings();
   const crop = s[key] && s[key].crop;
   const img = document.getElementById('prev-' + key);
-  if (!img) return;
+  if (!img || !img.src) return;
   
-  if (crop) {
+  if (crop && crop.x !== undefined) {
     // 用 object-position 和 transform scale 模擬裁剪
     const cx = (crop.x + crop.w/2) * 100;
     const cy = (crop.y + crop.h/2) * 100;
@@ -3725,8 +3751,10 @@ function applyCropToImage(key) {
     img.style.transform = `scale(${scale})`;
     img.style.transformOrigin = cx + '% ' + cy + '%';
   } else {
+    // 沒裁剪設定：直接顯示完整照片
     img.style.objectPosition = 'center center';
     img.style.transform = 'none';
+    img.style.objectFit = 'cover';
   }
 }
 
