@@ -223,7 +223,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-sans);co
 .collage-hero,.collage-mini,.collage-wide{position:relative;border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(200,90,50,.15);transition:all .35s cubic-bezier(.4,0,.2,1);cursor:pointer;}
 .collage-hero{aspect-ratio:auto;min-height:260px;max-height:520px;}
 .collage-mini{aspect-ratio:1/1;min-height:125px;}
-.collage-wide{aspect-ratio:16/9;min-height:160px;overflow:hidden;}
+.collage-wide{height:280px;min-height:280px;aspect-ratio:auto;overflow:hidden;}
 
 .collage-hero:hover,.collage-mini:hover,.collage-wide:hover{transform:translateY(-4px) scale(1.01);box-shadow:0 10px 30px rgba(200,90,50,.25);}
 
@@ -599,7 +599,7 @@ select.m-field{appearance:none;-webkit-appearance:none;background-image:url("dat
   .photo-collage{grid-template-columns:1.4fr 1fr;gap:6px;}
   .collage-hero{min-height:200px;}
   .collage-mini{min-height:96px;}
-  .collage-wide{min-height:120px;}
+  .collage-wide{height:240px;min-height:240px;}
   .collage-cap-hero{font-size:12px;letter-spacing:3px;padding:14px 12px 12px;}
   .collage-cap-wide{font-size:11px;letter-spacing:2px;padding:10px 12px;}
   .collage-hero::before{font-size:9px;padding:3px 8px;letter-spacing:2px;top:10px;left:10px;}
@@ -1033,75 +1033,7 @@ select.m-field{appearance:none;-webkit-appearance:none;background-image:url("dat
   color: #6b3a20; border-radius: 50%; font-size: 18px; cursor: pointer;
 }
 
-/* 裁剪畫布 */
-.crop-stage {
-  position: relative;
-  background: #000;
-  border-radius: 10px;
-  overflow: hidden;
-  user-select: none;
-  -webkit-user-select: none;
-  width: 100%;
-  flex: 1;
-  min-height: 250px;
-  max-height: calc(95vh - 200px);
-}
-.crop-stage img {
-  width: 100%; height: 100%;
-  object-fit: contain;
-  display: block;
-  pointer-events: none;
-  user-select: none;
-}
-/* 裁剪框 */
-.crop-frame {
-  position: absolute;
-  border: 2px solid white;
-  box-shadow: 0 0 0 9999px rgba(0,0,0,.55);
-  cursor: move;
-  touch-action: none;
-}
-.crop-frame::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border: 1px solid rgba(255,255,255,.3);
-  pointer-events: none;
-  background-image:
-    linear-gradient(to right, transparent 33.33%, rgba(255,255,255,.3) 33.33%, rgba(255,255,255,.3) 33.66%, transparent 33.66%, transparent 66.66%, rgba(255,255,255,.3) 66.66%, rgba(255,255,255,.3) 67%, transparent 67%),
-    linear-gradient(to bottom, transparent 33.33%, rgba(255,255,255,.3) 33.33%, rgba(255,255,255,.3) 33.66%, transparent 33.66%, transparent 66.66%, rgba(255,255,255,.3) 66.66%, rgba(255,255,255,.3) 67%, transparent 67%);
-}
-/* 四個角的拖動把手 */
-.crop-handle {
-  position: absolute;
-  width: 18px; height: 18px;
-  background: white;
-  border: 2px solid #f97b5a;
-  border-radius: 50%;
-  box-shadow: 0 2px 6px rgba(0,0,0,.3);
-  touch-action: none;
-}
-.crop-handle.tl { top: -9px; left: -9px; cursor: nwse-resize; }
-.crop-handle.tr { top: -9px; right: -9px; cursor: nesw-resize; }
-.crop-handle.bl { bottom: -9px; left: -9px; cursor: nesw-resize; }
-.crop-handle.br { bottom: -9px; right: -9px; cursor: nwse-resize; }
-
-/* 底部操作列 */
-.crop-actions {
-  display: flex; gap: 8px; padding-top: 8px;
-}
-.crop-act-btn {
-  flex: 1; padding: 12px;
-  border: none; border-radius: 50px;
-  font-size: 13px; font-weight: 500; letter-spacing: 3px;
-  font-family: var(--font-sans); cursor: pointer;
-}
-.crop-act-btn.cancel { background: rgba(154,102,85,.15); color: #6b3a20; }
-.crop-act-btn.confirm { background: linear-gradient(135deg,#f97b5a,#d05030); color: white; box-shadow: 0 4px 12px rgba(220,80,40,.3); }
-.crop-hint-bar {
-  font-size: 11px; color: #9a6655; text-align: center;
-  letter-spacing: 2px; padding: 4px 0;
-}
+/* 舊版裁剪 CSS 已移除 */
 
 .upload-hint {
   position: absolute !important; inset: 0 !important;
@@ -1653,8 +1585,9 @@ div.photo-slot .photo-pos-badge {
 /* 底部全寬：21:9 */
 .collage-bottom {
   width: 100%;
-  aspect-ratio: 16 / 9;
-  min-height: 160px;
+  height: 280px;
+  min-height: 280px;
+  aspect-ratio: auto;
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -1808,7 +1741,7 @@ div.photo-slot .photo-pos-badge {
   border-radius: 50%; font-size: 18px; cursor: pointer;
 }
 .crop-stage-wrap {
-  flex: 1; min-height: 0;
+  flex: 1; min-height: 320px;
   display: flex; align-items: center; justify-content: center;
   background: #1a0e0a; border-radius: 10px; overflow: hidden; position: relative;
 }
@@ -3471,8 +3404,12 @@ function initCropFrame() {
   _cropFrame.style.top = frameY + 'px';
   _cropFrame.style.width = frameW + 'px';
   _cropFrame.style.height = frameH + 'px';
+  _cropFrame.style.display = 'block';
+  _cropFrame.style.visibility = 'visible';
+  _cropFrame.style.opacity = '1';
   
   setupCropDrag();
+  console.log('CropFrame init:', {w, h, frameW, frameH});
 }
 
 function setupCropDrag() {
