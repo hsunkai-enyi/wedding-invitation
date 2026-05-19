@@ -2036,6 +2036,132 @@ img[id^="prev-"][src].no-photo {
   opacity: 1 !important;
 }
 
+
+/* ═══ 修正照片比例（不壓扁）═══ */
+.collage-top {
+  height: auto !important;
+  min-height: 200px !important;
+  aspect-ratio: 16/10 !important;
+  max-height: 400px !important;
+}
+.collage-bottom {
+  height: auto !important;
+  aspect-ratio: 21/7 !important;
+  min-height: 80px !important;
+  max-height: 180px !important;
+}
+/* 右上右下等高 */
+.collage-right > .cslot {
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
+}
+/* img 保持比例填滿 */
+.cslot-imgbox > img,
+.cslot-imgbox img[src],
+img[id^="prev-"][src] {
+  object-fit: cover !important;
+  object-position: center center !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+
+/* ═══ 修正底部全寬比例 ═══ */
+.collage-bottom {
+  height: auto !important;
+  aspect-ratio: 21/9 !important;
+  min-height: 100px !important;
+  max-height: 220px !important;
+}
+.collage-bottom > .cslot {
+  width: 100% !important;
+  height: 100% !important;
+}
+.collage-bottom .cslot-imgbox {
+  width: 100% !important;
+  height: 100% !important;
+}
+.collage-bottom .cslot-imgbox img[src] {
+  object-fit: cover !important;
+  object-position: center center !important;
+}
+
+
+/* ═══ 後台拼貼完全對齊前台（精確比例）═══ */
+.collage-container {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  width: 100% !important;
+  max-width: 700px !important;
+  padding: 6px !important;
+  box-sizing: border-box !important;
+}
+/* 上半部：grid 跟前台一樣 1.5fr 1fr */
+.collage-top {
+  display: grid !important;
+  grid-template-columns: 1.5fr 1fr !important;
+  grid-template-rows: auto auto !important;
+  gap: 8px !important;
+  height: auto !important;
+  min-height: auto !important;
+  max-height: none !important;
+  aspect-ratio: auto !important;
+}
+/* 左邊大圖（主視覺）= 跟前台 .collage-hero 一樣 */
+.collage-left {
+  grid-column: 1 !important;
+  grid-row: 1 / 3 !important;
+  display: flex !important;
+  min-height: 260px !important;
+  flex: none !important;
+}
+.collage-left > .cslot {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 260px !important;
+}
+/* 右邊容器 */
+.collage-right {
+  grid-column: 2 !important;
+  grid-row: 1 / 3 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  flex: none !important;
+}
+/* 右上右下 = 跟前台 .collage-mini 一樣（正方形！）*/
+.collage-right > .cslot {
+  flex: 1 1 0 !important;
+  min-height: 125px !important;
+  aspect-ratio: 1/1 !important;
+  width: 100% !important;
+}
+/* 底部全寬 = 跟前台 .collage-wide 一樣（21:9）*/
+.collage-bottom {
+  width: 100% !important;
+  height: auto !important;
+  min-height: 120px !important;
+  max-height: none !important;
+  aspect-ratio: 21/9 !important;
+}
+.collage-bottom > .cslot {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Hero 列 */
+.hero-row {
+  max-width: 700px !important;
+}
+
+/* 手機版 */
+@media(max-width: 768px) {
+  .collage-left > .cslot { min-height: 200px !important; }
+  .collage-right > .cslot { min-height: 96px !important; }
+  .collage-bottom { min-height: 100px !important; }
+}
+
 </style>
 </head>
 <body>
