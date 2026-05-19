@@ -1655,10 +1655,20 @@ div.photo-slot .photo-pos-badge {
   width: 100%;
   aspect-ratio: 21 / 9;
   min-height: 100px;
+  flex-shrink: 0;
 }
 .collage-bottom > .cslot {
-  width: 100%;
-  height: 100%;
+  width: 100% !important;
+  height: 100% !important;
+  aspect-ratio: unset !important;
+  flex: 1 !important;
+}
+.collage-bottom .cslot-imgbox {
+  aspect-ratio: unset !important;
+}
+.collage-bottom .cslot-imgbox > img[src] {
+  object-fit: cover !important;
+  object-position: center center !important;
 }
 
 /* cslot 基本樣式 */
