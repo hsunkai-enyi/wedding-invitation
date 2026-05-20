@@ -1536,7 +1536,7 @@ div.photo-slot .photo-pos-badge {
 .hero-row > .hslot {
   flex: 1;
   min-width: 0;
-  height: 160px;
+  height: 200px;
 }
 
 /* 拼貼容器 */
@@ -1797,7 +1797,7 @@ div.photo-slot .photo-pos-badge {
   .collage-right > .cslot { aspect-ratio: 1/1; }
   .collage-bottom { min-height: 80px; }
   .hero-row { flex-wrap: wrap; }
-  .hero-row > .hslot { flex: 0 0 calc(50% - 4px); height: 160px; }
+  .hero-row > .hslot { flex: 0 0 calc(50% - 4px); height: 180px; }
 }
 
 
@@ -2219,6 +2219,7 @@ div.photo-slot .photo-pos-badge {
                 <div class="cslot-tools">
                   <button class="cslot-btn primary" onclick="openCrop('h_kiss')">✂️</button>
                   <label class="cslot-btn" for="upload-h_kiss" style="display:flex;align-items:center;justify-content:center;cursor:pointer;">↻</label>
+                  <button class="cslot-btn" onclick="deletePhoto('h_kiss')">刪除</button>
                   <button class="cslot-btn" onclick="resetCrop('h_kiss')">重置</button>
                 </div>
               </div>
@@ -2235,6 +2236,7 @@ div.photo-slot .photo-pos-badge {
                 <div class="cslot-tools">
                   <button class="cslot-btn primary" onclick="openCrop('h_fun')">✂️</button>
                   <label class="cslot-btn" for="upload-h_fun" style="display:flex;align-items:center;justify-content:center;cursor:pointer;">↻</label>
+                  <button class="cslot-btn" onclick="deletePhoto('h_fun')">刪除</button>
                   <button class="cslot-btn" onclick="resetCrop('h_fun')">重置</button>
                 </div>
               </div>
@@ -2251,6 +2253,7 @@ div.photo-slot .photo-pos-badge {
                 <div class="cslot-tools">
                   <button class="cslot-btn primary" onclick="openCrop('h_full')">✂️</button>
                   <label class="cslot-btn" for="upload-h_full" style="display:flex;align-items:center;justify-content:center;cursor:pointer;">↻</label>
+                  <button class="cslot-btn" onclick="deletePhoto('h_full')">刪除</button>
                   <button class="cslot-btn" onclick="resetCrop('h_full')">重置</button>
                 </div>
               </div>
@@ -2267,6 +2270,7 @@ div.photo-slot .photo-pos-badge {
                 <div class="cslot-tools">
                   <button class="cslot-btn primary" onclick="openCrop('h_close')">✂️</button>
                   <label class="cslot-btn" for="upload-h_close" style="display:flex;align-items:center;justify-content:center;cursor:pointer;">↻</label>
+                  <button class="cslot-btn" onclick="deletePhoto('h_close')">刪除</button>
                   <button class="cslot-btn" onclick="resetCrop('h_close')">重置</button>
                 </div>
               </div>
