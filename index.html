@@ -1588,9 +1588,9 @@ div.photo-slot .photo-pos-badge {
 /* 底部全寬：21:9 */
 .collage-bottom {
   width: 100%;
-  height: 180px;
-  min-height: 180px;
-  max-height: 180px;
+  height: 280px;
+  min-height: 280px;
+  max-height: 280px;
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -2384,16 +2384,10 @@ div.photo-slot .photo-pos-badge {
               </div>
             </div>
 
-            <!-- 儲存狀態 -->
-            <div id="photo-save-status" style="padding:12px 14px;background:linear-gradient(135deg,#EAF3DE,#d9e8c4);border-radius:12px;border:1px solid rgba(76,175,130,.3);">
-              <div style="display:flex;align-items:center;gap:10px;">
-                <div style="font-size:20px;">✅</div>
-                <div style="flex:1;">
-                  <div style="font-size:12px;font-weight:600;color:#2e7d52;letter-spacing:1px;">照片已自動儲存</div>
-                  <div style="font-size:10px;color:#3B6D11;margin-top:2px;">上傳後立即存到裝置，裁剪設定也會記憶</div>
-                </div>
-                <div id="photo-count-lbl" style="font-size:11px;color:#3B6D11;background:white;padding:4px 10px;border-radius:50px;font-weight:600;white-space:nowrap;">0 / 8 張</div>
-              </div>
+            <!-- 照片計數 -->
+            <div id="photo-save-status" style="padding:8px 14px;background:rgba(249,180,150,.1);border-radius:10px;border:1px solid rgba(249,180,150,.3);display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:11px;color:#9a6655;letter-spacing:1px;">📸 已上傳照片</span>
+              <div id="photo-count-lbl" style="font-size:12px;color:#d05030;background:white;padding:3px 12px;border-radius:50px;font-weight:700;border:1px solid rgba(249,180,150,.3);">0 / 8 張</div>
             </div>
 
             <!-- 操作按鈕 -->
@@ -2755,6 +2749,9 @@ function initImages() {
   setBg('pg2', photos['b_full'] || IMGS['b_full'] || IMGS['full']  || '');
   setBg('pg3', photos['b_close']|| IMGS['b_close']|| IMGS['close'] || '');
 
+  // 地圖圖片
+  const mapImg = document.getElementById('wi-map-img');
+  if (mapImg && IMGS.map) mapImg.src = IMGS.map;
   applyCropToFrontend();
 }
 // Initialization moved to end of script (after all consts/functions defined)
@@ -3697,26 +3694,8 @@ function updatePhotoCount() {
     const photos = JSON.parse(localStorage.getItem('hpy_photos') || '{}');
     keys.forEach(k => { if (photos[k]) uploaded++; });
     const lbl = document.getElementById('photo-count-lbl');
-    if (lbl) lbl.textContent = `${uploaded} / 8 張`;
-    const status = document.getElementById('photo-save-status');
-    if (status) {
-      if (uploaded === 0) {
-        status.style.background = 'linear-gradient(135deg,#FFF6E5,#fdebc0)';
-        status.style.borderColor = 'rgba(245,200,66,.3)';
-        status.querySelector('div div:nth-child(2) div:first-child').style.color = '#7d5500';
-        status.querySelector('div div:nth-child(2) div:first-child').textContent = '尚未上傳照片';
-        status.querySelector('div div:nth-child(2) div:last-child').textContent = '點擊照片框中的「📷 點擊上傳」開始';
-        status.querySelector('div div:first-child').textContent = '📷';
-      } else {
-        status.style.background = 'linear-gradient(135deg,#EAF3DE,#d9e8c4)';
-        status.style.borderColor = 'rgba(76,175,130,.3)';
-        status.querySelector('div div:nth-child(2) div:first-child').style.color = '#2e7d52';
-        status.querySelector('div div:nth-child(2) div:first-child').textContent = `✅ 已儲存 ${uploaded} 張照片`;
-        status.querySelector('div div:nth-child(2) div:last-child').textContent = '照片自動儲存到雲端，賓客即時看到';
-        status.querySelector('div div:first-child').textContent = '✅';
-      }
-    }
-  } catch(e) { console.warn('updatePhotoCount:', e); }
+    if (lbl) lbl.textContent = uploaded + ' / 8 張';
+  } catch(e) {}
 }
 
 // ═══ 強制同步所有照片到雲端 ═══
@@ -4031,8 +4010,10 @@ function updateChairHint(){
 }
 
 function openMapZoom(){
-  const src = document.getElementById('wi-map-img').src;
-  document.getElementById('map-zoom-img').src = src;
+  const mapImg = document.getElementById('wi-map-img');
+  const zoomImg = document.getElementById('map-zoom-img');
+  if (!mapImg || !zoomImg) return;
+  zoomImg.src = mapImg.src;
   om('m-mapzoom');
 }
 
