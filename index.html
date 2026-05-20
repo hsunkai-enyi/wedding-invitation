@@ -2048,7 +2048,7 @@ div.photo-slot .photo-pos-badge {
           </div>
         </div>
       </div>
-      <div class="ac"><div class="ac-ttl"><span>🕐</span>最新回覆（近5筆）</div><div class="tbl-wrap"><table><thead><tr><th>#</th><th>姓名</th><th>人數</th><th>飲食注意</th><th>回覆時間</th></tr></thead><tbody id="recent-body"></tbody></table></div></div>
+      <div class="ac"><div class="ac-ttl"><span>🕐</span>最新回覆（共 <span id="total-rsvp-lbl">0</span> 筆，顯示最新 5 筆）</div><div class="tbl-wrap"><table><thead><tr><th>#</th><th>姓名</th><th>人數</th><th>飲食</th><th>回覆時間</th></tr></thead><tbody id="recent-body"></tbody></table></div></div>
     </div>
     <div class="apage" id="ap-guests">
       <div class="apage-hdr"><div class="apage-ttl">🎀 賓客名單</div><div class="apage-sub">管理所有已確認出席的賓客</div></div>
@@ -2906,7 +2906,16 @@ function refreshAdmin(){
   setText('pg1-lbl',`${tot}/${inv}`);setText('pg2-lbl',pct+'%');setText('pg3-lbl',d.b.length+'則');
   setTimeout(()=>{setW('pg1',seatPct+'%');setW('pg2',pct+'%');setW('pg3',Math.min((d.b.length/Math.max(d.r.length,1))*100,100)+'%');},100);
   const rb=document.getElementById('recent-body');
-  if(rb){const recent=d.r.slice().reverse().slice(0,5);rb.innerHTML=recent.length===0?'<tr><td colspan="5" style="text-align:center;padding:22px;font-size:11px;letter-spacing:3px;opacity:.4;">尚無回覆</td></tr>':recent.map((x,i)=>`<tr><td class="td-idx">${d.r.length-i}</td><td class="td-name">${x.n}</td><td class="td-cnt">${(x.c||1)+(x.k||0)}</td><td class="td-diet">${x.d||'—'}</td><td class="td-time">${x.t}</td></tr>`).join('');}
+  if(rb){
+    // 更新總筆數
+    const totalLbl=document.getElementById('total-rsvp-lbl');
+    if(totalLbl) totalLbl.textContent=d.r.length;
+    // 依時間排序取最新 5 筆
+    const recent=[...d.r].sort((a,b)=>new Date(b.ts||b.t||0)-new Date(a.ts||a.t||0)).slice(0,5);
+    rb.innerHTML=recent.length===0
+      ?'<tr><td colspan="5" style="text-align:center;padding:22px;font-size:11px;letter-spacing:3px;opacity:.4;">尚無回覆</td></tr>'
+      :recent.map((x,i)=>`<tr><td class="td-idx">${i+1}</td><td class="td-name">${x.n}</td><td class="td-cnt">${(x.c||1)+(x.k||0)}</td><td class="td-diet">${x.meat!=null?'葷'+x.meat+'/素'+x.veg:x.d||'—'}</td><td class="td-time">${x.t}</td></tr>`).join('');
+  }
   renderAdmGuests();renderAdmBless();renderRelationList();
 }
 function renderAdmGuests(){
