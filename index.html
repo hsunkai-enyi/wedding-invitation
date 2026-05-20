@@ -4233,6 +4233,23 @@ try { loadCustomPhotos(); } catch(e){ console.error('loadCustomPhotos failed:', 
 try { initImages(); } catch(e){ console.error('initImages failed:', e); }
 try { applyContent(); } catch(e){ console.error('applyContent failed:', e); }
 
+// 確保照片在 DOM 完全載入後再次套用（解決賓客端破圖問題）
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    try { loadCustomPhotos(); initImages(); applyCropToFrontend(); } catch(e){}
+  });
+} else {
+  // 已經 loaded，延遲 100ms 確保元素都在
+  setTimeout(() => {
+    try { loadCustomPhotos(); initImages(); applyCropToFrontend(); } catch(e){}
+  }, 100);
+}
+
+// 再次延遲確保（解決 localStorage 讀取競爭）
+setTimeout(() => {
+  try { loadCustomPhotos(); initImages(); applyCropToFrontend(); } catch(e){}
+}, 800);
+
 // 隱藏已有照片的 upload-hint，顯示指示點
 try {
   const keys = ['h_kiss','h_fun','h_full','h_close','b_kiss','b_fun','b_full','b_close'];
