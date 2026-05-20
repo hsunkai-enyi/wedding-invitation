@@ -96,7 +96,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-sans);co
 /* 主層：完全置中橫滿 84% 寬 */
 .hstack-front{top:8px;left:8%;right:8%;bottom:8px;border-radius:14px;overflow:hidden;box-shadow:0 14px 36px rgba(200,90,50,.32),0 0 0 4px white,0 0 0 5px rgba(249,180,150,.4);transform:translateZ(0);background:#fff;}
 
-.hslide{position:absolute;inset:0;opacity:0;transition:opacity 1.4s cubic-bezier(.4,0,.2,1);background-size:cover;background-position:center;}
+.hslide{position:absolute;inset:0;opacity:0;transition:opacity 1.4s cubic-bezier(.4,0,.2,1);background-size:cover;background-position:center;background-color:#f5ede5;}
 .hslide.on{opacity:1;}
 .hslide-ov{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 60%,rgba(20,8,4,.18) 100%);pointer-events:none;z-index:2;}
 
@@ -227,7 +227,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-sans);co
 
 .collage-hero:hover,.collage-mini:hover,.collage-wide:hover{transform:translateY(-4px) scale(1.01);box-shadow:0 10px 30px rgba(200,90,50,.25);}
 
-.gallery-img{position:absolute;inset:0;background-size:cover;background-position:center;transition:transform .8s cubic-bezier(.25,.46,.45,.94);}
+.gallery-img{position:absolute;inset:0;background-size:cover;background-position:center;background-color:#f5ede5;transition:transform .8s cubic-bezier(.25,.46,.45,.94);}
 .collage-hero:hover .gallery-img,.collage-mini:hover .gallery-img,.collage-wide:hover .gallery-img{transform:scale(1.08);}
 
 /* 主視覺 hero 標題 — 永遠顯示 */
@@ -2731,42 +2731,37 @@ IMGS.map = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFB
 
 // Setup image src
 function initImages() {
-  const s = getPhotoSettings ? getPhotoSettings() : {};
+  // 從 localStorage 讀取自訂照片
+  let photos = {};
+  try { photos = JSON.parse(localStorage.getItem('hpy_photos') || '{}'); } catch(e){}
+  
+  const s = (() => { try { return JSON.parse(localStorage.getItem('hpy_photo_settings') || '{}'); } catch(e) { return {}; } })();
 
-  // Helper: 安全設定背景圖（有圖才設）
-  const setImgBg = (id, src, key) => {
+  // 設定 background-image 的 helper
+  const setBg = (id, src) => {
+    if (!src || src.length < 50) return false;
     const el = document.getElementById(id);
-    if (!el) return;
-    if (!src || src === 'undefined' || src === 'null' || src.length < 10) return;
-    el.style.backgroundImage = `url('${src}')`;
-    // 套用裁剪設定
-    const crop = s[key] && s[key].crop;
-    // backgroundSize 永遠 cover（填滿格子，不失真）
+    if (!el) return false;
+    el.style.backgroundImage = "url('" + src + "')";
     el.style.backgroundSize = 'cover';
-    if (crop && crop.x !== undefined) {
-      const cx = Math.round((crop.x + crop.w / 2) * 100);
-      const cy = Math.round((crop.y + crop.h / 2) * 100);
-      el.style.backgroundPosition = cx + '% ' + cy + '%';
-    } else {
-      el.style.backgroundPosition = 'center center';
-    }
+    el.style.backgroundPosition = 'center center';
+    return true;
   };
 
-  // === Hero 輪播（4 張）===
-  setImgBg('hs0', IMGS.h_kiss || IMGS.kiss, 'h_kiss');
-  setImgBg('hs1', IMGS.h_fun  || IMGS.fun,  'h_fun');
-  setImgBg('hs2', IMGS.h_full || IMGS.full,  'h_full');
-  setImgBg('hs3', IMGS.h_close|| IMGS.close, 'h_close');
+  // Hero 輪播（優先用自訂，fallback 用 IMGS）
+  setBg('hs0', photos['h_kiss'] || IMGS['h_kiss'] || IMGS['kiss'] || '');
+  setBg('hs1', photos['h_fun']  || IMGS['h_fun']  || IMGS['fun']  || '');
+  setBg('hs2', photos['h_full'] || IMGS['h_full'] || IMGS['full'] || '');
+  setBg('hs3', photos['h_close']|| IMGS['h_close']|| IMGS['close']|| '');
 
-  // === 內文拼貼（4 張）===
-  setImgBg('pg0', IMGS.b_kiss || IMGS.kiss,  'b_kiss');
-  setImgBg('pg1', IMGS.b_fun  || IMGS.fun,   'b_fun');
-  setImgBg('pg2', IMGS.b_full || IMGS.full,   'b_full');
-  setImgBg('pg3', IMGS.b_close|| IMGS.close,  'b_close');
+  // 內文拼貼
+  setBg('pg0', photos['b_kiss'] || IMGS['b_kiss'] || IMGS['kiss']  || '');
+  setBg('pg1', photos['b_fun']  || IMGS['b_fun']  || IMGS['fun']   || '');
+  setBg('pg2', photos['b_full'] || IMGS['b_full'] || IMGS['full']  || '');
+  setBg('pg3', photos['b_close']|| IMGS['b_close']|| IMGS['close'] || '');
 
-  // Hotel map
-  const mapImg = document.getElementById('wi-map-img');
-  if (mapImg && IMGS.map) mapImg.src = IMGS.map;
+  // 套用裁剪/焦點設定
+  applyCropToFrontend();
 }
 // Initialization moved to end of script (after all consts/functions defined)
 
@@ -4228,27 +4223,28 @@ window.uploadClick = function(key) {
   }
 };
 
-// ═══ INITIALIZATION (run last after all consts and functions are defined) ═══
-try { loadCustomPhotos(); } catch(e){ console.error('loadCustomPhotos failed:', e); }
-try { initImages(); } catch(e){ console.error('initImages failed:', e); }
-try { applyContent(); } catch(e){ console.error('applyContent failed:', e); }
+// ═══ INITIALIZATION ═══
+// 立刻執行一次
+(function safeInit() {
+  try { loadCustomPhotos(); } catch(e){}
+  try { initImages(); } catch(e){}
+  try { applyContent(); } catch(e){}
+})();
 
-// 確保照片在 DOM 完全載入後再次套用（解決賓客端破圖問題）
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    try { loadCustomPhotos(); initImages(); applyCropToFrontend(); } catch(e){}
+// DOM 完全就緒後再執行
+window.addEventListener('load', function() {
+  try { loadCustomPhotos(); initImages(); } catch(e){}
+  // 連續三次確保（解決 localStorage 讀取時序問題）
+  [100, 500, 1500].forEach(ms => {
+    setTimeout(() => {
+      try {
+        loadCustomPhotos();
+        initImages();
+        if(window.applyCropToFrontend) applyCropToFrontend();
+      } catch(e){}
+    }, ms);
   });
-} else {
-  // 已經 loaded，延遲 100ms 確保元素都在
-  setTimeout(() => {
-    try { loadCustomPhotos(); initImages(); applyCropToFrontend(); } catch(e){}
-  }, 100);
-}
-
-// 再次延遲確保（解決 localStorage 讀取競爭）
-setTimeout(() => {
-  try { loadCustomPhotos(); initImages(); applyCropToFrontend(); } catch(e){}
-}, 800);
+});
 
 // 隱藏已有照片的 upload-hint，顯示指示點
 try {
