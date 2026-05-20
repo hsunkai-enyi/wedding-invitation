@@ -2354,30 +2354,56 @@ div.photo-slot .photo-pos-badge {
             </div>
           </div>
 
-          <div class="photo-tips" style="margin-top:18px;">
-            <div class="ptip">💡 <b>選圖小技巧：</b></div>
-            <div class="ptip-item">🎬 <b>Hero 4 張</b>：建議用「最美的一系列」橫式照片，會自動輪播</div>
-            <div class="ptip-item">🎨 <b>內文 ①</b>：選最具代表性的主視覺（直式或方形也可）</div>
-            <div class="ptip-item">🎨 <b>內文 ② ③</b>：方形構圖最佳（中心對稱）</div>
-            <div class="ptip-item">🎨 <b>內文 ④</b>：橫式全景照片（21:9 或 2:1 最佳）</div>
-            <div class="ptip-item">📌 兩區可用完全不同照片，也可上傳同一張到不同位置</div>
-          </div>
+          <!-- 照片管理說明與控制 -->
+          <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;">
 
-          <!-- 儲存狀態顯示 -->
-          <div id="photo-save-status" style="margin-top:18px;padding:14px;background:linear-gradient(135deg,#EAF3DE,#d9e8c4);border-radius:12px;border:1px solid rgba(76,175,130,.3);">
-            <div style="display:flex;align-items:center;gap:10px;">
-              <div style="font-size:22px;">✅</div>
-              <div style="flex:1;">
-                <div style="font-size:13px;font-weight:600;color:#2e7d52;letter-spacing:1px;">照片已自動儲存</div>
-                <div style="font-size:11px;color:#3B6D11;margin-top:2px;">每張照片上傳後立即儲存到雲端，賓客即時看到</div>
+            <!-- 說明卡片 -->
+            <div style="background:linear-gradient(145deg,#fff8f3,#fff0e6);border:1px solid rgba(249,180,150,.35);border-radius:14px;padding:16px;">
+              <div style="font-size:12px;font-weight:700;color:#d05030;letter-spacing:2px;margin-bottom:12px;">💡 照片設定說明</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div style="background:white;border-radius:10px;padding:10px;border:1px solid rgba(249,180,150,.2);">
+                  <div style="font-size:11px;font-weight:700;color:#f97b5a;margin-bottom:4px;">🎬 頂部 Hero（4張）</div>
+                  <div style="font-size:10px;color:#6b3a20;line-height:1.6;">建議橫式照片<br/>會自動輪播切換</div>
+                </div>
+                <div style="background:white;border-radius:10px;padding:10px;border:1px solid rgba(249,180,150,.2);">
+                  <div style="font-size:11px;font-weight:700;color:#f97b5a;margin-bottom:4px;">① 主視覺</div>
+                  <div style="font-size:10px;color:#6b3a20;line-height:1.6;">最代表性的照片<br/>直式或方形皆可</div>
+                </div>
+                <div style="background:white;border-radius:10px;padding:10px;border:1px solid rgba(249,180,150,.2);">
+                  <div style="font-size:11px;font-weight:700;color:#f97b5a;margin-bottom:4px;">② ③ 右上右下</div>
+                  <div style="font-size:10px;color:#6b3a20;line-height:1.6;">正方形構圖最佳<br/>人物置中效果好</div>
+                </div>
+                <div style="background:white;border-radius:10px;padding:10px;border:1px solid rgba(249,180,150,.2);">
+                  <div style="font-size:11px;font-weight:700;color:#f97b5a;margin-bottom:4px;">④ 底部全寬</div>
+                  <div style="font-size:10px;color:#6b3a20;line-height:1.6;">橫式全景照片<br/>2:1 寬幅最佳</div>
+                </div>
               </div>
-              <div id="photo-count-lbl" style="font-size:11px;color:#3B6D11;background:white;padding:4px 10px;border-radius:50px;font-weight:600;">0 / 8 張</div>
+              <div style="margin-top:10px;padding:8px 10px;background:rgba(249,123,90,.08);border-radius:8px;font-size:10px;color:#9a6655;line-height:1.6;">
+                ✂️ 上傳後點「裁剪」可調整焦點位置<br/>
+                📌 兩區照片可以完全不同，也可上傳同一張
+              </div>
             </div>
+
+            <!-- 儲存狀態 -->
+            <div id="photo-save-status" style="padding:12px 14px;background:linear-gradient(135deg,#EAF3DE,#d9e8c4);border-radius:12px;border:1px solid rgba(76,175,130,.3);">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="font-size:20px;">✅</div>
+                <div style="flex:1;">
+                  <div style="font-size:12px;font-weight:600;color:#2e7d52;letter-spacing:1px;">照片已自動儲存</div>
+                  <div style="font-size:10px;color:#3B6D11;margin-top:2px;">上傳後立即存到裝置，裁剪設定也會記憶</div>
+                </div>
+                <div id="photo-count-lbl" style="font-size:11px;color:#3B6D11;background:white;padding:4px 10px;border-radius:50px;font-weight:600;white-space:nowrap;">0 / 8 張</div>
+              </div>
+            </div>
+
+            <!-- 操作按鈕 -->
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <button class="set-save full-btn" style="background:linear-gradient(135deg,#5b8fd4,#3e6fb3);color:white;" onclick="syncAllPhotosToCloud()">☁️ 同步照片設定到雲端</button>
+              <button class="set-save full-btn" style="background:linear-gradient(135deg,#e07040,#b04020);color:white;" onclick="clearAllCropData()">✕ 清除所有裁剪設定（照片顯示異常時使用）</button>
+              <button class="set-save full-btn" style="background:rgba(154,102,85,.15);color:#6b3a20;" onclick="resetPhotos()">↺ 還原所有預設照片</button>
+            </div>
+
           </div>
-          
-          <button class="set-save full-btn" style="background:linear-gradient(135deg,#5b8fd4,#3e6fb3);margin-top:10px;color:white;" onclick="syncAllPhotosToCloud()">☁️ 強制同步到雲端（重新儲存所有照片）</button>
-          <button class="set-save full-btn" style="background:linear-gradient(135deg,#e07040,#b04020);margin-top:8px;" onclick="clearAllCropData()">✕ 清除所有裁剪設定</button>
-          <button class="set-save full-btn" style="background:linear-gradient(135deg,#9a6655,#6b3a20);margin-top:8px;" onclick="resetPhotos()">↺ 還原預設照片</button>
         </div>
       </div>
 
