@@ -2911,7 +2911,12 @@ function refreshAdmin(){
 }
 function renderAdmGuests(){
   const d=gd(),q=(document.getElementById('g-srch')?.value||'').toLowerCase();
-  const fl=d.r.filter(x=>!q||x.n.toLowerCase().includes(q)||(x.ph||'').includes(q));
+  // 依回覆時間排序（最新在前）
+  const sorted=[...d.r].sort((a,b)=>{
+    const ta=new Date(a.ts||a.t||0), tb=new Date(b.ts||b.t||0);
+    return tb-ta;
+  });
+  const fl=sorted.filter(x=>!q||x.n.toLowerCase().includes(q)||(x.ph||'').includes(q));
   const body=document.getElementById('adm-g-body'),lbl=document.getElementById('g-count-lbl');
   if(!body)return;
   const tot=d.r.reduce((s,x)=>s+(x.c||1)+(x.k||0),0);
@@ -4437,19 +4442,7 @@ setTimeout(() => {
         return;
       }
 
-      // ═══ 送出前確認視窗 ═══
-      const kidsTxt = kids > 0 ? `、兒童 ${kids} 位` : '';
-      const chairTxt = chair > 0 ? `\n🪑 兒童座椅：${chair} 張` : '';
-      const confirmMsg =
-        `📋 請確認出席資訊：\n\n` +
-        `👤 姓名：${name}\n` +
-        `👥 出席：成人 ${count} 位${kidsTxt}\n` +
-        `🍽 飲食：葷食 ${meat} · 素食 ${veg}${chairTxt}\n` +
-        `${note ? '📝 備註：' + note + '\n' : ''}` +
-        `\n確定送出嗎？`;
-
-      if(!confirm(confirmMsg)) return;
-
+      // ═══ 直接送出，不顯示確認框 ═══
       const rsvp = { n: name, ph: phone, r: relation, c: count, k: kids, chair, meat, veg, note, t: new Date().toLocaleString('zh-TW') };
 
       // 送到 Firestore
