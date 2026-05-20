@@ -1849,6 +1849,15 @@ div.photo-slot .photo-pos-badge {
   .collage-bottom { height: 240px !important; min-height: 240px !important; }
 }
 
+
+/* ═══ 裁剪後台預覽：確保照片不超出框框 ═══ */
+.cslot-imgbox { overflow: hidden !important; }
+.cslot-imgbox > img[src] {
+  transform: none !important;
+  object-fit: cover !important;
+  transition: object-position .2s ease !important;
+}
+
 </style>
 </head>
 <body>
@@ -2705,13 +2714,13 @@ function initImages() {
     el.style.backgroundImage = `url('${src}')`;
     // 套用裁剪設定
     const crop = s[key] && s[key].crop;
-    if (crop && crop.w > 0 && crop.h > 0) {
+    if (crop && crop.w > 0.01 && crop.h > 0.01 && (crop.w < 0.99 || crop.h < 0.99)) {
       const bsW = Math.round(100 / crop.w);
       const bsH = Math.round(100 / crop.h);
-      const bpX = crop.w >= 1 ? 0 : Math.round((crop.x / (1 - crop.w)) * 100);
-      const bpY = crop.h >= 1 ? 0 : Math.round((crop.y / (1 - crop.h)) * 100);
-      el.style.backgroundSize = `${bsW}% ${bsH}%`;
-      el.style.backgroundPosition = `${bpX}% ${bpY}%`;
+      const bpX = crop.w >= 1 ? 50 : Math.round((crop.x / (1 - crop.w)) * 100);
+      const bpY = crop.h >= 1 ? 50 : Math.round((crop.y / (1 - crop.h)) * 100);
+      el.style.backgroundSize = bsW + '% ' + bsH + '%';
+      el.style.backgroundPosition = bpX + '% ' + bpY + '%';
     } else {
       el.style.backgroundPosition = 'center center';
       el.style.backgroundSize = 'cover';
@@ -3607,19 +3616,17 @@ function applyCropToImage(key) {
   const img = document.getElementById('prev-' + key);
   if (!img || !img.src) return;
   
-  if (crop && crop.x !== undefined) {
-    // 用 object-position 和 transform scale 模擬裁剪
-    const cx = (crop.x + crop.w/2) * 100;
-    const cy = (crop.y + crop.h/2) * 100;
-    const scale = 1 / Math.max(crop.w, crop.h);
+  // 移除舊的 transform（避免跑版）
+  img.style.transform = 'none';
+  img.style.objectFit = 'cover';
+  
+  if (crop && crop.w > 0.01 && crop.h > 0.01 && (crop.w < 0.99 || crop.h < 0.99)) {
+    // 有裁剪：用 object-position 定位焦點中心
+    const cx = Math.round((crop.x + crop.w / 2) * 100);
+    const cy = Math.round((crop.y + crop.h / 2) * 100);
     img.style.objectPosition = cx + '% ' + cy + '%';
-    img.style.transform = `scale(${scale})`;
-    img.style.transformOrigin = cx + '% ' + cy + '%';
   } else {
-    // 沒裁剪設定：直接顯示完整照片
     img.style.objectPosition = 'center center';
-    img.style.transform = 'none';
-    img.style.objectFit = 'cover';
   }
 }
 
@@ -3634,18 +3641,15 @@ function applyCropToFrontend() {
     const el = document.getElementById(id);
     if (!el) return;
     const crop = s[key] && s[key].crop;
-    if (crop && crop.w > 0 && crop.h > 0) {
-      // 裁剪：把照片放大讓選取區域填滿框
-      // backgroundSize = 100% / 裁剪寬度（讓裁剪區佔滿）
+    // 只有裁剪框佔整張照片以下才套用裁剪
+    if (crop && crop.w > 0.01 && crop.h > 0.01 && (crop.w < 0.99 || crop.h < 0.99)) {
       const bsW = Math.round(100 / crop.w);
       const bsH = Math.round(100 / crop.h);
-      // backgroundPosition = 裁剪左上角在放大圖中的位置
-      const bpX = Math.round((crop.x / (1 - crop.w)) * 100);
-      const bpY = Math.round((crop.y / (1 - crop.h)) * 100);
-      el.style.backgroundSize = `${bsW}% ${bsH}%`;
-      el.style.backgroundPosition = `${bpX}% ${bpY}%`;
+      const bpX = crop.w >= 1 ? 50 : Math.round((crop.x / (1 - crop.w)) * 100);
+      const bpY = crop.h >= 1 ? 50 : Math.round((crop.y / (1 - crop.h)) * 100);
+      el.style.backgroundSize = bsW + '% ' + bsH + '%';
+      el.style.backgroundPosition = bpX + '% ' + bpY + '%';
     } else {
-      // 無裁剪：正常顯示
       el.style.backgroundSize = 'cover';
       el.style.backgroundPosition = 'center center';
     }
