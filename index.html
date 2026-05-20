@@ -96,7 +96,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-sans);co
 /* 主層：完全置中橫滿 84% 寬 */
 .hstack-front{top:8px;left:8%;right:8%;bottom:8px;border-radius:14px;overflow:hidden;box-shadow:0 14px 36px rgba(200,90,50,.32),0 0 0 4px white,0 0 0 5px rgba(249,180,150,.4);transform:translateZ(0);background:#fff;}
 
-.hslide{position:absolute;inset:0;opacity:0;transition:opacity 1.4s cubic-bezier(.4,0,.2,1);background-size:cover;background-position:center;background-color:#f5ede5;}
+.hslide{position:absolute;inset:0;opacity:0;transition:opacity 1.4s cubic-bezier(.4,0,.2,1);background-size:cover;background-position:center;background-color:#f5ede5;}.hslide.on{opacity:1;}
 .hslide.on{opacity:1;}
 .hslide-ov{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 60%,rgba(20,8,4,.18) 100%);pointer-events:none;z-index:2;}
 
@@ -1892,7 +1892,7 @@ div.photo-slot .photo-pos-badge {
           <div class="hstack-layer hstack-back" id="hs-back" loading="lazy"></div>
           <div class="hstack-layer hstack-mid" id="hs-mid"></div>
           <div class="hstack-layer hstack-front" id="hs-front">
-            <div class="hslide on" id="hs0"></div>
+            <div class="hslide on" id="hs0" style="opacity:1;"></div>
             <div class="hslide" id="hs1"></div>
             <div class="hslide" id="hs2"></div>
             <div class="hslide" id="hs3"></div>
@@ -2731,24 +2731,19 @@ IMGS.map = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFB
 
 // Setup image src
 function initImages() {
-  // 從 localStorage 讀取自訂照片
   let photos = {};
   try { photos = JSON.parse(localStorage.getItem('hpy_photos') || '{}'); } catch(e){}
-  
-  const s = (() => { try { return JSON.parse(localStorage.getItem('hpy_photo_settings') || '{}'); } catch(e) { return {}; } })();
 
-  // 設定 background-image 的 helper
   const setBg = (id, src) => {
-    if (!src || src.length < 50) return false;
+    if (!src || src.length < 50) return;
     const el = document.getElementById(id);
-    if (!el) return false;
+    if (!el) return;
     el.style.backgroundImage = "url('" + src + "')";
     el.style.backgroundSize = 'cover';
     el.style.backgroundPosition = 'center center';
-    return true;
   };
 
-  // Hero 輪播（優先用自訂，fallback 用 IMGS）
+  // Hero 輪播
   setBg('hs0', photos['h_kiss'] || IMGS['h_kiss'] || IMGS['kiss'] || '');
   setBg('hs1', photos['h_fun']  || IMGS['h_fun']  || IMGS['fun']  || '');
   setBg('hs2', photos['h_full'] || IMGS['h_full'] || IMGS['full'] || '');
@@ -2760,7 +2755,6 @@ function initImages() {
   setBg('pg2', photos['b_full'] || IMGS['b_full'] || IMGS['full']  || '');
   setBg('pg3', photos['b_close']|| IMGS['b_close']|| IMGS['close'] || '');
 
-  // 套用裁剪/焦點設定
   applyCropToFrontend();
 }
 // Initialization moved to end of script (after all consts/functions defined)
@@ -4224,26 +4218,14 @@ window.uploadClick = function(key) {
 };
 
 // ═══ INITIALIZATION ═══
-// 立刻執行一次
-(function safeInit() {
-  try { loadCustomPhotos(); } catch(e){}
-  try { initImages(); } catch(e){}
-  try { applyContent(); } catch(e){}
-})();
+// 立刻同步執行
+try { loadCustomPhotos(); } catch(e){}
+try { initImages(); } catch(e){}
+try { applyContent(); } catch(e){}
 
-// DOM 完全就緒後再執行
-window.addEventListener('load', function() {
-  try { loadCustomPhotos(); initImages(); } catch(e){}
-  // 連續三次確保（解決 localStorage 讀取時序問題）
-  [100, 500, 1500].forEach(ms => {
-    setTimeout(() => {
-      try {
-        loadCustomPhotos();
-        initImages();
-        if(window.applyCropToFrontend) applyCropToFrontend();
-      } catch(e){}
-    }, ms);
-  });
+// window.load 後再補一次（確保完整）
+window.addEventListener('load', () => {
+  try { loadCustomPhotos(); initImages(); applyCropToFrontend(); } catch(e){}
 });
 
 // 隱藏已有照片的 upload-hint，顯示指示點
