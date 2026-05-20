@@ -3313,13 +3313,17 @@ function loadAdminPreviews() {
   }
 }
 
-// 儲存照片到 localStorage（帶容量保護）
+// 儲存照片到 localStorage（帶容量保護）並自動同步雲端
 function savePhoto(key, dataUrl){
   try {
     const raw = localStorage.getItem('hpy_photos');
     const photos = raw ? JSON.parse(raw) : {};
     photos[key] = dataUrl;
     localStorage.setItem('hpy_photos', JSON.stringify(photos));
+    // 自動同步到 Firestore（背景執行）
+    if (window.fbSaveConfig) {
+      window.fbSaveConfig({ photos: photos }).catch(e => console.warn('auto-sync photo:', e));
+    }
     return true;
   } catch(e) {
     // 超出容量 → 嘗試刪除其他照片後重試
@@ -3741,29 +3745,28 @@ async function syncAllPhotosToCloud() {
     const photos = JSON.parse(localStorage.getItem('hpy_photos') || '{}');
     const settings = JSON.parse(localStorage.getItem('hpy_photo_settings') || '{}');
     const count = Object.keys(photos).length;
-    
+
     if (count === 0) {
       toast('⚠️ 尚未上傳任何照片');
       return;
     }
-    
-    toast(`🔄 正在同步 ${count} 張照片...`);
-    
-    // 同步照片設定到 Firebase
+
+    toast(`🔄 正在同步 ${count} 張照片到雲端...`);
+
     if (window.fbSaveConfig) {
       await window.fbSaveConfig({
+        photos: photos,
         photoSettings: settings,
         photosUpdatedAt: new Date().toISOString()
       });
+      toast(`✅ 同步完成！${count} 張照片已上傳雲端，所有裝置可見`);
+    } else {
+      toast('❌ Firebase 尚未連線，請稍後再試');
     }
-    
-    setTimeout(() => {
-      toast(`✅ 同步完成！${count} 張照片已儲存`);
-      updatePhotoCount();
-    }, 800);
+    updatePhotoCount();
   } catch(e) {
     console.error('syncAllPhotos:', e);
-    toast('❌ 同步失敗，請重試');
+    toast('❌ 同步失敗：' + e.message);
   }
 }
 
@@ -4424,6 +4427,18 @@ function startConfigListener() {
     try { localStorage.setItem('hpy_cfg', JSON.stringify(cfg)); } catch(e){}
     // 套用到前台
     if(window.applyContent) window.applyContent();
+    // ═══ 同步照片設定（裁剪/焦點）═══
+    if(data.photoSettings) {
+      try { localStorage.setItem('hpy_photo_settings', JSON.stringify(data.photoSettings)); } catch(e){}
+    }
+    // ═══ 同步照片本身（base64）═══
+    if(data.photos) {
+      try {
+        localStorage.setItem('hpy_photos', JSON.stringify(data.photos));
+        if(window.initImages) window.initImages();
+        if(window.applyCropToFrontend) window.applyCropToFrontend();
+      } catch(e){}
+    }
   });
 }
 
