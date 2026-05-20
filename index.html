@@ -2376,6 +2376,7 @@ div.photo-slot .photo-pos-badge {
           </div>
           
           <button class="set-save full-btn" style="background:linear-gradient(135deg,#5b8fd4,#3e6fb3);margin-top:10px;color:white;" onclick="syncAllPhotosToCloud()">☁️ 強制同步到雲端（重新儲存所有照片）</button>
+          <button class="set-save full-btn" style="background:linear-gradient(135deg,#e07040,#b04020);margin-top:8px;" onclick="clearAllCropData()">✕ 清除所有裁剪設定</button>
           <button class="set-save full-btn" style="background:linear-gradient(135deg,#9a6655,#6b3a20);margin-top:8px;" onclick="resetPhotos()">↺ 還原預設照片</button>
         </div>
       </div>
@@ -2714,16 +2715,14 @@ function initImages() {
     el.style.backgroundImage = `url('${src}')`;
     // 套用裁剪設定
     const crop = s[key] && s[key].crop;
-    if (crop && crop.w > 0.01 && crop.h > 0.01 && (crop.w < 0.99 || crop.h < 0.99)) {
-      const bsW = Math.round(100 / crop.w);
-      const bsH = Math.round(100 / crop.h);
-      const bpX = crop.w >= 1 ? 50 : Math.round((crop.x / (1 - crop.w)) * 100);
-      const bpY = crop.h >= 1 ? 50 : Math.round((crop.y / (1 - crop.h)) * 100);
-      el.style.backgroundSize = bsW + '% ' + bsH + '%';
-      el.style.backgroundPosition = bpX + '% ' + bpY + '%';
+    // backgroundSize 永遠 cover（填滿格子，不失真）
+    el.style.backgroundSize = 'cover';
+    if (crop && crop.x !== undefined) {
+      const cx = Math.round((crop.x + crop.w / 2) * 100);
+      const cy = Math.round((crop.y + crop.h / 2) * 100);
+      el.style.backgroundPosition = cx + '% ' + cy + '%';
     } else {
       el.style.backgroundPosition = 'center center';
-      el.style.backgroundSize = 'cover';
     }
   };
 
@@ -3636,21 +3635,18 @@ function applyCropToFrontend() {
     b_kiss: 'pg0', b_fun: 'pg1', b_full: 'pg2', b_close: 'pg3',
     h_kiss: 'hs0', h_fun: 'hs1', h_full: 'hs2', h_close: 'hs3'
   };
-  
   Object.entries(map).forEach(([key, id]) => {
     const el = document.getElementById(id);
     if (!el) return;
     const crop = s[key] && s[key].crop;
-    // 只有裁剪框佔整張照片以下才套用裁剪
-    if (crop && crop.w > 0.01 && crop.h > 0.01 && (crop.w < 0.99 || crop.h < 0.99)) {
-      const bsW = Math.round(100 / crop.w);
-      const bsH = Math.round(100 / crop.h);
-      const bpX = crop.w >= 1 ? 50 : Math.round((crop.x / (1 - crop.w)) * 100);
-      const bpY = crop.h >= 1 ? 50 : Math.round((crop.y / (1 - crop.h)) * 100);
-      el.style.backgroundSize = bsW + '% ' + bsH + '%';
-      el.style.backgroundPosition = bpX + '% ' + bpY + '%';
+    // backgroundSize 永遠 cover（照片填滿格子，不失真）
+    el.style.backgroundSize = 'cover';
+    if (crop && crop.x !== undefined) {
+      // 只用裁剪框中心決定焦點位置
+      const cx = Math.round((crop.x + crop.w / 2) * 100);
+      const cy = Math.round((crop.y + crop.h / 2) * 100);
+      el.style.backgroundPosition = cx + '% ' + cy + '%';
     } else {
-      el.style.backgroundSize = 'cover';
       el.style.backgroundPosition = 'center center';
     }
   });
@@ -3745,6 +3741,20 @@ function setPhotoFocus(k,p){ const map={top:[50,15],bottom:[50,85],left:[15,50],
 function setPhotoFit(k,m){ /* deprecated */ }
 function startDrag(){ /* deprecated, click handles it */ }
 
+
+
+// ═══ 清除所有裁剪資料（解決舊資料失真問題）═══
+function clearAllCropData() {
+  if (!confirm('確定清除所有裁剪設定？\n照片會恢復為置中顯示，需重新裁剪。')) return;
+  try {
+    const s = getPhotoSettings();
+    Object.keys(s).forEach(k => { if (s[k]) delete s[k].crop; });
+    savePhotoSettings(s);
+    applyCropToFrontend();
+    ['h_kiss','h_fun','h_full','h_close','b_kiss','b_fun','b_full','b_close'].forEach(applyCropToImage);
+    toast('✓ 裁剪設定已清除，照片恢復置中');
+  } catch(e) { toast('清除失敗：' + e.message); }
+}
 
 function resetPhotos(){
   if(!confirm('確定恢復所有照片為原始預設嗎？\n（已上傳的照片將被清除，無法復原）')) return;
