@@ -1588,24 +1588,25 @@ div.photo-slot .photo-pos-badge {
 /* 底部全寬：21:9 */
 .collage-bottom {
   width: 100%;
-  height: 280px;
-  min-height: 280px;
-  max-height: 280px;
   flex-shrink: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 .collage-bottom > .cslot {
   width: 100% !important;
-  height: 280px !important;
   aspect-ratio: unset !important;
   flex: none !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 .collage-bottom .cslot-imgbox {
   aspect-ratio: unset !important;
   height: 280px !important;
+  min-height: 280px !important;
+  max-height: 280px !important;
   width: 100% !important;
   flex: none !important;
-  min-height: unset !important;
+  overflow: hidden !important;
+  border-radius: 14px !important;
 }
 .collage-bottom .cslot-imgbox > img[src] {
   object-fit: cover !important;
@@ -1838,13 +1839,9 @@ div.photo-slot .photo-pos-badge {
 .collage-bottom {
   grid-column: 1 / -1 !important;
   grid-row: 3 !important;
-  height: 280px !important;
-  min-height: 280px !important;
-  max-height: 280px !important;
-}
-.collage-bottom > .cslot {
-  width: 100% !important;
-  height: 100% !important;
+  height: auto !important;
+  min-height: unset !important;
+  max-height: unset !important;
 }
 @media(max-width: 768px) {
   .collage-container {
@@ -2302,6 +2299,7 @@ div.photo-slot .photo-pos-badge {
                   <div class="cslot-tools">
                     <button class="cslot-btn primary" onclick="openCrop('b_kiss')">✂️</button>
                     <label class="cslot-btn" for="upload-b_kiss" style="display:flex;align-items:center;justify-content:center;cursor:pointer;">↻</label>
+                    <button class="cslot-btn" onclick="deletePhoto('b_kiss')">刪除</button>
                     <button class="cslot-btn" onclick="resetCrop('b_kiss')">重置</button>
                   </div>
                 </div>
@@ -2320,6 +2318,7 @@ div.photo-slot .photo-pos-badge {
                   <div class="cslot-tools">
                     <button class="cslot-btn primary" onclick="openCrop('b_fun')">✂️</button>
                     <label class="cslot-btn" for="upload-b_fun" style="display:flex;align-items:center;justify-content:center;cursor:pointer;">↻</label>
+                    <button class="cslot-btn" onclick="deletePhoto('b_fun')">刪除</button>
                     <button class="cslot-btn" onclick="resetCrop('b_fun')">重置</button>
                   </div>
                 </div>
@@ -2336,6 +2335,7 @@ div.photo-slot .photo-pos-badge {
                   <div class="cslot-tools">
                     <button class="cslot-btn primary" onclick="openCrop('b_full')">✂️</button>
                     <label class="cslot-btn" for="upload-b_full" style="display:flex;align-items:center;justify-content:center;cursor:pointer;">↻</label>
+                    <button class="cslot-btn" onclick="deletePhoto('b_full')">刪除</button>
                     <button class="cslot-btn" onclick="resetCrop('b_full')">重置</button>
                   </div>
                 </div>
@@ -2355,6 +2355,7 @@ div.photo-slot .photo-pos-badge {
                   <div class="cslot-tools">
                     <button class="cslot-btn primary" onclick="openCrop('b_close')">✂️</button>
                     <label class="cslot-btn" for="upload-b_close" style="display:flex;align-items:center;justify-content:center;cursor:pointer;">↻</label>
+                    <button class="cslot-btn" onclick="deletePhoto('b_close')">刪除</button>
                     <button class="cslot-btn" onclick="resetCrop('b_close')">重置</button>
                   </div>
                 </div>
@@ -3684,6 +3685,30 @@ function applyCropToFrontend() {
       el.style.backgroundPosition = 'center center';
     }
   });
+}
+
+
+function deletePhoto(key) {
+  if (!confirm('確定刪除這張照片？')) return;
+  try {
+    const photos = JSON.parse(localStorage.getItem('hpy_photos') || '{}');
+    delete photos[key];
+    localStorage.setItem('hpy_photos', JSON.stringify(photos));
+    const s = getPhotoSettings();
+    if (s[key]) delete s[key].crop;
+    savePhotoSettings(s);
+    // 清除預覽
+    const img = document.getElementById('prev-' + key);
+    if (img) { img.src = ''; img.style.objectPosition = 'center'; }
+    const hint = document.getElementById('uhint-' + key);
+    if (hint) hint.classList.remove('hidden');
+    // 清除前台
+    const map = {h_kiss:'hs0',h_fun:'hs1',h_full:'hs2',h_close:'hs3',b_kiss:'pg0',b_fun:'pg1',b_full:'pg2',b_close:'pg3'};
+    const el = document.getElementById(map[key]);
+    if (el) { el.style.backgroundImage = ''; }
+    updatePhotoCount();
+    toast('✓ 照片已刪除');
+  } catch(e) { toast('刪除失敗：' + e.message); }
 }
 
 function resetCrop(key) {
