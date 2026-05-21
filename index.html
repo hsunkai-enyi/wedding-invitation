@@ -2120,7 +2120,18 @@ div.photo-slot .photo-pos-badge {
     <div class="apage" id="ap-guests">
       <div class="apage-hdr"><div class="apage-ttl">🎀 賓客名單</div><div class="apage-sub">管理所有已確認出席的賓客</div></div>
       <div class="toolbar">
-        <input class="srch" id="g-srch" placeholder="🔍 搜尋賓客姓名…" oninput="renderAdmGuests()"/>
+        <input class="srch" id="g-srch" placeholder="🔍 搜尋賓客姓名…" oninput="renderAdmGuests(true)"/>
+        <select id="g-rel-filter" onchange="renderAdmGuests()" style="padding:8px 12px;border-radius:50px;border:1.5px solid rgba(249,180,150,.4);background:#fff;font-size:12px;color:var(--ink);cursor:pointer;letter-spacing:1px;">
+          <option value="">全部關係</option>
+          <option value="男方家人">男方家人</option>
+          <option value="女方家人">女方家人</option>
+          <option value="男方同事">男方同事</option>
+          <option value="女方同事">女方同事</option>
+          <option value="男方同學">男方同學</option>
+          <option value="女方同學">女方同學</option>
+          <option value="男方朋友">男方朋友</option>
+          <option value="女方朋友">女方朋友</option>
+        </select>
         <button class="tbtn2 primary" onclick="openAddGuest()">＋ 手動新增</button>
         <button class="tbtn2" onclick="exportCSV()">⬇ 匯出 CSV</button>
         <button class="tbtn2 danger" onclick="clearGuests()">🗑 清除全部</button>
@@ -2968,30 +2979,87 @@ function refreshAdmin(){
   setTimeout(()=>{setW('pg1',seatPct+'%');setW('pg2',pct+'%');setW('pg3',Math.min((d.b.length/Math.max(d.r.length,1))*100,100)+'%');},100);
   const rb=document.getElementById('recent-body');
   if(rb){
-    // 更新總筆數
     const totalLbl=document.getElementById('total-rsvp-lbl');
     if(totalLbl) totalLbl.textContent=d.r.length;
     // 依時間排序取最新 5 筆
-    const recent=[...d.r].sort((a,b)=>new Date(b.ts||b.t||0)-new Date(a.ts||a.t||0)).slice(0,5);
+    const recent=[...d.r].sort((a,b)=>{
+      const ta=new Date(a.ts||a.t||0),tb=new Date(b.ts||b.t||0);
+      return tb-ta;
+    }).slice(0,5);
     rb.innerHTML=recent.length===0
       ?'<tr><td colspan="5" style="text-align:center;padding:22px;font-size:11px;letter-spacing:3px;opacity:.4;">尚無回覆</td></tr>'
-      :recent.map((x,i)=>`<tr><td class="td-idx">${i+1}</td><td class="td-name">${x.n}</td><td class="td-cnt">${(x.c||1)+(x.k||0)}</td><td class="td-diet">${x.meat!=null?'葷'+x.meat+'/素'+x.veg:x.d||'—'}</td><td class="td-time">${x.t}</td></tr>`).join('');
+      :recent.map((x,i)=>`<tr><td class="td-idx">${i+1}</td><td class="td-name">${x.n}</td><td class="td-cnt" style="color:var(--coral);font-weight:700;">${(x.c||1)+(x.k||0)}</td><td class="td-diet">${x.r||'—'}</td><td class="td-time">${x.t}</td></tr>`).join('');
   }
   renderAdmGuests();renderAdmBless();renderRelationList();
 }
-function renderAdmGuests(){
-  const d=gd(),q=(document.getElementById('g-srch')?.value||'').toLowerCase();
+let _gPage = 1;
+const _gPageSize = 10;
+
+function renderAdmGuests(resetPage){
+  if(resetPage) _gPage = 1;
+  const d = gd();
+  const q = (document.getElementById('g-srch')?.value||'').toLowerCase();
+  const relFilter = document.getElementById('g-rel-filter')?.value || '';
+
   // 依回覆時間排序（最新在前）
-  const sorted=[...d.r].sort((a,b)=>{
-    const ta=new Date(a.ts||a.t||0), tb=new Date(b.ts||b.t||0);
-    return tb-ta;
+  const sorted = [...d.r].sort((a,b) => {
+    const ta = new Date(a.ts||a.t||0), tb = new Date(b.ts||b.t||0);
+    return tb - ta;
   });
-  const fl=sorted.filter(x=>!q||x.n.toLowerCase().includes(q)||(x.ph||'').includes(q));
-  const body=document.getElementById('adm-g-body'),lbl=document.getElementById('g-count-lbl');
-  if(!body)return;
-  const tot=d.r.reduce((s,x)=>s+(x.c||1)+(x.k||0),0);
-  if(lbl)lbl.textContent=`共 ${d.r.length} 筆 · ${tot} 人`;
-  body.innerHTML=fl.length===0?`<tr><td colspan="11" style="text-align:center;padding:26px;font-size:11px;letter-spacing:3px;opacity:.4;">${q?'查無結果':'尚無賓客回覆'}</td></tr>`:fl.map((x,i)=>`<tr><td class="td-idx">${i+1}</td><td class="td-name">${x.n}</td><td class="td-diet">${x.ph||'—'}</td><td class="td-diet">${x.r||'—'}</td><td class="td-cnt">${x.c||1}</td><td class="td-diet">${x.k||0}</td><td class="td-cnt">${x.meat??'—'}</td><td class="td-cnt">${x.veg??'—'}</td><td class="td-diet" style="max-width:160px;word-break:break-word;white-space:normal;">${x.note||'—'}</td><td class="td-time">${x.t}</td><td><button class="td-del" onclick="deleteGuest('${x._id||''}','${x.n}')">✕</button></td></tr>`).join('');
+
+  // 篩選
+  const fl = sorted.filter(x => {
+    const matchQ = !q || x.n.toLowerCase().includes(q) || (x.ph||'').includes(q);
+    const matchR = !relFilter || (x.r||'') === relFilter;
+    return matchQ && matchR;
+  });
+
+  const body = document.getElementById('adm-g-body');
+  const lbl = document.getElementById('g-count-lbl');
+  if(!body) return;
+
+  // 統計
+  const tot = d.r.reduce((s,x) => s+(x.c||1)+(x.k||0), 0);
+  const filteredTot = fl.reduce((s,x) => s+(x.c||1)+(x.k||0), 0);
+  if(lbl) lbl.textContent = relFilter||q
+    ? `篩選 ${fl.length} 筆 · ${filteredTot} 人（共 ${d.r.length} 筆 · ${tot} 人）`
+    : `共 ${d.r.length} 筆 · ${tot} 人`;
+
+  // 分頁
+  const totalPages = Math.max(1, Math.ceil(fl.length / _gPageSize));
+  if(_gPage > totalPages) _gPage = totalPages;
+  const start = (_gPage-1) * _gPageSize;
+  const pageData = fl.slice(start, start + _gPageSize);
+
+  if(fl.length === 0){
+    body.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:26px;font-size:11px;letter-spacing:3px;opacity:.4;">${q||relFilter?'查無結果':'尚無賓客回覆'}</td></tr>`;
+  } else {
+    body.innerHTML = pageData.map((x,i) => `<tr>
+      <td class="td-idx">${start+i+1}</td>
+      <td class="td-name">${x.n}</td>
+      <td class="td-diet">${x.ph||'—'}</td>
+      <td class="td-diet">${x.r||'—'}</td>
+      <td class="td-cnt" style="color:var(--coral);font-weight:700;">${x.c||1}</td>
+      <td class="td-diet">${x.k||0}</td>
+      <td class="td-cnt" style="color:var(--coral);font-weight:700;">${x.meat??'—'}</td>
+      <td class="td-cnt">${x.veg??'—'}</td>
+      <td class="td-diet" style="max-width:120px;word-break:break-word;white-space:normal;">${x.note||'—'}</td>
+      <td class="td-time">${x.t}</td>
+      <td><button class="td-del" onclick="deleteGuest('${x._id||''}','${x.n}')">✕</button></td>
+    </tr>`).join('');
+  }
+
+  // 分頁控制列
+  let pg = document.getElementById('g-pagination');
+  if(!pg){ pg = document.createElement('div'); pg.id='g-pagination'; pg.style.cssText='display:flex;gap:6px;align-items:center;justify-content:center;margin-top:12px;flex-wrap:wrap;'; body.closest('.ac').appendChild(pg); }
+  if(totalPages <= 1){ pg.innerHTML=''; return; }
+  pg.innerHTML = `
+    <button onclick="_gPage=1;renderAdmGuests()" ${_gPage===1?'disabled':''} style="padding:4px 10px;border-radius:50px;border:1px solid rgba(249,180,150,.4);background:${_gPage===1?'#eee':'#fff'};cursor:pointer;">«</button>
+    <button onclick="_gPage--;renderAdmGuests()" ${_gPage===1?'disabled':''} style="padding:4px 10px;border-radius:50px;border:1px solid rgba(249,180,150,.4);background:${_gPage===1?'#eee':'#fff'};cursor:pointer;">‹</button>
+    <span style="font-size:12px;color:var(--muted);letter-spacing:1px;">第 ${_gPage} / ${totalPages} 頁</span>
+    <button onclick="_gPage++;renderAdmGuests()" ${_gPage===totalPages?'disabled':''} style="padding:4px 10px;border-radius:50px;border:1px solid rgba(249,180,150,.4);background:${_gPage===totalPages?'#eee':'#fff'};cursor:pointer;">›</button>
+    <button onclick="_gPage=${totalPages};renderAdmGuests()" ${_gPage===totalPages?'disabled':''} style="padding:4px 10px;border-radius:50px;border:1px solid rgba(249,180,150,.4);background:${_gPage===totalPages?'#eee':'#fff'};cursor:pointer;">»</button>
+  `;
 }
 function renderAdmBless(){
   const d=gd(),q=(document.getElementById('b-srch')?.value||'').toLowerCase();
