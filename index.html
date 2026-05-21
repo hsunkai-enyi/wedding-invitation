@@ -4712,28 +4712,12 @@ setTimeout(() => {
       const kids = parseInt(document.getElementById('a-kids').value)||0;
       const chair = parseInt(document.getElementById('a-chair').value)||0;
       const note = document.getElementById('a-note').value.trim();
-      const bless = (document.getElementById('a-bless')?.value||'').trim(); // *** 新增：祝福欄位 ***
+      const bless = (document.getElementById('a-bless')?.value||'').trim();
       const total = count + kids;
 
       let relation = document.getElementById('a-relation').value;
-      if(relation === '其他') {
-        const other = document.getElementById('a-relation-other').value.trim();
-        if(!other) {
-          window.shakeField && window.shakeField('a-relation-other');
-          showFieldError('a-relation-other', '請填寫您與新人的關係');
-          return;
-        }
-        relation = other;
-      }
 
-      // *** 修正：未選擇關係時顯示警告 ***
-      if(!relation || relation === '請選擇'){
-        window.shakeField && window.shakeField('a-relation');
-        showFieldError('a-relation', '請選擇您與新人的關係');
-        return;
-      }
-
-      // *** 修正：警告顯示在欄位下方，不用 toast ***
+      // *** 驗證順序按畫面由上到下：姓名 → 電話 → 關係 → 葷素 ***
       if(!name){
         window.shakeField && window.shakeField('a-name');
         showFieldError('a-name', '請填寫您的姓名');
@@ -4743,6 +4727,20 @@ setTimeout(() => {
         window.shakeField && window.shakeField('a-phone');
         showFieldError('a-phone', '請填寫正確的聯絡電話');
         return;
+      }
+      if(!relation || relation === '請選擇'){
+        window.shakeField && window.shakeField('a-relation');
+        showFieldError('a-relation', '請選擇您與新人的關係');
+        return;
+      }
+      if(relation === '其他'){
+        const other = document.getElementById('a-relation-other').value.trim();
+        if(!other){
+          window.shakeField && window.shakeField('a-relation-other');
+          showFieldError('a-relation-other', '請填寫您與新人的關係');
+          return;
+        }
+        relation = other;
       }
 
       if(window.syncDietToTotal) window.syncDietToTotal();
