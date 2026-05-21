@@ -4567,6 +4567,7 @@ function startAdminListeners() {
     d.b = blessings.map(b => ({
       n: b.n || '', t: b.t || '',
       d: b.createdAt ? new Date(b.createdAt.toMillis()).toLocaleString('zh-TW') : '',
+      _ms: b.createdAt ? b.createdAt.toMillis() : 0,  // *** 修正：加入毫秒時間戳供排序使用 ***
       _id: b._id
     }));
     // 保留 r（賓客名單），只更新 b
