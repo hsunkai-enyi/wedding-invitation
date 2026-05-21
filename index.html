@@ -4652,8 +4652,9 @@ function showFieldError(fieldId, msg){
   err.textContent = '⚠ ' + msg;
   err.style.cssText = 'color:#e05a3a;font-size:11px;letter-spacing:1px;margin-top:4px;margin-bottom:2px;padding-left:4px;animation:fadeIn .2s ease;';
   el.parentNode.insertBefore(err, el.nextSibling);
-  // 開始輸入時自動消除
-  el.addEventListener('input', () => err.remove(), { once: true });
+  // input 或 change 時自動消除（select 用 change）
+  const evtName = el.tagName === 'SELECT' ? 'change' : 'input';
+  el.addEventListener(evtName, () => err.remove(), { once: true });
   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
@@ -4681,6 +4682,13 @@ setTimeout(() => {
           return;
         }
         relation = other;
+      }
+
+      // *** 修正：未選擇關係時顯示警告 ***
+      if(!relation || relation === '請選擇'){
+        window.shakeField && window.shakeField('a-relation');
+        showFieldError('a-relation', '請選擇您與新人的關係');
+        return;
       }
 
       // *** 修正：警告顯示在欄位下方，不用 toast ***
