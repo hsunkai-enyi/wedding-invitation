@@ -2982,17 +2982,34 @@ function refreshAdmin(){
     const totalLbl=document.getElementById('total-rsvp-lbl');
     if(totalLbl) totalLbl.textContent=d.r.length;
     // 依時間排序取最新 5 筆
-    const recent=[...d.r].sort((a,b)=>{
-      const ta=new Date(a.ts||a.t||0),tb=new Date(b.ts||b.t||0);
-      return tb-ta;
-    }).slice(0,5);
+    const recent=[...d.r].sort((a,b)=> parseGuestTime(b) - parseGuestTime(a)).slice(0,5);
     rb.innerHTML=recent.length===0
       ?'<tr><td colspan="5" style="text-align:center;padding:22px;font-size:11px;letter-spacing:3px;opacity:.4;">尚無回覆</td></tr>'
       :recent.map((x,i)=>`<tr><td class="td-idx">${i+1}</td><td class="td-name">${x.n}</td><td class="td-cnt" style="color:var(--coral);font-weight:700;">${(x.c||1)+(x.k||0)}</td><td class="td-diet">${x.r||'—'}</td><td class="td-time">${x.t}</td></tr>`).join('');
   }
   renderAdmGuests();renderAdmBless();renderRelationList();
 }
-let _gPage = 1;
+// ═══ 時間解析工具（支援中文格式）═══
+function parseGuestTime(x) {
+  // 優先用 Firebase timestamp
+  if (x.ts && typeof x.ts === 'object' && x.ts.seconds) return x.ts.seconds * 1000;
+  if (x.ts && typeof x.ts === 'string') { const d = new Date(x.ts); if (!isNaN(d)) return d.getTime(); }
+  // 解析中文時間格式：2026/5/20 下午1:52:59
+  if (x.t) {
+    const s = x.t.replace('上午','AM').replace('下午','PM');
+    const d = new Date(s);
+    if (!isNaN(d)) return d.getTime();
+    // 手動解析
+    const m = x.t.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})\s*(上午|下午)?\s*(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+    if (m) {
+      let h = parseInt(m[5]);
+      if (m[4] === '下午' && h < 12) h += 12;
+      if (m[4] === '上午' && h === 12) h = 0;
+      return new Date(m[1], m[2]-1, m[3], h, m[6], m[7]||0).getTime();
+    }
+  }
+  return 0;
+}
 const _gPageSize = 10;
 
 function renderAdmGuests(resetPage){
@@ -3002,10 +3019,7 @@ function renderAdmGuests(resetPage){
   const relFilter = document.getElementById('g-rel-filter')?.value || '';
 
   // 依回覆時間排序（最新在前）
-  const sorted = [...d.r].sort((a,b) => {
-    const ta = new Date(a.ts||a.t||0), tb = new Date(b.ts||b.t||0);
-    return tb - ta;
-  });
+  const sorted = [...d.r].sort((a,b) => parseGuestTime(b) - parseGuestTime(a));
 
   // 篩選
   const fl = sorted.filter(x => {
