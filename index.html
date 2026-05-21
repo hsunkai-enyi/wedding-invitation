@@ -2707,7 +2707,12 @@ div.photo-slot .photo-pos-badge {
 
     <div class="sf-section">
       <label class="f-lbl">📝 備註（選填）</label>
-      <textarea class="m-field" id="a-note" placeholder="特殊需求、過敏或想說的話⋯ 💕" style="height:70px;resize:none;"></textarea>
+      <textarea class="m-field" id="a-note" placeholder="特殊需求、過敏⋯" style="height:60px;resize:none;"></textarea>
+    </div>
+
+    <div class="sf-section">
+      <label class="f-lbl">💌 給新人的祝福（選填）</label>
+      <textarea class="m-field" id="a-bless" placeholder="寫下您最真摯的祝福語，將顯示在祝福留言牆 🌸" style="height:80px;resize:none;"></textarea>
     </div>
 
     <button class="m-btn" onclick="submitAttend()" style="margin-top:16px;">確認出席 🎊</button>
@@ -4214,6 +4219,8 @@ function openWizard(){
   document.getElementById('a-name').value = '';
   document.getElementById('a-phone').value = '';
   document.getElementById('a-note').value = '';
+  const aBless = document.getElementById('a-bless');
+  if(aBless) aBless.value = '';
   document.getElementById('a-count').value = '1';
   document.getElementById('a-kids').value = '0';
   document.getElementById('a-count-display').textContent = '1';
@@ -4705,6 +4712,7 @@ setTimeout(() => {
       const kids = parseInt(document.getElementById('a-kids').value)||0;
       const chair = parseInt(document.getElementById('a-chair').value)||0;
       const note = document.getElementById('a-note').value.trim();
+      const bless = (document.getElementById('a-bless')?.value||'').trim(); // *** 新增：祝福欄位 ***
       const total = count + kids;
 
       let relation = document.getElementById('a-relation').value;
@@ -4756,6 +4764,7 @@ setTimeout(() => {
         <div>🍖 葷食　　<strong>${meat} 位</strong>　　🥗 素食　<strong>${veg} 位</strong></div>
         ${chair > 0 ? `<div>🪑 嬰兒座椅　<strong>${chair} 張</strong></div>` : '<div>🪑 嬰兒座椅　<strong>不需要</strong></div>'}
         ${note ? `<div>📝 備註　　<strong>${note}</strong></div>` : ''}
+        ${bless ? `<div>💌 祝福語　<strong>${bless}</strong></div>` : ''}
       `;
 
       // 確認按鈕綁定送出
@@ -4768,8 +4777,13 @@ setTimeout(() => {
         const rsvp = { n: name, ph: phone, r: relation, c: count, k: kids, chair, meat, veg, note, t: new Date().toLocaleString('zh-TW') };
         const ok = await window.submitAttendFB(rsvp);
         if(ok){
+          // *** 如果有填祝福語，同步存進 blessings ***
+          if(bless) await window.submitBlessFB({ n: name, t: bless });
           if(window.cm){ window.cm('m-attend-confirm'); window.cm('m-attend'); }
           if(window.burst) window.burst();
+          // 清空祝福欄位
+          const blessEl = document.getElementById('a-bless');
+          if(blessEl) blessEl.value = '';
           document.getElementById('success-name').textContent = name;
           setTimeout(()=>{ if(window.om) window.om('m-success'); if(window.burst) setTimeout(window.burst,200); },400);
         } else {
