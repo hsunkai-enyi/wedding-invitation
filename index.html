@@ -4504,6 +4504,7 @@ function startAdminListeners() {
     const rsvps = [];
     snapshot.forEach(doc => rsvps.push({ _id: doc.id, ...doc.data() }));
     // 轉換格式給現有後台
+    // *** 修正：每次重新讀取最新 localStorage，只更新 r，不覆蓋 b ***
     const d = window.gd ? window.gd() : { r: [], b: [] };
     d.r = rsvps.map(r => ({
       n: r.n || '', ph: r.ph || '', r: r.r || '',
@@ -4514,6 +4515,8 @@ function startAdminListeners() {
       t: r.createdAt ? new Date(r.createdAt.toMillis()).toLocaleString('zh-TW') : '',
       _id: r._id
     }));
+    // 保留 b（祝福留言），只更新 r
+    if(!d.b) d.b = [];
     // 存到 localStorage 供現有 UI 讀取
     try { localStorage.setItem('hpy_w', JSON.stringify(d)); } catch(e){}
     if(window.refreshAdmin) window.refreshAdmin();
@@ -4525,12 +4528,15 @@ function startAdminListeners() {
   unsubBless = onSnapshot(collection(db, 'blessings'), snapshot => {
     const blessings = [];
     snapshot.forEach(doc => blessings.push({ _id: doc.id, ...doc.data() }));
+    // *** 修正：每次重新讀取最新 localStorage，只更新 b，不覆蓋 r ***
     const d = window.gd ? window.gd() : { r: [], b: [] };
     d.b = blessings.map(b => ({
       n: b.n || '', t: b.t || '',
       d: b.createdAt ? new Date(b.createdAt.toMillis()).toLocaleString('zh-TW') : '',
       _id: b._id
     }));
+    // 保留 r（賓客名單），只更新 b
+    if(!d.r) d.r = [];
     try { localStorage.setItem('hpy_w', JSON.stringify(d)); } catch(e){}
     if(window.refreshAdmin) window.refreshAdmin();
   });
