@@ -293,16 +293,22 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-sans);co
 .tbl-wrap{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;font-size:13px;font-family:var(--font-sans);}
 thead th{padding:10px 12px;text-align:left;font-size:11px;letter-spacing:3px;color:var(--muted);border-bottom:1.5px solid var(--border);font-weight:700;white-space:nowrap;font-family:'Noto Serif TC',serif;}
-tbody td{padding:12px 12px;border-bottom:1px solid rgba(249,180,150,.12);vertical-align:middle;letter-spacing:1px;}
+tbody td{padding:10px 12px;border-bottom:1px solid rgba(249,180,150,.12);vertical-align:middle;font-size:13px;color:var(--ink);letter-spacing:1px;white-space:nowrap;}
 tbody tr:last-child td{border-bottom:none;}
 tbody tr:hover td{background:rgba(249,180,150,.06);}
-.td-name{font-weight:700;color:var(--ink);font-size:14px;}
-.td-cnt{font-weight:700;color:var(--peach);font-size:17px;}
-.td-diet{font-size:12px;color:var(--muted);}
-.td-time{font-size:11px;color:var(--muted);}
-.td-idx{font-size:12px;color:var(--muted);}
+.td-idx{font-size:12px;color:var(--muted);width:32px;}
+.td-name{font-weight:700;color:var(--ink);font-size:13px;}
+.td-phone{font-size:12px;color:var(--muted);white-space:nowrap;}
+.td-rel{font-size:12px;color:var(--ink);}
+.td-num{font-weight:700;color:var(--coral);font-size:15px;text-align:center;}
+.td-zero{font-weight:400;color:var(--muted);font-size:13px;text-align:center;}
+.td-note{font-size:12px;color:var(--muted);max-width:120px;word-break:break-word;white-space:normal;}
+.td-time{font-size:11px;color:var(--muted);white-space:nowrap;}
 .td-del{background:none;border:none;color:rgba(224,85,85,.45);cursor:pointer;font-size:16px;transition:color .2s;padding:0 3px;}
 .td-del:hover{color:var(--red);}
+/* 相容舊 class */
+.td-cnt{font-weight:700;color:var(--coral);font-size:15px;}
+.td-diet{font-size:12px;color:var(--muted);}
 .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;}
 .srch{flex:1;min-width:180px;background:rgba(255,255,255,.9);border:1.5px solid var(--border);border-radius:50px;padding:11px 20px;font-size:13px;letter-spacing:2px;color:var(--ink);outline:none;transition:all .28s;font-family:'Noto Serif TC',serif;}
 .srch:focus{border-color:var(--coral);background:#fff;}
@@ -3103,20 +3109,25 @@ function renderAdmGuests(resetPage){
   if(fl.length === 0){
     body.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:26px;font-size:11px;letter-spacing:3px;opacity:.4;">${q||relFilter?'查無結果':'尚無賓客回覆'}</td></tr>`;
   } else {
-    body.innerHTML = pageData.map((x,i) => `<tr>
+    body.innerHTML = pageData.map((x,i) => {
+      const numCell = (v) => v > 0
+        ? `<td class="td-num">${v}</td>`
+        : `<td class="td-zero">0</td>`;
+      return `<tr>
       <td class="td-idx">${start+i+1}</td>
       <td class="td-name">${x.n}</td>
-      <td class="td-diet">${x.ph||'—'}</td>
-      <td class="td-diet">${x.r||'—'}</td>
-      <td class="td-cnt" style="color:var(--coral);font-weight:700;">${x.c||1}</td>
-      <td class="td-diet">${x.k||0}</td>
-      <td class="td-cnt" style="color:var(--coral);font-weight:700;">${x.meat??'—'}</td>
-      <td class="td-cnt">${x.veg??'—'}</td>
-      <td class="td-diet">${x.chair > 0 ? `<span style="color:var(--coral);font-weight:700;">${x.chair}</span>` : '—'}</td>
-      <td class="td-diet" style="max-width:120px;word-break:break-word;white-space:normal;">${x.note||'—'}</td>
-      <td class="td-time">${x.t}</td>
+      <td class="td-phone">${x.ph||'—'}</td>
+      <td class="td-rel">${x.r||'—'}</td>
+      ${numCell(x.c||1)}
+      ${numCell(x.k||0)}
+      ${numCell(x.meat||0)}
+      ${numCell(x.veg||0)}
+      ${numCell(x.chair||0)}
+      <td class="td-note">${x.note||'—'}</td>
+      <td class="td-time">${x.t||'—'}</td>
       <td><button class="td-del" onclick="deleteGuest('${x._id||''}','${x.n}')">✕</button></td>
-    </tr>`).join('');
+    </tr>`;
+    }).join('');
   }
 
   // 分頁控制列
