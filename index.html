@@ -2991,15 +2991,13 @@ function refreshAdmin(){
 }
 // ═══ 時間解析工具（支援中文格式）═══
 function parseGuestTime(x) {
-  // 優先用 Firebase timestamp
+  // 優先用預存毫秒時間戳（最精確）
+  if (x._ms) return x._ms;
+  // Firebase timestamp 物件
   if (x.ts && typeof x.ts === 'object' && x.ts.seconds) return x.ts.seconds * 1000;
   if (x.ts && typeof x.ts === 'string') { const d = new Date(x.ts); if (!isNaN(d)) return d.getTime(); }
-  // 解析中文時間格式：2026/5/20 下午1:52:59
+  // 手動解析中文時間格式：2026/5/20 下午1:52:59（最可靠，放在 new Date 前）
   if (x.t) {
-    const s = x.t.replace('上午','AM').replace('下午','PM');
-    const d = new Date(s);
-    if (!isNaN(d)) return d.getTime();
-    // 手動解析
     const m = x.t.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})\s*(上午|下午)?\s*(\d{1,2}):(\d{2})(?::(\d{2}))?/);
     if (m) {
       let h = parseInt(m[5]);
@@ -4499,6 +4497,7 @@ function startAdminListeners() {
       c: r.c || 1, k: r.k || 0, chair: r.chair || 0,
       meat: r.meat || 0, veg: r.veg || 0,
       note: r.note || '', status: r.status || '',
+      _ms: r.createdAt ? r.createdAt.toMillis() : 0,
       t: r.createdAt ? new Date(r.createdAt.toMillis()).toLocaleString('zh-TW') : '',
       _id: r._id
     }));
