@@ -4141,7 +4141,7 @@ function gwChoose(type){
   },300);
 }
 
-function submitDecline(){
+async function submitDecline(){
   const name = document.getElementById('dec-name').value.trim();
   const msg = document.getElementById('dec-msg').value.trim();
   if(!name){
@@ -4149,8 +4149,8 @@ function submitDecline(){
     document.getElementById('dec-name').focus();
     return;
   }
-  const d = gd();
-  d.r.push({
+
+  const rsvpData = {
     n: name,
     ph: '—',
     r: '💝 無法出席',
@@ -4161,11 +4161,24 @@ function submitDecline(){
     note: msg,
     status: 'no',
     t: new Date().toLocaleString('zh-TW')
-  });
-  if(msg){
-    d.b.push({ n: name, t: msg, d: new Date().toLocaleString('zh-TW') });
+  };
+
+  // *** 修正：同時存入 Firestore（不只存 localStorage）***
+  if(window.submitAttendFB){
+    await window.submitAttendFB(rsvpData);
+  } else {
+    // fallback：沒有 Firebase 時用 localStorage
+    const d = gd();
+    d.r.push(rsvpData);
+    if(msg){ d.b.push({ n: name, t: msg, d: new Date().toLocaleString('zh-TW') }); }
+    sd(d);
   }
-  sd(d);
+
+  // 如果有留言，也存進 blessings
+  if(msg && window.submitBlessFB){
+    await window.submitBlessFB({ n: name, t: msg });
+  }
+
   cm('m-decline');
   refreshInv();
   toast(`謝謝 ${name} 的祝福 💝`);
