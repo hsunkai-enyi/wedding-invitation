@@ -4472,10 +4472,13 @@ window.previewBless = function(){
   const newBtn = btn.cloneNode(true);
   btn.parentNode.replaceChild(newBtn, btn);
   newBtn.onclick = async function(){
+    if(_submitting) return;
     if(!window.submitBless){ toast('載入中，請稍候再試…'); return; }
+    _submitting = true;
     newBtn.disabled = true;
     newBtn.textContent = '送出中…';
     await window.submitBless();
+    _submitting = false;
     newBtn.disabled = false;
     newBtn.textContent = '確認送出 🌸';
   };
@@ -4576,6 +4579,9 @@ signInAnonymously(auth).catch(e => console.log('anon auth:', e));
 // ═══ 覆寫資料函式：localStorage → Firestore ═══
 
 // 提交 RSVP
+// ═══ 全域送出鎖（防止重複送出）═══
+let _submitting = false;
+
 window.submitAttendFB = async function(rsvp) {
   try {
     await addDoc(collection(db, 'rsvps'), { ...rsvp, createdAt: serverTimestamp() });
@@ -4824,21 +4830,23 @@ setTimeout(() => {
       const newBtn = btn.cloneNode(true); // 移除舊的 listener
       btn.parentNode.replaceChild(newBtn, btn);
       newBtn.onclick = async function(){
+        if(_submitting) return;
+        _submitting = true;
         newBtn.disabled = true;
         newBtn.textContent = '送出中…';
         const rsvp = { n: name, ph: phone, r: relation, c: count, k: kids, chair, meat, veg, note, t: new Date().toLocaleString('zh-TW') };
         const ok = await window.submitAttendFB(rsvp);
         if(ok){
-          // *** 如果有填祝福語，同步存進 blessings ***
+          _submitting = false;
           if(bless) await window.submitBlessFB({ n: name, t: bless });
           if(window.cm){ window.cm('m-attend-confirm'); window.cm('m-attend'); }
           if(window.burst) window.burst();
-          // 清空祝福欄位
           const blessEl = document.getElementById('a-bless');
           if(blessEl) blessEl.value = '';
           document.getElementById('success-name').textContent = name;
           setTimeout(()=>{ if(window.om) window.om('m-success'); if(window.burst) setTimeout(window.burst,200); },400);
         } else {
+          _submitting = false;
           newBtn.disabled = false;
           newBtn.textContent = '確認送出 🎊';
           window.toast && window.toast('送出失敗，請檢查網路連線');
@@ -4899,6 +4907,7 @@ setTimeout(() => {
 
   // *** 修正：在此覆寫 submitDecline，確保 Firebase 函式已就緒 ***
   window.submitDecline = async function(){
+    if(_submitting) return;
     const name = document.getElementById('dec-name').value.trim();
     const msg  = document.getElementById('dec-msg').value.trim();
     if(!name){
@@ -4906,6 +4915,7 @@ setTimeout(() => {
       document.getElementById('dec-name').focus();
       return;
     }
+    _submitting = true;
 
     const rsvpData = {
       n: name, ph: '—', r: '💝 無法出席',
@@ -4916,11 +4926,12 @@ setTimeout(() => {
 
     // 存入 Firestore rsvps
     const ok = await window.submitAttendFB(rsvpData);
-    if(!ok){ window.toast && window.toast('送出失敗，請檢查網路連線'); return; }
+    if(!ok){ _submitting = false; window.toast && window.toast('送出失敗，請檢查網路連線'); return; }
 
     // 如果有留言，也存入 Firestore blessings
     if(msg){ await window.submitBlessFB({ n: name, t: msg }); }
 
+    _submitting = false;
     if(window.cm) window.cm('m-decline');
     if(window.refreshInv) window.refreshInv();
 
