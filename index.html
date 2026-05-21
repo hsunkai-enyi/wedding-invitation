@@ -3077,6 +3077,22 @@ function renderAdmGuests(resetPage){
 const _bPageSize = 12; // 每頁顯示 12 則
 let _bPage = 1;
 
+// 解析 blessing 的時間（優先用 _ms，其次解析 d 欄位的中文格式）
+function parseBlessTime(x) {
+  if (x._ms) return x._ms;
+  const s = x.d || x.t || '';
+  if (!s) return 0;
+  // 格式：2026/5/21 下午1:57:17 或 2026/5/21 上午11:25:16
+  const m = s.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})\s*(上午|下午)?\s*(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  if (m) {
+    let h = parseInt(m[5]);
+    if (m[4] === '下午' && h < 12) h += 12;
+    if (m[4] === '上午' && h === 12) h = 0;
+    return new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3]), h, parseInt(m[6]), parseInt(m[7]||0)).getTime();
+  }
+  return 0;
+}
+
 function renderAdmBless(resetPage){
   if(resetPage) _bPage = 1;
   const d=gd(),q=(document.getElementById('b-srch')?.value||'').toLowerCase();
@@ -3090,8 +3106,8 @@ function renderAdmBless(resetPage){
     let pg=document.getElementById('b-pagination'); if(pg) pg.innerHTML='';
   } else {
     if(empty)empty.style.display='none';
-    // 按時間排序（最新在前：b 比 a 大則 b 排前）
-    const sorted=[...fl].sort((a,b)=>parseGuestTime(b)-parseGuestTime(a));
+    // 按時間排序（最新在前）
+    const sorted=[...fl].sort((a,b)=>parseBlessTime(b)-parseBlessTime(a));
 
     // 分頁計算
     const totalPages = Math.max(1, Math.ceil(sorted.length / _bPageSize));
