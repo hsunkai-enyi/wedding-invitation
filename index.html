@@ -2146,7 +2146,7 @@ div.photo-slot .photo-pos-badge {
           <div class="ac-ttl" style="margin-bottom:0;"><span>👥</span>賓客清單</div>
           <span id="g-count-lbl" style="font-size:10px;letter-spacing:3px;color:var(--muted);opacity:.58;"></span>
         </div>
-        <div class="tbl-wrap"><table><thead><tr><th>#</th><th>姓名</th><th>電話</th><th>關係</th><th>成人</th><th>兒童</th><th>🍖葷</th><th>🥗素</th><th>備註</th><th>回覆時間</th><th></th></tr></thead><tbody id="adm-g-body"></tbody></table></div>
+        <div class="tbl-wrap"><table><thead><tr><th>#</th><th>姓名</th><th>電話</th><th>關係</th><th>成人</th><th>兒童</th><th>🍖葷</th><th>🥗素</th><th>🪑座椅</th><th>備註</th><th>回覆時間</th><th></th></tr></thead><tbody id="adm-g-body"></tbody></table></div>
       </div>
     </div>
     <div class="apage" id="ap-blessings">
@@ -2995,12 +2995,13 @@ function refreshAdmin(){
   const kids=confirmed.reduce((s,x)=>s+(x.k||0),0);
   const meat=confirmed.reduce((s,x)=>s+(x.meat||0),0);
   const veg=confirmed.reduce((s,x)=>s+(x.veg||0),0);
+  const chairTotal=confirmed.reduce((s,x)=>s+(x.chair||0),0); // *** 修正：用賓客實際填寫的座椅數 ***
   const tot=adults+kids;
   const pct=Math.round(Math.min((d.r.length/inv)*100,100));
   cu('at-rsvp',confirmed.length);cu('at-guests',tot);cu('at-invited',inv);cu('at-bless',d.b.length);cu('at-kids',kids);
   setText('at-rsvp-sub',`成人 ${adults} · 兒童 ${kids} · 共 ${tot} 位${declined.length?` · 💝${declined.length}`:''}`);
   setText('at-guests-sub',`🍖 ${meat} · 🥗 ${veg}`);
-  setText('at-kids-sub',kids>0?`需準備 ${kids} 張兒童椅 🍼`:'尚無兒童出席');
+  setText('at-kids-sub',chairTotal>0?`需準備 ${chairTotal} 張嬰兒座椅 🪑`:kids>0?'賓客未填寫座椅需求':'尚無兒童出席');
   const arc=document.getElementById('adm-arc');
   if(arc){const c=2*Math.PI*46;arc.setAttribute('stroke-dasharray',`${pct/100*c} ${c}`);}
   const dp=document.getElementById('adm-pct');if(dp)dp.textContent=pct+'%';
@@ -3100,7 +3101,7 @@ function renderAdmGuests(resetPage){
   const pageData = fl.slice(start, start + _gPageSize);
 
   if(fl.length === 0){
-    body.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:26px;font-size:11px;letter-spacing:3px;opacity:.4;">${q||relFilter?'查無結果':'尚無賓客回覆'}</td></tr>`;
+    body.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:26px;font-size:11px;letter-spacing:3px;opacity:.4;">${q||relFilter?'查無結果':'尚無賓客回覆'}</td></tr>`;
   } else {
     body.innerHTML = pageData.map((x,i) => `<tr>
       <td class="td-idx">${start+i+1}</td>
@@ -3111,6 +3112,7 @@ function renderAdmGuests(resetPage){
       <td class="td-diet">${x.k||0}</td>
       <td class="td-cnt" style="color:var(--coral);font-weight:700;">${x.meat??'—'}</td>
       <td class="td-cnt">${x.veg??'—'}</td>
+      <td class="td-diet">${x.chair > 0 ? `<span style="color:var(--coral);font-weight:700;">${x.chair}</span>` : '—'}</td>
       <td class="td-diet" style="max-width:120px;word-break:break-word;white-space:normal;">${x.note||'—'}</td>
       <td class="td-time">${x.t}</td>
       <td><button class="td-del" onclick="deleteGuest('${x._id||''}','${x.n}')">✕</button></td>
@@ -4710,6 +4712,7 @@ setTimeout(() => {
         <div>👔 關係　　<strong>${relLabel}</strong></div>
         <div>🧑 成人　　<strong>${count} 位</strong>　　👶 兒童　<strong>${kids} 位</strong></div>
         <div>🍖 葷食　　<strong>${meat} 位</strong>　　🥗 素食　<strong>${veg} 位</strong></div>
+        ${chair > 0 ? `<div>🪑 嬰兒座椅　<strong>${chair} 張</strong></div>` : '<div>🪑 嬰兒座椅　<strong>不需要</strong></div>'}
         ${note ? `<div>📝 備註　　<strong>${note}</strong></div>` : ''}
       `;
 
