@@ -3017,10 +3017,36 @@ function renderAdmGuests(resetPage){
   const q = (document.getElementById('g-srch')?.value||'').toLowerCase();
   const relFilter = document.getElementById('g-rel-filter')?.value || '';
 
+  // *** 修正：動態更新關係下拉選單（從實際資料收集所有出現過的關係）***
+  const relSel = document.getElementById('g-rel-filter');
+  if(relSel){
+    const currentVal = relSel.value;
+    // 收集所有出現過的關係值（去重）
+    const relSet = new Set();
+    d.r.forEach(x => { if(x.r) relSet.add(x.r); });
+    // 固定選項順序（先固定關係，再放其他/自訂，最後放無法出席）
+    const fixedOrder = ['男方家人','女方家人','男方同事','女方同事','男方同學','女方同學','男方朋友','女方朋友'];
+    const extras = [...relSet].filter(r => !fixedOrder.includes(r) && r !== '💝 無法出席');
+    const hasDeclined = relSet.has('💝 無法出席');
+    const allRels = [
+      ...fixedOrder.filter(r => relSet.has(r)),
+      ...extras,
+      ...(hasDeclined ? ['💝 無法出席'] : [])
+    ];
+    // 只在選項有變動時才重建，避免閃爍
+    const newOpts = [''].concat(allRels).join('|');
+    const oldOpts = [...relSel.options].map(o=>o.value).join('|');
+    if(newOpts !== oldOpts){
+      relSel.innerHTML = `<option value="">全部關係</option>`
+        + allRels.map(r => `<option value="${r}">${r}</option>`).join('');
+      relSel.value = currentVal; // 保持原本選取的值
+    }
+  }
+
   // 依回覆時間排序（最新在前）
   const sorted = [...d.r].sort((a,b) => parseGuestTime(b) - parseGuestTime(a));
 
-  // 篩選
+  // 篩選（完整比對關係欄位）
   const fl = sorted.filter(x => {
     const matchQ = !q || x.n.toLowerCase().includes(q) || (x.ph||'').includes(q);
     const matchR = !relFilter || (x.r||'') === relFilter;
