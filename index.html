@@ -4798,6 +4798,36 @@ setTimeout(() => {
       }
     };
   }
+
+  // *** 修正：在此覆寫 submitDecline，確保 Firebase 函式已就緒 ***
+  window.submitDecline = async function(){
+    const name = document.getElementById('dec-name').value.trim();
+    const msg  = document.getElementById('dec-msg').value.trim();
+    if(!name){
+      document.getElementById('dec-name').style.borderColor = 'var(--red)';
+      document.getElementById('dec-name').focus();
+      return;
+    }
+
+    const rsvpData = {
+      n: name, ph: '—', r: '💝 無法出席',
+      c: 0, k: 0, meat: 0, veg: 0,
+      note: msg, status: 'no',
+      t: new Date().toLocaleString('zh-TW')
+    };
+
+    // 存入 Firestore rsvps
+    const ok = await window.submitAttendFB(rsvpData);
+    if(!ok){ window.toast && window.toast('送出失敗，請檢查網路連線'); return; }
+
+    // 如果有留言，也存入 Firestore blessings
+    if(msg){ await window.submitBlessFB({ n: name, t: msg }); }
+
+    if(window.cm) window.cm('m-decline');
+    if(window.refreshInv) window.refreshInv();
+    window.toast && window.toast(`謝謝 ${name} 的祝福 💝`);
+  };
+
 }, 500);
 
 // ═══ 修改後台密碼 ═══
