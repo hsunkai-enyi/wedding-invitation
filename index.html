@@ -4442,6 +4442,46 @@ function submitBless(){
 function om(id){document.getElementById(id).classList.add('show');}
 function cm(id){document.getElementById(id).classList.remove('show');}
 
+// 送上祝福：預覽確認視窗（不依賴 Firebase，純 UI）
+window.previewBless = function(){
+  const name = (document.getElementById('b-name')?.value||'').trim();
+  const text = (document.getElementById('b-text')?.value||'').trim();
+  if(!text){
+    const el = document.getElementById('b-text');
+    if(el){
+      const old = document.getElementById('err-b-text');
+      if(old) old.remove();
+      const err = document.createElement('div');
+      err.id = 'err-b-text';
+      err.textContent = '⚠ 請填寫祝福語';
+      err.style.cssText = 'color:#e05a3a;font-size:11px;letter-spacing:1px;margin-top:4px;padding-left:4px;';
+      el.parentNode.insertBefore(err, el.nextSibling);
+      el.addEventListener('input', ()=>err.remove(), {once:true});
+    }
+    return;
+  }
+  const body = document.getElementById('bless-confirm-body');
+  if(!body) return;
+  body.innerHTML = `
+    <div>👤 留言者　<strong>${name||'匿名'}</strong></div>
+    <div style="margin-top:8px;padding:12px 14px;background:#fff;border-radius:10px;border:1px solid rgba(249,180,150,.3);line-height:1.8;white-space:pre-wrap;">💬 ${text}</div>
+  `;
+  // 綁定確認送出按鈕
+  const btn = document.getElementById('bless-confirm-btn');
+  if(!btn) return;
+  const newBtn = btn.cloneNode(true);
+  btn.parentNode.replaceChild(newBtn, btn);
+  newBtn.onclick = async function(){
+    if(!window.submitBless){ toast('載入中，請稍候再試…'); return; }
+    newBtn.disabled = true;
+    newBtn.textContent = '送出中…';
+    await window.submitBless();
+    newBtn.disabled = false;
+    newBtn.textContent = '確認送出 🌸';
+  };
+  om('m-bless-confirm');
+};
+
 // ═══ MODAL UX: ESC key & backdrop click to close ═══
 document.addEventListener('keydown', function(e){
   if(e.key === 'Escape'){
