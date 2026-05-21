@@ -2147,7 +2147,7 @@ div.photo-slot .photo-pos-badge {
     <div class="apage" id="ap-blessings">
       <div class="apage-hdr"><div class="apage-ttl">💌 祝福留言</div><div class="apage-sub">賓客留下的每一句祝福</div></div>
       <div class="toolbar">
-        <input class="srch" id="b-srch" placeholder="🔍 搜尋留言或姓名…" oninput="renderAdmBless()"/>
+        <input class="srch" id="b-srch" placeholder="🔍 搜尋留言或姓名…" oninput="renderAdmBless(true)"/>
         <button class="tbtn2 danger" onclick="clearBlessings()">🗑 清除全部</button>
       </div>
       <div id="adm-b-grid" class="bless-grid2"></div>
@@ -3074,7 +3074,11 @@ function renderAdmGuests(resetPage){
     <button onclick="_gPage=${totalPages};renderAdmGuests()" ${_gPage===totalPages?'disabled':''} style="padding:4px 10px;border-radius:50px;border:1px solid rgba(249,180,150,.4);background:${_gPage===totalPages?'#eee':'#fff'};cursor:pointer;">»</button>
   `;
 }
-function renderAdmBless(){
+const _bPageSize = 12; // 每頁顯示 12 則
+let _bPage = 1;
+
+function renderAdmBless(resetPage){
+  if(resetPage) _bPage = 1;
   const d=gd(),q=(document.getElementById('b-srch')?.value||'').toLowerCase();
   const fl=d.b.filter(x=>!q||x.n.toLowerCase().includes(q)||(x.t||'').toLowerCase().includes(q));
   const wrap=document.getElementById('adm-b-grid'),empty=document.getElementById('adm-b-empty');
@@ -3082,17 +3086,46 @@ function renderAdmBless(){
   if(fl.length===0){
     wrap.innerHTML='';
     if(empty)empty.style.display='block';
+    // 清除分頁列
+    let pg=document.getElementById('b-pagination'); if(pg) pg.innerHTML='';
   } else {
     if(empty)empty.style.display='none';
-    // 按時間排序（最新在前）
+    // 按時間排序（最新在前：b 比 a 大則 b 排前）
     const sorted=[...fl].sort((a,b)=>parseGuestTime(b)-parseGuestTime(a));
-    wrap.innerHTML=sorted.map(x=>`<div class="bc2">
+
+    // 分頁計算
+    const totalPages = Math.max(1, Math.ceil(sorted.length / _bPageSize));
+    if(_bPage > totalPages) _bPage = totalPages;
+    const start = (_bPage-1)*_bPageSize;
+    const pageData = sorted.slice(start, start+_bPageSize);
+
+    wrap.innerHTML=pageData.map(x=>`<div class="bc2">
       <button class="bc2-del" onclick="deleteBlessing('${x._id||''}','${x._id||''}')">✕</button>
       <div class="bc2-q">"</div>
       <div class="bc2-auth">💌 ${x.n}</div>
       <div class="bc2-body">${x.t||''}</div>
       <div class="bc2-time">${x.d||x.ts||''}</div>
     </div>`).join('');
+
+    // 分頁控制列
+    let pg=document.getElementById('b-pagination');
+    if(!pg){
+      pg=document.createElement('div');
+      pg.id='b-pagination';
+      pg.style.cssText='display:flex;gap:6px;align-items:center;justify-content:center;margin-top:16px;flex-wrap:wrap;';
+      wrap.parentNode.insertBefore(pg, wrap.nextSibling);
+    }
+    if(totalPages<=1){ pg.innerHTML=''; }
+    else {
+      const btnStyle=(disabled)=>`padding:6px 14px;border-radius:50px;border:1.5px solid rgba(249,180,150,.4);background:${disabled?'#eee':'#fff'};cursor:${disabled?'default':'pointer'};font-size:12px;color:var(--ink);letter-spacing:1px;`;
+      pg.innerHTML=`
+        <button onclick="_bPage=1;renderAdmBless()" ${_bPage===1?'disabled':''} style="${btnStyle(_bPage===1)}">«</button>
+        <button onclick="_bPage--;renderAdmBless()" ${_bPage===1?'disabled':''} style="${btnStyle(_bPage===1)}">‹</button>
+        <span style="font-size:12px;color:var(--muted);letter-spacing:1px;padding:0 6px;">第 ${_bPage} / ${totalPages} 頁　共 ${sorted.length} 則</span>
+        <button onclick="_bPage++;renderAdmBless()" ${_bPage===totalPages?'disabled':''} style="${btnStyle(_bPage===totalPages)}">›</button>
+        <button onclick="_bPage=${totalPages};renderAdmBless()" ${_bPage===totalPages?'disabled':''} style="${btnStyle(_bPage===totalPages)}">»</button>
+      `;
+    }
   }
 }
 
