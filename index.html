@@ -4154,46 +4154,8 @@ function gwChoose(type){
 }
 
 async function submitDecline(){
-  const name = document.getElementById('dec-name').value.trim();
-  const msg = document.getElementById('dec-msg').value.trim();
-  if(!name){
-    document.getElementById('dec-name').style.borderColor = 'var(--red)';
-    document.getElementById('dec-name').focus();
-    return;
-  }
-
-  const rsvpData = {
-    n: name,
-    ph: '—',
-    r: '💝 無法出席',
-    c: 0,
-    k: 0,
-    meat: 0,
-    veg: 0,
-    note: msg,
-    status: 'no',
-    t: new Date().toLocaleString('zh-TW')
-  };
-
-  // *** 修正：同時存入 Firestore（不只存 localStorage）***
-  if(window.submitAttendFB){
-    await window.submitAttendFB(rsvpData);
-  } else {
-    // fallback：沒有 Firebase 時用 localStorage
-    const d = gd();
-    d.r.push(rsvpData);
-    if(msg){ d.b.push({ n: name, t: msg, d: new Date().toLocaleString('zh-TW') }); }
-    sd(d);
-  }
-
-  // 如果有留言，也存進 blessings
-  if(msg && window.submitBlessFB){
-    await window.submitBlessFB({ n: name, t: msg });
-  }
-
-  cm('m-decline');
-  refreshInv();
-  toast(`謝謝 ${name} 的祝福 💝`);
+  // *** 此函式已被 Firebase 版本覆寫（setTimeout 包裝），請勿在此執行 ***
+  toast('載入中，請稍候再試…');
 }
 
 // ═══ SINGLE-PAGE ATTEND FORM ═══
@@ -4394,64 +4356,17 @@ function shakeField(id){
 }
 
 function submitAttend(){
-  const name = document.getElementById('a-name').value.trim();
-  const phone = document.getElementById('a-phone').value.trim();
-  const count = parseInt(document.getElementById('a-count').value)||1;
-  const kids = parseInt(document.getElementById('a-kids').value)||0;
-  const meat = parseInt(document.getElementById('a-meat').value)||0;
-  const veg = parseInt(document.getElementById('a-veg').value)||0;
-  const chair = parseInt(document.getElementById('a-chair').value)||0;
-  const note = document.getElementById('a-note').value.trim();
-  const total = count + kids;
-
-  // Handle relation - if 其他 selected, use custom text
-  let relation = document.getElementById('a-relation').value;
-  if(relation === '其他'){
-    const other = document.getElementById('a-relation-other').value.trim();
-    if(!other){
-      shakeField('a-relation-other');
-      toast('請填寫您與新人的關係');
-      return;
-    }
-    relation = other;
+  // *** 此函式已被 Firebase 版本覆寫，由 setTimeout 包裝取代 ***
+  // 如果 Firebase 版尚未就緒（極少情況），顯示提示
+  if(window._fbAttendReady){
+    window._fbAttendReady();
+  } else {
+    toast('載入中，請稍候再試…');
   }
-
-  if(!name){ shakeField('a-name'); toast('請填寫您的姓名'); return; }
-  if(!phone || phone.replace(/\D/g,'').length<8){ shakeField('a-phone'); toast('請填寫正確的聯絡電話'); return; }
-  if(meat + veg !== total){ toast(`葷素總數需等於 ${total} 人`); return; }
-
-  const d = gd();
-  if(d.r.find(x=>x.n===name && (!x.status || x.status==='yes'))){
-    cm('m-attend');
-    toast(`${name} 已回覆囉 🎉`);
-    return;
-  }
-  d.r.push({
-    n: name,
-    ph: phone,
-    r: relation || '',
-    c: count,
-    k: kids,
-    chair: chair,
-    d: `葷食${meat} 素食${veg}`,
-    meat: meat,
-    veg: veg,
-    note: note,
-    t: new Date().toLocaleString('zh-TW')
-  });
-  sd(d);
-  cm('m-attend');
-  refreshInv();
-  burst();
-  document.getElementById('success-name').textContent = name;
-  setTimeout(()=>{ om('m-success'); setTimeout(burst, 200); }, 400);
 }
 function submitBless(){
-  const name=document.getElementById('b-name').value.trim()||'匿名好友';
-  const text=document.getElementById('b-text').value.trim();if(!text)return;
-  const d=gd();d.b.push({n:name,t:text,ts:new Date().toLocaleString('zh-TW')});sd(d);
-  cm('m-bless');['b-name','b-text'].forEach(id=>document.getElementById(id).value='');
-  refreshInv();burst();toast('收到您的祝福了，好感動喔！🌸');
+  // *** 此函式已被 Firebase 版本覆寫，由 setTimeout 包裝取代 ***
+  toast('載入中，請稍候再試…');
 }
 
 // HELPERS
