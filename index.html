@@ -3009,6 +3009,7 @@ function parseGuestTime(x) {
   return 0;
 }
 const _gPageSize = 10;
+let _gPage = 1; // *** 修正：補上遺漏的分頁變數宣告 ***
 
 function renderAdmGuests(resetPage){
   if(resetPage) _gPage = 1;
