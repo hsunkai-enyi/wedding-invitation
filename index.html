@@ -4696,6 +4696,25 @@ function startConfigListener() {
 }
 
 // 祝福預覽
+// ═══ 欄位錯誤提示（顯示在欄位下方）═══
+function showFieldError(fieldId, msg){
+  // 移除同欄位舊提示
+  const old = document.getElementById('err-' + fieldId);
+  if(old) old.remove();
+  const el = document.getElementById(fieldId);
+  if(!el) return;
+  const err = document.createElement('div');
+  err.id = 'err-' + fieldId;
+  err.textContent = '⚠ ' + msg;
+  err.style.cssText = 'color:#e05a3a;font-size:11px;letter-spacing:1px;margin-top:4px;margin-bottom:2px;padding-left:4px;animation:fadeIn .2s ease;';
+  el.parentNode.insertBefore(err, el.nextSibling);
+  // input 或 change 時自動消除（select 用 change）
+  const evtName = el.tagName === 'SELECT' ? 'change' : 'input';
+  el.addEventListener(evtName, () => err.remove(), { once: true });
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// 祝福預覽
 function previewBless(){
   const name = (document.getElementById('b-name')?.value||'').trim();
   const text = (document.getElementById('b-text')?.value||'').trim();
@@ -4718,24 +4737,6 @@ function previewBless(){
     newBtn.textContent = '確認送出 🌸';
   };
   if(window.om) window.om('m-bless-confirm');
-}
-
-// ═══ 欄位錯誤提示（顯示在欄位下方）═══
-function showFieldError(fieldId, msg){
-  // 移除同欄位舊提示
-  const old = document.getElementById('err-' + fieldId);
-  if(old) old.remove();
-  const el = document.getElementById(fieldId);
-  if(!el) return;
-  const err = document.createElement('div');
-  err.id = 'err-' + fieldId;
-  err.textContent = '⚠ ' + msg;
-  err.style.cssText = 'color:#e05a3a;font-size:11px;letter-spacing:1px;margin-top:4px;margin-bottom:2px;padding-left:4px;animation:fadeIn .2s ease;';
-  el.parentNode.insertBefore(err, el.nextSibling);
-  // input 或 change 時自動消除（select 用 change）
-  const evtName = el.tagName === 'SELECT' ? 'change' : 'input';
-  el.addEventListener(evtName, () => err.remove(), { once: true });
-  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 // ═══ 攔截現有的 submitAttend 和 submitBless ═══
