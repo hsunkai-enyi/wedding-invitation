@@ -2838,7 +2838,21 @@ div.photo-slot .photo-pos-badge {
   </div>
 </div>
 
-<div class="overlay" id="m-bless"><div class="modal"><button class="m-close" onclick="cm('m-bless')">×</button><div class="m-ttl">💌 送上祝福</div><div class="m-sub">您的祝福讓我們更幸福 💛</div><input class="m-field" id="b-name" type="text" placeholder="您的名字（選填）" maxlength="20"/><textarea class="m-field" id="b-text" placeholder="寫下您最真摯的祝福語⋯" style="height:100px;resize:none;"></textarea><button class="m-btn" onclick="submitBless()">送出祝福 🌸</button></div></div>
+<div class="overlay" id="m-bless"><div class="modal"><button class="m-close" onclick="cm('m-bless')">×</button><div class="m-ttl">💌 送上祝福</div><div class="m-sub">您的祝福讓我們更幸福 💛</div><input class="m-field" id="b-name" type="text" placeholder="您的名字（選填）" maxlength="20"/><textarea class="m-field" id="b-text" placeholder="寫下您最真摯的祝福語⋯" style="height:100px;resize:none;"></textarea><button class="m-btn" onclick="previewBless()">預覽並送出 🌸</button></div></div>
+
+<!-- 祝福確認視窗 -->
+<div class="overlay" id="m-bless-confirm">
+  <div class="modal" style="max-width:400px;">
+    <button class="m-close" onclick="cm('m-bless-confirm')">×</button>
+    <div class="m-ttl">💌 確認您的祝福</div>
+    <div class="m-sub">送出後將顯示在祝福留言牆</div>
+    <div id="bless-confirm-body" style="margin:20px 0;border-radius:16px;background:rgba(249,180,150,.08);border:1.5px solid rgba(249,180,150,.25);padding:18px 20px;font-size:13px;line-height:2.2;letter-spacing:1px;color:var(--ink);"></div>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button class="m-btn" onclick="cm('m-bless-confirm')" style="background:#fff;color:var(--coral);border:1.5px solid var(--coral);flex:1;">返回修改</button>
+      <button class="m-btn" id="bless-confirm-btn" style="flex:2;">確認送出 🌸</button>
+    </div>
+  </div>
+</div>
 <div class="overlay" id="m-addguest"><div class="modal"><button class="m-close" onclick="cm('m-addguest')">×</button><div class="m-ttl">新增賓客</div><div class="m-sub">手動新增出席賓客</div><input class="m-field" id="ag-name" type="text" placeholder="賓客姓名 *" maxlength="20"/><div class="m-frow"><input class="m-field" id="ag-count" type="number" placeholder="人數" min="1" max="20" value="1" style="max-width:90px;"/><input class="m-field" id="ag-diet" type="text" placeholder="飲食注意事項（選填）"/></div><button class="m-btn" onclick="addGuest()">新增 ✦</button></div></div>
 
 <script>
@@ -4681,6 +4695,31 @@ function startConfigListener() {
   });
 }
 
+// 祝福預覽
+function previewBless(){
+  const name = (document.getElementById('b-name')?.value||'').trim();
+  const text = (document.getElementById('b-text')?.value||'').trim();
+  if(!text){
+    showFieldError('b-text','請填寫祝福語');
+    return;
+  }
+  document.getElementById('bless-confirm-body').innerHTML = `
+    <div>👤 留言者　<strong>${name||'匿名'}</strong></div>
+    <div style="margin-top:8px;padding:12px 14px;background:#fff;border-radius:10px;border:1px solid rgba(249,180,150,.3);line-height:1.8;white-space:pre-wrap;">💬 ${text}</div>
+  `;
+  const btn = document.getElementById('bless-confirm-btn');
+  const newBtn = btn.cloneNode(true);
+  btn.parentNode.replaceChild(newBtn, btn);
+  newBtn.onclick = async function(){
+    newBtn.disabled = true;
+    newBtn.textContent = '送出中…';
+    if(window.submitBless) await window.submitBless();
+    newBtn.disabled = false;
+    newBtn.textContent = '確認送出 🌸';
+  };
+  if(window.om) window.om('m-bless-confirm');
+}
+
 // ═══ 欄位錯誤提示（顯示在欄位下方）═══
 function showFieldError(fieldId, msg){
   // 移除同欄位舊提示
@@ -4801,12 +4840,12 @@ setTimeout(() => {
     window.submitBless = async function() {
       const name = document.getElementById('b-name').value.trim();
       const text = document.getElementById('b-text').value.trim();
-      if(!text){ window.toast && window.toast('請填寫祝福語'); return; }
+      if(!text){ showFieldError('b-text','請填寫祝福語'); return; }
       const ok = await window.submitBlessFB({ n: name || '匿名', t: text });
       if(ok) {
         document.getElementById('b-name').value = '';
         document.getElementById('b-text').value = '';
-        if(window.cm) window.cm('m-bless');
+        if(window.cm){ window.cm('m-bless-confirm'); window.cm('m-bless'); }
         if(window.burst) window.burst();
         window.toast && window.toast('祝福送出 🌸 謝謝您！');
       } else {
