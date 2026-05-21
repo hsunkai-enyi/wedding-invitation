@@ -2838,7 +2838,7 @@ div.photo-slot .photo-pos-badge {
   </div>
 </div>
 
-<div class="overlay" id="m-bless"><div class="modal"><button class="m-close" onclick="cm('m-bless')">×</button><div class="m-ttl">💌 送上祝福</div><div class="m-sub">您的祝福讓我們更幸福 💛</div><input class="m-field" id="b-name" type="text" placeholder="您的名字（選填）" maxlength="20"/><textarea class="m-field" id="b-text" placeholder="寫下您最真摯的祝福語⋯" style="height:100px;resize:none;"></textarea><button class="m-btn" onclick="previewBless()">預覽並送出 🌸</button></div></div>
+<div class="overlay" id="m-bless"><div class="modal"><button class="m-close" onclick="cm('m-bless')">×</button><div class="m-ttl">💌 送上祝福</div><div class="m-sub">您的祝福讓我們更幸福 💛</div><input class="m-field" id="b-name" type="text" placeholder="您的名字（選填）" maxlength="20"/><textarea class="m-field" id="b-text" placeholder="寫下您最真摯的祝福語⋯" style="height:100px;resize:none;"></textarea><button class="m-btn" onclick="if(window.previewBless)window.previewBless();else alert('載入中請稍候')">預覽並送出 🌸</button></div></div>
 
 <!-- 祝福確認視窗 -->
 <div class="overlay" id="m-bless-confirm">
@@ -4698,7 +4698,6 @@ function startConfigListener() {
 // 祝福預覽
 // ═══ 欄位錯誤提示（顯示在欄位下方）═══
 function showFieldError(fieldId, msg){
-  // 移除同欄位舊提示
   const old = document.getElementById('err-' + fieldId);
   if(old) old.remove();
   const el = document.getElementById(fieldId);
@@ -4708,36 +4707,11 @@ function showFieldError(fieldId, msg){
   err.textContent = '⚠ ' + msg;
   err.style.cssText = 'color:#e05a3a;font-size:11px;letter-spacing:1px;margin-top:4px;margin-bottom:2px;padding-left:4px;animation:fadeIn .2s ease;';
   el.parentNode.insertBefore(err, el.nextSibling);
-  // input 或 change 時自動消除（select 用 change）
   const evtName = el.tagName === 'SELECT' ? 'change' : 'input';
   el.addEventListener(evtName, () => err.remove(), { once: true });
   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
-
-// 祝福預覽
-function previewBless(){
-  const name = (document.getElementById('b-name')?.value||'').trim();
-  const text = (document.getElementById('b-text')?.value||'').trim();
-  if(!text){
-    showFieldError('b-text','請填寫祝福語');
-    return;
-  }
-  document.getElementById('bless-confirm-body').innerHTML = `
-    <div>👤 留言者　<strong>${name||'匿名'}</strong></div>
-    <div style="margin-top:8px;padding:12px 14px;background:#fff;border-radius:10px;border:1px solid rgba(249,180,150,.3);line-height:1.8;white-space:pre-wrap;">💬 ${text}</div>
-  `;
-  const btn = document.getElementById('bless-confirm-btn');
-  const newBtn = btn.cloneNode(true);
-  btn.parentNode.replaceChild(newBtn, btn);
-  newBtn.onclick = async function(){
-    newBtn.disabled = true;
-    newBtn.textContent = '送出中…';
-    if(window.submitBless) await window.submitBless();
-    newBtn.disabled = false;
-    newBtn.textContent = '確認送出 🌸';
-  };
-  if(window.om) window.om('m-bless-confirm');
-}
+window.showFieldError = showFieldError; // 掛到 window 供 module script 使用
 
 // ═══ 攔截現有的 submitAttend 和 submitBless ═══
 // 等原本的函式載入後再包裝
@@ -4846,7 +4820,7 @@ setTimeout(() => {
       if(ok) {
         document.getElementById('b-name').value = '';
         document.getElementById('b-text').value = '';
-        if(window.cm){ window.cm('m-bless-confirm'); window.cm('m-bless'); }
+        cm('m-bless-confirm'); cm('m-bless');
         if(window.burst) window.burst();
         window.toast && window.toast('祝福送出 🌸 謝謝您！');
       } else {
@@ -4914,6 +4888,35 @@ setTimeout(() => {
     const nameEl = document.getElementById('decline-success-name');
     if(nameEl) nameEl.textContent = name;
     setTimeout(()=>{ if(window.om) window.om('m-decline-success'); }, 400);
+  };
+
+  // *** previewBless 在此定義，確保 submitBless 已就緒 ***
+  window.previewBless = function(){
+    const name = (document.getElementById('b-name')?.value||'').trim();
+    const text = (document.getElementById('b-text')?.value||'').trim();
+    if(!text){
+      if(window.showFieldError) window.showFieldError('b-text','請填寫祝福語');
+      else alert('請填寫祝福語');
+      return;
+    }
+    const body = document.getElementById('bless-confirm-body');
+    if(!body) return;
+    body.innerHTML = `
+      <div>👤 留言者　<strong>${name||'匿名'}</strong></div>
+      <div style="margin-top:8px;padding:12px 14px;background:#fff;border-radius:10px;border:1px solid rgba(249,180,150,.3);line-height:1.8;white-space:pre-wrap;">💬 ${text}</div>
+    `;
+    const btn = document.getElementById('bless-confirm-btn');
+    if(!btn) return;
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    newBtn.onclick = async function(){
+      newBtn.disabled = true;
+      newBtn.textContent = '送出中…';
+      await window.submitBless();
+      newBtn.disabled = false;
+      newBtn.textContent = '確認送出 🌸';
+    };
+    om('m-bless-confirm');
   };
 
 }, 500);
