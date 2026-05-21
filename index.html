@@ -2720,6 +2720,18 @@ div.photo-slot .photo-pos-badge {
   </div>
 </div>
 
+<!-- 無法出席感謝視窗 -->
+<div class="overlay" id="m-decline-success">
+  <div class="success-card">
+    <div class="success-ring" style="background:linear-gradient(135deg,#f9b496,#e8a0c8);"></div>
+    <div class="success-check" style="font-size:28px;line-height:1;">💝</div>
+    <div class="success-title" style="font-size:18px;">收到您的心意了</div>
+    <div class="success-name" id="decline-success-name"></div>
+    <div class="success-msg">雖然無法相聚<br>但您的祝福我們好好收下了 🌸</div>
+    <button class="m-btn" onclick="cm('m-decline-success')" style="width:auto;padding:12px 32px;margin-top:10px;">好的 💕</button>
+  </div>
+</div>
+
 <!-- ═══ 婚宴資訊彈窗 ═══ -->
 <div class="overlay" id="m-info-time">
   <div class="modal info-modal">
@@ -4825,7 +4837,11 @@ setTimeout(() => {
 
     if(window.cm) window.cm('m-decline');
     if(window.refreshInv) window.refreshInv();
-    window.toast && window.toast(`謝謝 ${name} 的祝福 💝`);
+
+    // 顯示無法出席的專屬感謝視窗
+    const nameEl = document.getElementById('decline-success-name');
+    if(nameEl) nameEl.textContent = name;
+    setTimeout(()=>{ if(window.om) window.om('m-decline-success'); }, 400);
   };
 
 }, 500);
