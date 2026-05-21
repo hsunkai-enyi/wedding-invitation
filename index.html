@@ -3075,11 +3075,24 @@ function renderAdmGuests(resetPage){
 }
 function renderAdmBless(){
   const d=gd(),q=(document.getElementById('b-srch')?.value||'').toLowerCase();
-  const fl=d.b.filter(x=>!q||x.n.toLowerCase().includes(q)||x.t.toLowerCase().includes(q));
+  const fl=d.b.filter(x=>!q||x.n.toLowerCase().includes(q)||(x.t||'').toLowerCase().includes(q));
   const wrap=document.getElementById('adm-b-grid'),empty=document.getElementById('adm-b-empty');
   if(!wrap)return;
-  if(fl.length===0){wrap.innerHTML='';if(empty)empty.style.display='block';}
-  else{if(empty)empty.style.display='none';wrap.innerHTML=fl.slice().reverse().map(x=>`<div class="bc2"><button class="bc2-del" onclick="deleteBlessing('${x._id||''}','${x.ts||''}')">✕</button><div class="bc2-q">"</div><div class="bc2-auth">💌 ${x.n}</div><div class="bc2-body">${x.t}</div><div class="bc2-time">${x.ts||''}</div></div>`).join('');}
+  if(fl.length===0){
+    wrap.innerHTML='';
+    if(empty)empty.style.display='block';
+  } else {
+    if(empty)empty.style.display='none';
+    // 按時間排序（最新在前）
+    const sorted=[...fl].sort((a,b)=>parseGuestTime(b)-parseGuestTime(a));
+    wrap.innerHTML=sorted.map(x=>`<div class="bc2">
+      <button class="bc2-del" onclick="deleteBlessing('${x._id||''}','${x._id||''}')">✕</button>
+      <div class="bc2-q">"</div>
+      <div class="bc2-auth">💌 ${x.n}</div>
+      <div class="bc2-body">${x.t||''}</div>
+      <div class="bc2-time">${x.d||x.ts||''}</div>
+    </div>`).join('');
+  }
 }
 
 // ADMIN NAV
