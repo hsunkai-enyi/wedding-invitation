@@ -4808,10 +4808,8 @@ window.showFieldError = showFieldError; // 掛到 window 供 module script 使�
 // ═══ 攔截現有的 submitAttend 和 submitBless ═══
 // 等原本的函式載入後再包裝
 setTimeout(() => {
-  // 包裝 submitAttend
-  const _origSubmitAttend = window.submitAttend;
-  if(_origSubmitAttend) {
-    window.submitAttend = async function() {
+  // 確認出席 - 無條件覆寫
+  window.submitAttend = async function() {
       const name = document.getElementById('a-name').value.trim();
       const phone = document.getElementById('a-phone').value.trim();
       const count = parseInt(document.getElementById('a-count').value)||1;
@@ -4901,12 +4899,9 @@ setTimeout(() => {
 
       if(window.om) window.om('m-attend-confirm');
     };
-  }
 
-  // 包裝 submitBless
-  const _origSubmitBless = window.submitBless;
-  if(_origSubmitBless) {
-    window.submitBless = async function() {
+  // 送上祝福 - 無條件覆寫
+  window.submitBless = async function() {
       const name = document.getElementById('b-name').value.trim();
       const text = document.getElementById('b-text').value.trim();
       if(!text){ showFieldError('b-text','請填寫祝福語'); return; }
@@ -4921,7 +4916,6 @@ setTimeout(() => {
         window.toast && window.toast('送出失敗，請檢查網路連線');
       }
     };
-  }
 
   // 包裝後台登入
   // *** 無條件覆寫 checkAdmLogin，不檢查原版是否存在 ***
