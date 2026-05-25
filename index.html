@@ -4433,9 +4433,25 @@ function submitAttend(){
     toast('載入中，請稍候再試…');
   }
 }
-function submitBless(){
-  // *** 此函式已被 Firebase 版本覆寫，由 setTimeout 包裝取代 ***
-  toast('載入中，請稍候再試…');
+async function submitBless(){
+  // *** Firebase 版本尚未就緒時的備用處理 ***
+  if(window.submitBlessFB) {
+    const name = (document.getElementById('b-name')?.value||'').trim();
+    const text = (document.getElementById('b-text')?.value||'').trim();
+    if(!text){ if(window.showFieldError) showFieldError('b-text','請填寫祝福語'); return; }
+    const ok = await window.submitBlessFB({ n: name || '匿名', t: text });
+    if(ok) {
+      document.getElementById('b-name').value = '';
+      document.getElementById('b-text').value = '';
+      if(window.cm){ window.cm('m-bless-confirm'); window.cm('m-bless'); }
+      if(window.burst) window.burst();
+      window.toast && window.toast('祝福送出 🌸 謝謝您！');
+    } else {
+      window.toast && window.toast('送出失敗，請檢查網路連線');
+    }
+  } else {
+    toast('載入中，請稍候再試…');
+  }
 }
 
 // HELPERS
@@ -4835,25 +4851,22 @@ setTimeout(() => {
     };
   }
 
-  // 包裝 submitBless
-  const _origSubmitBless = window.submitBless;
-  if(_origSubmitBless) {
-    window.submitBless = async function() {
-      const name = document.getElementById('b-name').value.trim();
-      const text = document.getElementById('b-text').value.trim();
-      if(!text){ showFieldError('b-text','請填寫祝福語'); return; }
-      const ok = await window.submitBlessFB({ n: name || '匿名', t: text });
-      if(ok) {
-        document.getElementById('b-name').value = '';
-        document.getElementById('b-text').value = '';
-        if(window.cm){ window.cm('m-bless-confirm'); window.cm('m-bless'); }
-        if(window.burst) window.burst();
-        window.toast && window.toast('祝福送出 🌸 謝謝您！');
-      } else {
-        window.toast && window.toast('送出失敗，請檢查網路連線');
-      }
-    };
-  }
+  // 覆寫 submitBless（直接覆寫，不判斷 _origSubmitBless）
+  window.submitBless = async function() {
+    const name = document.getElementById('b-name').value.trim();
+    const text = document.getElementById('b-text').value.trim();
+    if(!text){ showFieldError('b-text','請填寫祝福語'); return; }
+    const ok = await window.submitBlessFB({ n: name || '匿名', t: text });
+    if(ok) {
+      document.getElementById('b-name').value = '';
+      document.getElementById('b-text').value = '';
+      if(window.cm){ window.cm('m-bless-confirm'); window.cm('m-bless'); }
+      if(window.burst) window.burst();
+      window.toast && window.toast('祝福送出 🌸 謝謝您！');
+    } else {
+      window.toast && window.toast('送出失敗，請檢查網路連線');
+    }
+  };
 
   // 包裝後台登入
   const _origCheckAdmLogin = window.checkAdmLogin;
