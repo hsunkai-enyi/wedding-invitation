@@ -4551,9 +4551,21 @@ signInAnonymously(auth).catch(e => console.log('anon auth:', e));
 
 // ═══ 覆寫資料函式：localStorage → Firestore ═══
 
+// 等待 auth 就緒的共用工具
+async function waitForAuth() {
+  if (auth.currentUser) return auth.currentUser;
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => reject(new Error('auth timeout')), 5000);
+    const unsub = onAuthStateChanged(auth, user => {
+      if (user) { clearTimeout(timeout); unsub(); resolve(user); }
+    });
+  });
+}
+
 // 提交 RSVP
 window.submitAttendFB = async function(rsvp) {
   try {
+    await waitForAuth();
     await addDoc(collection(db, 'rsvps'), { ...rsvp, createdAt: serverTimestamp() });
     return true;
   } catch(e) { console.error('submitAttend FB:', e); return false; }
@@ -4562,6 +4574,7 @@ window.submitAttendFB = async function(rsvp) {
 // 提交祝福
 window.submitBlessFB = async function(blessing) {
   try {
+    await waitForAuth();
     await addDoc(collection(db, 'blessings'), { ...blessing, createdAt: serverTimestamp() });
     return true;
   } catch(e) { console.error('submitBless FB:', e); return false; }
