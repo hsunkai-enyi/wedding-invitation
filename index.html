@@ -2610,24 +2610,10 @@ div.photo-slot .photo-pos-badge {
     <label class="f-lbl" id="dec-phone-lbl" style="display:none;">📞 聯絡電話</label>
     <input class="m-field" id="dec-phone" type="tel" placeholder="0912-345-678" maxlength="15" style="display:none;"/>
 
-    <label class="f-lbl">💌 給新人的祝福（選填）</label>
-    <textarea class="m-field" id="dec-msg" placeholder="祝福語將顯示在祝福留言牆 🌸" style="height:80px;resize:none;"></textarea>
+    <label class="f-lbl">💕 想對新人說的話（選填）</label>
+    <textarea class="m-field" id="dec-msg" placeholder="送上您的祝福或考慮中的留言⋯" style="height:80px;resize:none;"></textarea>
 
-    <button class="m-btn" onclick="previewDecline()" style="margin-top:14px;">預覽並送出 💌</button>
-  </div>
-</div>
-
-<!-- 無法出席確認視窗 -->
-<div class="overlay" id="m-decline-confirm">
-  <div class="modal" style="max-width:400px;">
-    <button class="m-close" onclick="cm('m-decline-confirm')">×</button>
-    <div class="m-ttl">💝 確認您的資料</div>
-    <div class="m-sub">送出後將無法修改，請再次確認</div>
-    <div id="decline-confirm-body" style="margin:20px 0;border-radius:16px;background:rgba(249,180,150,.08);border:1.5px solid rgba(249,180,150,.25);padding:16px 20px;font-size:13px;line-height:2.2;letter-spacing:1px;color:var(--ink);"></div>
-    <div style="display:flex;gap:10px;margin-top:4px;">
-      <button class="m-btn" onclick="cm('m-decline-confirm')" style="background:#fff;color:var(--coral);border:1.5px solid var(--coral);flex:1;">返回修改</button>
-      <button class="m-btn" id="decline-confirm-btn" style="flex:2;">確認送出 💌</button>
-    </div>
+    <button class="m-btn" onclick="submitDecline()" style="margin-top:14px;">送出 💌</button>
   </div>
 </div>
 <div class="overlay" id="m-attend">
@@ -2852,7 +2838,7 @@ div.photo-slot .photo-pos-badge {
   </div>
 </div>
 
-<div class="overlay" id="m-bless"><div class="modal"><button class="m-close" onclick="cm('m-bless')">×</button><div class="m-ttl">💌 送上祝福</div><div class="m-sub">您的祝福讓我們更幸福 💛</div><input class="m-field" id="b-name" type="text" placeholder="您的名字（選填）" maxlength="20"/><textarea class="m-field" id="b-text" placeholder="寫下您最真摯的祝福語⋯" style="height:100px;resize:none;"></textarea><button class="m-btn" onclick="if(window.previewBless)window.previewBless();else alert('載入中請稍候')">預覽並送出 🌸</button></div></div>
+<div class="overlay" id="m-bless"><div class="modal"><button class="m-close" onclick="cm('m-bless')">×</button><div class="m-ttl">💌 送上祝福</div><div class="m-sub">您的祝福讓我們更幸福 💛</div><input class="m-field" id="b-name" type="text" placeholder="您的名字（選填）" maxlength="20"/><textarea class="m-field" id="b-text" placeholder="寫下您最真摯的祝福語⋯" style="height:100px;resize:none;"></textarea><button class="m-btn" onclick="previewBless()">預覽並送出 🌸</button></div></div>
 
 <!-- 祝福確認視窗 -->
 <div class="overlay" id="m-bless-confirm">
@@ -4098,7 +4084,7 @@ async function syncAllPhotosToCloud() {
 }
 
 // 替代舊的 onPhotoClick / applyImgPosition 等
-// onPhotoClick 已由第 3699 行的完整版本取代
+function onPhotoClick() { /* deprecated */ }
 function applyImgPosition(key) { applyCropToImage(key); }
 function setPhotoZoom() { /* deprecated */ }
 function resetPhotoEdit(key) { resetCrop(key); }
@@ -4235,25 +4221,8 @@ function gwChoose(type){
 }
 
 async function submitDecline(){
-  // *** 等待 Firebase 版覆寫後再執行，最多等待 5 秒 ***
-  if(window._fbSubmitDeclineReady){
-    await window.submitDecline();
-    return;
-  }
-  await new Promise(resolve => {
-    let waited = 0;
-    const iv = setInterval(()=>{
-      waited += 100;
-      if(window._fbSubmitDeclineReady){
-        clearInterval(iv); resolve();
-      } else if(waited >= 5000){
-        clearInterval(iv);
-        toast('網路連線逾時，請重新整理後再試');
-        resolve();
-      }
-    }, 100);
-  });
-  if(window._fbSubmitDeclineReady) await window.submitDecline();
+  // *** 此函式已被 Firebase 版本覆寫（setTimeout 包裝），請勿在此執行 ***
+  toast('載入中，請稍候再試…');
 }
 
 // ═══ SINGLE-PAGE ATTEND FORM ═══
@@ -4456,146 +4425,22 @@ function shakeField(id){
 }
 
 function submitAttend(){
-  // *** 等待 Firebase 版覆寫後再執行，最多等待 5 秒 ***
-  if(window._fbSubmitAttendReady){
-    window.submitAttend();
-    return;
+  // *** 此函式已被 Firebase 版本覆寫，由 setTimeout 包裝取代 ***
+  // 如果 Firebase 版尚未就緒（極少情況），顯示提示
+  if(window._fbAttendReady){
+    window._fbAttendReady();
+  } else {
+    toast('載入中，請稍候再試…');
   }
-  let waited = 0;
-  const iv = setInterval(()=>{
-    waited += 100;
-    if(window._fbSubmitAttendReady){
-      clearInterval(iv);
-      window.submitAttend();
-    } else if(waited >= 5000){
-      clearInterval(iv);
-      toast('網路連線逾時，請重新整理後再試');
-    }
-  }, 100);
 }
 function submitBless(){
-  // *** 等待 Firebase 版覆寫後再執行，最多等待 5 秒 ***
-  if(window._fbSubmitBlessReady){
-    window.submitBless();
-    return;
-  }
-  let waited = 0;
-  const iv = setInterval(()=>{
-    waited += 100;
-    if(window._fbSubmitBlessReady){
-      clearInterval(iv);
-      window.submitBless();
-    } else if(waited >= 5000){
-      clearInterval(iv);
-      toast('網路連線逾時，請重新整理後再試');
-    }
-  }, 100);
+  // *** 此函式已被 Firebase 版本覆寫，由 setTimeout 包裝取代 ***
+  toast('載入中，請稍候再試…');
 }
 
 // HELPERS
 function om(id){document.getElementById(id).classList.add('show');}
 function cm(id){document.getElementById(id).classList.remove('show');}
-
-// 送上祝福：預覽確認視窗
-window.previewBless = function(){
-  const name = (document.getElementById('b-name')?.value||'').trim();
-  const text = (document.getElementById('b-text')?.value||'').trim();
-  if(!text){
-    const el = document.getElementById('b-text');
-    if(el){
-      const old = document.getElementById('err-b-text');
-      if(old) old.remove();
-      const err = document.createElement('div');
-      err.id = 'err-b-text';
-      err.textContent = '⚠ 請填寫祝福語';
-      err.style.cssText = 'color:#e05a3a;font-size:11px;letter-spacing:1px;margin-top:4px;padding-left:4px;';
-      el.parentNode.insertBefore(err, el.nextSibling);
-      el.addEventListener('input', ()=>err.remove(), {once:true});
-    }
-    return;
-  }
-  const body = document.getElementById('bless-confirm-body');
-  if(!body) return;
-  body.innerHTML = `
-    <div>👤 留言者　<strong>${name||'匿名'}</strong></div>
-    <div style="margin-top:8px;padding:12px 14px;background:#fff;border-radius:10px;border:1px solid rgba(249,180,150,.3);line-height:1.8;white-space:pre-wrap;">💬 ${text}</div>
-  `;
-  const btn = document.getElementById('bless-confirm-btn');
-  if(!btn) return;
-  const newBtn = btn.cloneNode(true);
-  btn.parentNode.replaceChild(newBtn, btn);
-  newBtn.onclick = async function(){
-    if(window._submitting) return;
-    window._submitting = true;
-    newBtn.disabled = true;
-    newBtn.textContent = '送出中…';
-    // 等待 Firebase 函式就緒（最多 5 秒）
-    if(!window._fbSubmitBlessReady){
-      await new Promise(resolve => {
-        let w = 0;
-        const iv = setInterval(()=>{ w+=100; if(window._fbSubmitBlessReady||w>=5000){clearInterval(iv);resolve();} },100);
-      });
-    }
-    if(!window._fbSubmitBlessReady){
-      window._submitting = false;
-      newBtn.disabled = false;
-      newBtn.textContent = '確認送出 🌸';
-      toast('網路連線逾時，請重新整理後再試');
-      return;
-    }
-    await window.submitBless();
-    window._submitting = false;
-    newBtn.disabled = false;
-    newBtn.textContent = '確認送出 🌸';
-  };
-  om('m-bless-confirm');
-};
-
-// 無法出席：預覽確認視窗
-window.previewDecline = function(){
-  const name = (document.getElementById('dec-name')?.value||'').trim();
-  const msg  = (document.getElementById('dec-msg')?.value||'').trim();
-  if(!name){
-    const el = document.getElementById('dec-name');
-    if(el){ el.style.borderColor='var(--red)'; el.focus(); }
-    return;
-  }
-  const body = document.getElementById('decline-confirm-body');
-  if(!body) return;
-  body.innerHTML = `
-    <div>👤 姓名　　<strong>${name}</strong></div>
-    <div>💝 狀態　　<strong>無法出席</strong></div>
-    ${msg
-      ? `<div style="margin-top:8px;padding:12px 14px;background:#fff;border-radius:10px;border:1px solid rgba(249,180,150,.3);line-height:1.8;white-space:pre-wrap;">💌 ${msg}</div>`
-      : `<div style="color:var(--muted);font-size:12px;">（未填寫祝福語）</div>`}
-  `;
-  const btn = document.getElementById('decline-confirm-btn');
-  if(!btn) return;
-  const newBtn = btn.cloneNode(true);
-  btn.parentNode.replaceChild(newBtn, btn);
-  newBtn.onclick = async function(){
-    if(window._submitting) return;
-    window._submitting = true;
-    newBtn.disabled = true;
-    newBtn.textContent = '送出中…';
-    // 等待 Firebase 函式就緒（最多 5 秒）
-    if(!window._fbSubmitDeclineReady){
-      await new Promise(resolve => {
-        let w = 0;
-        const iv = setInterval(()=>{ w+=100; if(window._fbSubmitDeclineReady||w>=5000){clearInterval(iv);resolve();} },100);
-      });
-    }
-    if(!window._fbSubmitDeclineReady){
-      window._submitting = false;
-      newBtn.disabled = false;
-      newBtn.textContent = '確認送出 💝';
-      toast('網路連線逾時，請重新整理後再試');
-      return;
-    }
-    await window.submitDecline();
-  };
-  om('m-decline-confirm');
-};
 
 // ═══ MODAL UX: ESC key & backdrop click to close ═══
 document.addEventListener('keydown', function(e){
@@ -4691,18 +4536,8 @@ signInAnonymously(auth).catch(e => console.log('anon auth:', e));
 // ═══ 覆寫資料函式：localStorage → Firestore ═══
 
 // 提交 RSVP
-// ═══ 全域送出鎖（防止重複送出）═══
-window.window._submitting = false;
-
 window.submitAttendFB = async function(rsvp) {
   try {
-    // 等待匿名登入完成（最多 5 秒）
-    if(!window._fbUser){
-      await new Promise(resolve => {
-        let w = 0;
-        const iv = setInterval(()=>{ w+=100; if(window._fbUser||w>=5000){clearInterval(iv);resolve();} },100);
-      });
-    }
     await addDoc(collection(db, 'rsvps'), { ...rsvp, createdAt: serverTimestamp() });
     return true;
   } catch(e) { console.error('submitAttend FB:', e); return false; }
@@ -4711,13 +4546,6 @@ window.submitAttendFB = async function(rsvp) {
 // 提交祝福
 window.submitBlessFB = async function(blessing) {
   try {
-    // 等待匿名登入完成（最多 5 秒）
-    if(!window._fbUser){
-      await new Promise(resolve => {
-        let w = 0;
-        const iv = setInterval(()=>{ w+=100; if(window._fbUser||w>=5000){clearInterval(iv);resolve();} },100);
-      });
-    }
     await addDoc(collection(db, 'blessings'), { ...blessing, createdAt: serverTimestamp() });
     return true;
   } catch(e) { console.error('submitBless FB:', e); return false; }
@@ -4870,6 +4698,7 @@ function startConfigListener() {
 // 祝福預覽
 // ═══ 欄位錯誤提示（顯示在欄位下方）═══
 function showFieldError(fieldId, msg){
+  // 移除同欄位舊提示
   const old = document.getElementById('err-' + fieldId);
   if(old) old.remove();
   const el = document.getElementById(fieldId);
@@ -4879,17 +4708,45 @@ function showFieldError(fieldId, msg){
   err.textContent = '⚠ ' + msg;
   err.style.cssText = 'color:#e05a3a;font-size:11px;letter-spacing:1px;margin-top:4px;margin-bottom:2px;padding-left:4px;animation:fadeIn .2s ease;';
   el.parentNode.insertBefore(err, el.nextSibling);
+  // input 或 change 時自動消除（select 用 change）
   const evtName = el.tagName === 'SELECT' ? 'change' : 'input';
   el.addEventListener(evtName, () => err.remove(), { once: true });
   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
-window.showFieldError = showFieldError; // 掛到 window 供 module script 使用
+
+// 祝福預覽
+function previewBless(){
+  const name = (document.getElementById('b-name')?.value||'').trim();
+  const text = (document.getElementById('b-text')?.value||'').trim();
+  if(!text){
+    showFieldError('b-text','請填寫祝福語');
+    return;
+  }
+  document.getElementById('bless-confirm-body').innerHTML = `
+    <div>👤 留言者　<strong>${name||'匿名'}</strong></div>
+    <div style="margin-top:8px;padding:12px 14px;background:#fff;border-radius:10px;border:1px solid rgba(249,180,150,.3);line-height:1.8;white-space:pre-wrap;">💬 ${text}</div>
+  `;
+  const btn = document.getElementById('bless-confirm-btn');
+  const newBtn = btn.cloneNode(true);
+  btn.parentNode.replaceChild(newBtn, btn);
+  newBtn.onclick = async function(){
+    newBtn.disabled = true;
+    newBtn.textContent = '送出中…';
+    if(window.submitBless) await window.submitBless();
+    newBtn.disabled = false;
+    newBtn.textContent = '確認送出 🌸';
+  };
+  if(window.om) window.om('m-bless-confirm');
+}
 
 // ═══ 攔截現有的 submitAttend 和 submitBless ═══
 // 等原本的函式載入後再包裝
 setTimeout(() => {
-  // 確認出席 - 無條件覆寫
-  window.submitAttend = async function() {      const name = document.getElementById('a-name').value.trim();
+  // 包裝 submitAttend
+  const _origSubmitAttend = window.submitAttend;
+  if(_origSubmitAttend) {
+    window.submitAttend = async function() {
+      const name = document.getElementById('a-name').value.trim();
       const phone = document.getElementById('a-phone').value.trim();
       const count = parseInt(document.getElementById('a-count').value)||1;
       const kids = parseInt(document.getElementById('a-kids').value)||0;
@@ -4953,23 +4810,21 @@ setTimeout(() => {
       const newBtn = btn.cloneNode(true); // 移除舊的 listener
       btn.parentNode.replaceChild(newBtn, btn);
       newBtn.onclick = async function(){
-        if(window._submitting) return;
-        window._submitting = true;
         newBtn.disabled = true;
         newBtn.textContent = '送出中…';
         const rsvp = { n: name, ph: phone, r: relation, c: count, k: kids, chair, meat, veg, note, t: new Date().toLocaleString('zh-TW') };
         const ok = await window.submitAttendFB(rsvp);
         if(ok){
-          window._submitting = false;
+          // *** 如果有填祝福語，同步存進 blessings ***
           if(bless) await window.submitBlessFB({ n: name, t: bless });
           if(window.cm){ window.cm('m-attend-confirm'); window.cm('m-attend'); }
           if(window.burst) window.burst();
+          // 清空祝福欄位
           const blessEl = document.getElementById('a-bless');
           if(blessEl) blessEl.value = '';
           document.getElementById('success-name').textContent = name;
           setTimeout(()=>{ if(window.om) window.om('m-success'); if(window.burst) setTimeout(window.burst,200); },400);
         } else {
-          window._submitting = false;
           newBtn.disabled = false;
           newBtn.textContent = '確認送出 🎊';
           window.toast && window.toast('送出失敗，請檢查網路連線');
@@ -4978,10 +4833,12 @@ setTimeout(() => {
 
       if(window.om) window.om('m-attend-confirm');
     };
-  window._fbSubmitAttendReady = true;
+  }
 
-  // 送上祝福 - 無條件覆寫
-  window.submitBless = async function() {
+  // 包裝 submitBless
+  const _origSubmitBless = window.submitBless;
+  if(_origSubmitBless) {
+    window.submitBless = async function() {
       const name = document.getElementById('b-name').value.trim();
       const text = document.getElementById('b-text').value.trim();
       if(!text){ showFieldError('b-text','請填寫祝福語'); return; }
@@ -4996,62 +4853,139 @@ setTimeout(() => {
         window.toast && window.toast('送出失敗，請檢查網路連線');
       }
     };
-  window._fbSubmitBlessReady = true;
+  }
 
   // 包裝後台登入
-  // *** 無條件覆寫 checkAdmLogin，不檢查原版是否存在 ***
-  window.checkAdmLogin = async function() {
-    const emailEl = document.getElementById('adm-email-inp');
-    const pwdEl = document.getElementById('adm-pwd-inp');
-    const email = emailEl ? emailEl.value.trim() : ADMIN_EMAIL;
-    const pwd = pwdEl ? pwdEl.value : '';
+  const _origCheckAdmLogin = window.checkAdmLogin;
+  if(_origCheckAdmLogin) {
+    window.checkAdmLogin = async function() {
+      const emailEl = document.getElementById('adm-email-inp');
+      const pwdEl = document.getElementById('adm-pwd-inp');
+      const email = emailEl ? emailEl.value.trim() : ADMIN_EMAIL;
+      const pwd = pwdEl ? pwdEl.value : document.getElementById('adm-pwd-inp').value;
 
-    const ok = await window.fbAdminLogin(email, pwd);
-    if(ok) {
-      document.getElementById('adm-login-ov').classList.remove('show');
-      document.getElementById('view-inv').classList.remove('active');
-      document.getElementById('view-admin').classList.add('active');
-      document.getElementById('set-invited').value = window.getInv ? window.getInv() : 80;
-      if(window.loadContentSettings) window.loadContentSettings();
-      if(window.refreshAdmin) window.refreshAdmin();
-    } else {
-      const inp = document.getElementById('adm-pwd-inp');
-      inp.classList.add('err');
-      const err = document.getElementById('adm-err');
-      if(err) err.classList.add('show');
-      inp.value = '';
-      setTimeout(()=>inp.classList.remove('err'),400);
-    }
-  };
+      const ok = await window.fbAdminLogin(email, pwd);
+      if(ok) {
+        document.getElementById('adm-login-ov').classList.remove('show');
+        document.getElementById('view-inv').classList.remove('active');
+        document.getElementById('view-admin').classList.add('active');
+        document.getElementById('set-invited').value = window.getInv ? window.getInv() : 80;
+        if(window.loadContentSettings) window.loadContentSettings();
+        if(window.refreshAdmin) window.refreshAdmin();
+      } else {
+        const inp = document.getElementById('adm-pwd-inp');
+        inp.classList.add('err');
+        const err = document.getElementById('adm-err');
+        if(err) err.classList.add('show');
+        inp.value = '';
+        setTimeout(()=>inp.classList.remove('err'),400);
+      }
+    };
+  }
 
   // *** 修正：在此覆寫 submitDecline，確保 Firebase 函式已就緒 ***
   window.submitDecline = async function(){
     const name = document.getElementById('dec-name').value.trim();
     const msg  = document.getElementById('dec-msg').value.trim();
-    if(!name) return;
+    if(!name){
+      document.getElementById('dec-name').style.borderColor = 'var(--red)';
+      document.getElementById('dec-name').focus();
+      return;
+    }
 
     const rsvpData = {
       n: name, ph: '—', r: '💝 無法出席',
       c: 0, k: 0, meat: 0, veg: 0,
-      note: '',        // *** 修正：note 留空，留言存進 blessings ***
-      status: 'no',
+      note: msg, status: 'no',
       t: new Date().toLocaleString('zh-TW')
     };
 
+    // 存入 Firestore rsvps
     const ok = await window.submitAttendFB(rsvpData);
-    if(!ok){ window._submitting = false; window.toast && window.toast('送出失敗，請檢查網路連線'); return; }
+    if(!ok){ window.toast && window.toast('送出失敗，請檢查網路連線'); return; }
 
-    // *** 修正：留言存進祝福留言牆，不存備註 ***
+    // 如果有留言，也存入 Firestore blessings
     if(msg){ await window.submitBlessFB({ n: name, t: msg }); }
 
-    window._submitting = false;
-    if(window.cm){ window.cm('m-decline-confirm'); window.cm('m-decline'); }
+    if(window.cm) window.cm('m-decline');
     if(window.refreshInv) window.refreshInv();
 
+    // 顯示無法出席的專屬感謝視窗
     const nameEl = document.getElementById('decline-success-name');
     if(nameEl) nameEl.textContent = name;
     setTimeout(()=>{ if(window.om) window.om('m-decline-success'); }, 400);
   };
-  window._fbSubmitDeclineReady = true;
 
 }, 500);
+
+// ═══ 修改後台密碼 ═══
+window.changeAdminPassword = async function() {
+  const current = document.getElementById('set-pwd-current').value;
+  const newPwd  = document.getElementById('set-pwd-new').value;
+  const confirm = document.getElementById('set-pwd-confirm').value;
+
+  if(!current){ window.toast && window.toast('請輸入目前密碼'); return; }
+  if(!newPwd || newPwd.length < 6){ window.toast && window.toast('新密碼至少需要 6 位'); return; }
+  if(newPwd !== confirm){ window.toast && window.toast('兩次新密碼不一致'); return; }
+
+  try {
+    const user = auth.currentUser;
+    if(!user){ window.toast && window.toast('請先登入後台'); return; }
+
+    // 重新驗證（Firebase 要求改密碼前重新驗證）
+    const credential = EmailAuthProvider.credential(user.email, current);
+    await reauthenticateWithCredential(user, credential);
+
+    // 更新密碼
+    await updatePassword(user, newPwd);
+
+    // 清空欄位
+    document.getElementById('set-pwd-current').value = '';
+    document.getElementById('set-pwd-new').value = '';
+    document.getElementById('set-pwd-confirm').value = '';
+
+    window.toast && window.toast('✅ 密碼已更新！下次登入使用新密碼');
+  } catch(e) {
+    console.error('changePassword:', e);
+    if(e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential'){
+      window.toast && window.toast('❌ 目前密碼錯誤，請重新輸入');
+    } else {
+      window.toast && window.toast('❌ 更新失敗：' + e.message);
+    }
+  }
+};
+window.addEventListener('online', () => window.toast && window.toast('✅ 網路已連線'));
+window.addEventListener('offline', () => window.toast && window.toast('⚠️ 網路中斷，資料將暫存本地'));
+
+console.log('🔥 Firebase 整合完成 — 勛凱 & 恩懿 婚禮喜帖');
+</script>
+
+<!-- ═══ 裁剪 Modal（重新設計：照片完整顯示 + 浮動裁剪框）═══ -->
+<div class="crop-overlay" id="crop-overlay" onclick="if(event.target===this)closeCrop()">
+  <div class="crop-modal">
+    <div class="crop-modal-hdr">
+      <div class="crop-modal-title">✂️ 裁剪照片</div>
+      <button class="crop-modal-close" onclick="closeCrop()">×</button>
+    </div>
+    <div class="crop-stage-wrap">
+      <div class="crop-stage" id="crop-stage">
+        <img id="crop-img" src="" draggable="false" onload="onCropImgLoad()"/>
+        <div class="crop-frame" id="crop-frame">
+          <div class="crop-handle tl" data-corner="tl"></div>
+          <div class="crop-handle tr" data-corner="tr"></div>
+          <div class="crop-handle bl" data-corner="bl"></div>
+          <div class="crop-handle br" data-corner="br"></div>
+        </div>
+      </div>
+    </div>
+    <div class="crop-hint-bar">👆 拖動裁剪框移動 · 拖角縮放 · 點「選全部」恢復整張</div>
+    <div class="crop-actions" style="display:flex;gap:8px;">
+      <button class="crop-act-btn cancel" onclick="closeCrop()">取消</button>
+      <button class="crop-act-btn" style="background:rgba(91,143,212,.15);color:#3e6fb3;border:1.5px solid rgba(91,143,212,.4);" onclick="cropSelectAll()">📐 選全部</button>
+      <button class="crop-act-btn confirm" onclick="applyCrop()">套用裁剪</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
