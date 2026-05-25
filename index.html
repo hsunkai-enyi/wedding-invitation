@@ -4221,8 +4221,38 @@ function gwChoose(type){
 }
 
 async function submitDecline(){
-  // *** 此函式已被 Firebase 版本覆寫（setTimeout 包裝），請勿在此執行 ***
-  toast('載入中，請稍候再試…');
+  const name = (document.getElementById('dec-name')?.value||'').trim();
+  const msg  = (document.getElementById('dec-msg')?.value||'').trim();
+  if(!name){
+    const el = document.getElementById('dec-name');
+    if(el){ el.style.borderColor='var(--red)'; el.focus(); }
+    return;
+  }
+
+  const btn = document.querySelector('#m-decline .m-btn:last-of-type');
+  if(btn){ btn.disabled=true; btn.textContent='送出中…'; }
+
+  const ready = await waitForFB('submitAttendFB');
+  if(!ready){
+    toast('網路連線失敗，請重新整理後再試 🙏');
+    if(btn){ btn.disabled=false; btn.textContent='送出 💌'; }
+    return;
+  }
+
+  const rsvpData = { n:name, ph:'—', r:'💝 無法出席', c:0, k:0, meat:0, veg:0, note:msg, status:'no', t:new Date().toLocaleString('zh-TW') };
+  const ok = await window.submitAttendFB(rsvpData);
+  if(!ok){
+    toast('送出失敗，請檢查網路連線 🙏');
+    if(btn){ btn.disabled=false; btn.textContent='送出 💌'; }
+    return;
+  }
+
+  if(msg){ const bOk = await waitForFB('submitBlessFB'); if(bOk) await window.submitBlessFB({n:name, t:msg}); }
+  cm('m-decline');
+  if(window.refreshInv) window.refreshInv();
+  const nameEl = document.getElementById('decline-success-name');
+  if(nameEl) nameEl.textContent = name;
+  setTimeout(()=>{ om('m-decline-success'); }, 400);
 }
 
 // ═══ SINGLE-PAGE ATTEND FORM ═══
@@ -4424,39 +4454,95 @@ function shakeField(id){
   setTimeout(()=>{el.classList.remove('err');el.style.borderColor='';},500);
 }
 
-function submitAttend(){
-  // *** 此函式已被 Firebase 版本覆寫，由 setTimeout 包裝取代 ***
-  // 如果 Firebase 版尚未就緒（極少情況），顯示提示
-  if(window._fbAttendReady){
-    window._fbAttendReady();
-  } else {
-    toast('載入中，請稍候再試…');
+// 等待 Firebase 函式就緒的共用工具（前台 script 用）
+async function waitForFB(fnName, timeoutMs = 8000){
+  if(window[fnName]) return true;
+  return new Promise(resolve => {
+    const start = Date.now();
+    const iv = setInterval(() => {
+      if(window[fnName]){ clearInterval(iv); resolve(true); }
+      else if(Date.now() - start > timeoutMs){ clearInterval(iv); resolve(false); }
+    }, 100);
+  });
+}
+
+async function submitAttend(){
+  const name  = (document.getElementById('a-name')?.value||'').trim();
+  const phone = (document.getElementById('a-phone')?.value||'').trim();
+  const count = parseInt(document.getElementById('a-count')?.value)||1;
+  const kids  = parseInt(document.getElementById('a-kids')?.value)||0;
+  const chair = parseInt(document.getElementById('a-chair')?.value)||0;
+  const note  = (document.getElementById('a-note')?.value||'').trim();
+  const bless = (document.getElementById('a-bless')?.value||'').trim();
+  const total = count + kids;
+  let relation = (document.getElementById('a-relation')?.value||'').trim();
+
+  // 驗證欄位
+  if(!name){ if(window.shakeField) shakeField('a-name'); showFieldError('a-name','請填寫您的姓名'); return; }
+  if(!phone || phone.replace(/\D/g,'').length<8){ if(window.shakeField) shakeField('a-phone'); showFieldError('a-phone','請填寫正確的聯絡電話'); return; }
+  if(!relation || relation==='請選擇'){ if(window.shakeField) shakeField('a-relation'); showFieldError('a-relation','請選擇您與新人的關係'); return; }
+  if(relation==='其他'){
+    const other = (document.getElementById('a-relation-other')?.value||'').trim();
+    if(!other){ if(window.shakeField) shakeField('a-relation-other'); showFieldError('a-relation-other','請填寫您與新人的關係'); return; }
+    relation = other;
   }
+
+  if(window.syncDietToTotal) window.syncDietToTotal();
+  const meat = parseInt(document.getElementById('a-meat')?.value)||0;
+  const veg  = parseInt(document.getElementById('a-veg')?.value)||0;
+  if(meat + veg !== total){ showFieldError('a-meat',`葷素總數（${meat+veg}）需等於出席人數（${total}）`); return; }
+
+  // 更新確認預覽
+  const relLabel = relation||'未填寫';
+  const bodyEl = document.getElementById('confirm-body');
+  if(bodyEl) bodyEl.innerHTML = `
+    <div>👤 姓名　　<strong>${name}</strong></div>
+    <div>📞 電話　　<strong>${phone}</strong></div>
+    <div>👔 關係　　<strong>${relLabel}</strong></div>
+    <div>🧑 成人　　<strong>${count} 位</strong>　　👶 兒童　<strong>${kids} 位</strong></div>
+    <div>🍖 葷食　　<strong>${meat} 位</strong>　　🥗 素食　<strong>${veg} 位</strong></div>
+    ${chair>0?`<div>🪑 嬰兒座椅　<strong>${chair} 張</strong></div>`:'<div>🪑 嬰兒座椅　<strong>不需要</strong></div>'}
+    ${note?`<div>📝 備註　　<strong>${note}</strong></div>`:''}
+    ${bless?`<div>💌 祝福語　<strong>${bless}</strong></div>`:''}
+  `;
+
+  // 綁定確認按鈕
+  const btn = document.getElementById('confirm-submit-btn');
+  if(btn){
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    newBtn.onclick = async function(){
+      newBtn.disabled = true;
+      newBtn.textContent = '送出中…';
+      const ready = await waitForFB('submitAttendFB');
+      if(!ready){ toast('網路連線失敗，請重新整理後再試 🙏'); newBtn.disabled=false; newBtn.textContent='確認送出 🎊'; return; }
+      const rsvp = { n:name, ph:phone, r:relation, c:count, k:kids, chair, meat, veg, note, t:new Date().toLocaleString('zh-TW') };
+      const ok = await window.submitAttendFB(rsvp);
+      if(ok){
+        if(bless){ const bOk = await waitForFB('submitBlessFB'); if(bOk) await window.submitBlessFB({n:name, t:bless}); }
+        cm('m-attend-confirm'); cm('m-attend');
+        if(window.burst) window.burst();
+        const snEl = document.getElementById('success-name'); if(snEl) snEl.textContent = name;
+        setTimeout(()=>{ om('m-success'); if(window.burst) setTimeout(window.burst,200); },400);
+      } else {
+        newBtn.disabled=false; newBtn.textContent='確認送出 🎊';
+        toast('送出失敗，請檢查網路連線 🙏');
+      }
+    };
+  }
+  om('m-attend-confirm');
 }
 async function submitBless(){
-  // *** Firebase 版本尚未就緒時的備用處理 ***
-  if(window.submitBlessFB) {
-    const name = (document.getElementById('b-name')?.value||'').trim();
-    const text = (document.getElementById('b-text')?.value||'').trim();
-    if(!text){ if(window.showFieldError) showFieldError('b-text','請填寫祝福語'); return; }
-    const ok = await window.submitBlessFB({ n: name || '匿名', t: text });
-    if(ok) {
-      document.getElementById('b-name').value = '';
-      document.getElementById('b-text').value = '';
-      if(window.cm){ window.cm('m-bless-confirm'); window.cm('m-bless'); }
-      if(window.burst) window.burst();
-      window.toast && window.toast('祝福送出 🌸 謝謝您！');
-    } else {
-      window.toast && window.toast('送出失敗，請檢查網路連線');
-    }
-  } else {
-    toast('載入中，請稍候再試…');
-  }
+  const name = (document.getElementById('b-name')?.value||'').trim();
+  const text = (document.getElementById('b-text')?.value||'').trim();
+  await doSubmitBless(name, text);
 }
 
 // HELPERS
-function om(id){document.getElementById(id).classList.add('show');}
-function cm(id){document.getElementById(id).classList.remove('show');}
+function om(id){const el=document.getElementById(id);if(el)el.classList.add('show');}
+function cm(id){const el=document.getElementById(id);if(el)el.classList.remove('show');}
+window.om = om;
+window.cm = cm;
 
 // ═══ MODAL UX: ESC key & backdrop click to close ═══
 document.addEventListener('keydown', function(e){
@@ -4522,6 +4608,96 @@ try {
 } catch(e){}
 try { loadPhotoEditUI(); } catch(e){}
 try { loadPhotoSettingsUI(); } catch(e){}
+// 祝福預覽
+// ═══ 欄位錯誤提示（顯示在欄位下方）═══
+function showFieldError(fieldId, msg){
+  // 移除同欄位舊提示
+  const old = document.getElementById('err-' + fieldId);
+  if(old) old.remove();
+  const el = document.getElementById(fieldId);
+  if(!el) return;
+  const err = document.createElement('div');
+  err.id = 'err-' + fieldId;
+  err.textContent = '⚠ ' + msg;
+  err.style.cssText = 'color:#e05a3a;font-size:11px;letter-spacing:1px;margin-top:4px;margin-bottom:2px;padding-left:4px;animation:fadeIn .2s ease;';
+  el.parentNode.insertBefore(err, el.nextSibling);
+  // input 或 change 時自動消除（select 用 change）
+  const evtName = el.tagName === 'SELECT' ? 'change' : 'input';
+  el.addEventListener(evtName, () => err.remove(), { once: true });
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// 祝福預覽
+async function previewBless(){
+  const name = (document.getElementById('b-name')?.value||'').trim();
+  const text = (document.getElementById('b-text')?.value||'').trim();
+  if(!text){
+    showFieldError('b-text','請填寫祝福語');
+    return;
+  }
+
+  // 更新確認預覽內容
+  const body = document.getElementById('bless-confirm-body');
+  if(body){
+    body.innerHTML = `
+      <div>👤 留言者　<strong>${name||'匿名'}</strong></div>
+      <div style="margin-top:8px;padding:12px 14px;background:#fff;border-radius:10px;border:1px solid rgba(249,180,150,.3);line-height:1.8;white-space:pre-wrap;">💬 ${text}</div>
+    `;
+  }
+
+  // 重新綁定確認按鈕（避免重複觸發）
+  const btn = document.getElementById('bless-confirm-btn');
+  if(btn){
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    newBtn.onclick = async function(){
+      newBtn.disabled = true;
+      newBtn.textContent = '送出中…';
+      try {
+        await doSubmitBless(name, text);
+      } finally {
+        newBtn.disabled = false;
+        newBtn.textContent = '確認送出 🌸';
+      }
+    };
+  }
+
+  // 開啟確認視窗
+  om('m-bless-confirm');
+}
+
+// 實際送出祝福的核心函式（不依賴 window.submitBless）
+async function doSubmitBless(name, text){
+  if(!text) return;
+  // 等待 Firebase module 掛載完成（最多 8 秒）
+  if(!window.submitBlessFB){
+    await new Promise((resolve, reject) => {
+      const start = Date.now();
+      const check = setInterval(() => {
+        if(window.submitBlessFB){ clearInterval(check); resolve(); }
+        else if(Date.now() - start > 8000){ clearInterval(check); reject(); }
+      }, 100);
+    }).catch(() => null);
+  }
+  if(!window.submitBlessFB){
+    toast('網路連線失敗，請重新整理後再試 🙏');
+    return;
+  }
+  const ok = await window.submitBlessFB({ n: name || '匿名', t: text });
+  if(ok){
+    const nameEl = document.getElementById('b-name');
+    const textEl = document.getElementById('b-text');
+    if(nameEl) nameEl.value = '';
+    if(textEl) textEl.value = '';
+    cm('m-bless-confirm');
+    cm('m-bless');
+    if(window.burst) window.burst();
+    toast('祝福送出 🌸 謝謝您！');
+  } else {
+    toast('送出失敗，請檢查網路連線 🙏');
+  }
+}
+
 </script>
 
 <!-- ═══ FIREBASE SDK ═══ -->
@@ -4724,163 +4900,8 @@ function startConfigListener() {
   });
 }
 
-// 祝福預覽
-// ═══ 欄位錯誤提示（顯示在欄位下方）═══
-function showFieldError(fieldId, msg){
-  // 移除同欄位舊提示
-  const old = document.getElementById('err-' + fieldId);
-  if(old) old.remove();
-  const el = document.getElementById(fieldId);
-  if(!el) return;
-  const err = document.createElement('div');
-  err.id = 'err-' + fieldId;
-  err.textContent = '⚠ ' + msg;
-  err.style.cssText = 'color:#e05a3a;font-size:11px;letter-spacing:1px;margin-top:4px;margin-bottom:2px;padding-left:4px;animation:fadeIn .2s ease;';
-  el.parentNode.insertBefore(err, el.nextSibling);
-  // input 或 change 時自動消除（select 用 change）
-  const evtName = el.tagName === 'SELECT' ? 'change' : 'input';
-  el.addEventListener(evtName, () => err.remove(), { once: true });
-  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-
-// 祝福預覽
-function previewBless(){
-  const name = (document.getElementById('b-name')?.value||'').trim();
-  const text = (document.getElementById('b-text')?.value||'').trim();
-  if(!text){
-    showFieldError('b-text','請填寫祝福語');
-    return;
-  }
-  document.getElementById('bless-confirm-body').innerHTML = `
-    <div>👤 留言者　<strong>${name||'匿名'}</strong></div>
-    <div style="margin-top:8px;padding:12px 14px;background:#fff;border-radius:10px;border:1px solid rgba(249,180,150,.3);line-height:1.8;white-space:pre-wrap;">💬 ${text}</div>
-  `;
-  const btn = document.getElementById('bless-confirm-btn');
-  const newBtn = btn.cloneNode(true);
-  btn.parentNode.replaceChild(newBtn, btn);
-  newBtn.onclick = async function(){
-    newBtn.disabled = true;
-    newBtn.textContent = '送出中…';
-    if(window.submitBless) await window.submitBless();
-    newBtn.disabled = false;
-    newBtn.textContent = '確認送出 🌸';
-  };
-  if(window.om) window.om('m-bless-confirm');
-}
-
-// ═══ 攔截現有的 submitAttend 和 submitBless ═══
-// 等原本的函式載入後再包裝
+// ═══ 後台登入包裝（Firebase module 就緒後執行）═══
 setTimeout(() => {
-  // 包裝 submitAttend
-  const _origSubmitAttend = window.submitAttend;
-  if(_origSubmitAttend) {
-    window.submitAttend = async function() {
-      const name = document.getElementById('a-name').value.trim();
-      const phone = document.getElementById('a-phone').value.trim();
-      const count = parseInt(document.getElementById('a-count').value)||1;
-      const kids = parseInt(document.getElementById('a-kids').value)||0;
-      const chair = parseInt(document.getElementById('a-chair').value)||0;
-      const note = document.getElementById('a-note').value.trim();
-      const bless = (document.getElementById('a-bless')?.value||'').trim();
-      const total = count + kids;
-
-      let relation = document.getElementById('a-relation').value;
-
-      // *** 驗證順序按畫面由上到下：姓名 → 電話 → 關係 → 葷素 ***
-      if(!name){
-        window.shakeField && window.shakeField('a-name');
-        showFieldError('a-name', '請填寫您的姓名');
-        return;
-      }
-      if(!phone || phone.replace(/\D/g,'').length<8){
-        window.shakeField && window.shakeField('a-phone');
-        showFieldError('a-phone', '請填寫正確的聯絡電話');
-        return;
-      }
-      if(!relation || relation === '請選擇'){
-        window.shakeField && window.shakeField('a-relation');
-        showFieldError('a-relation', '請選擇您與新人的關係');
-        return;
-      }
-      if(relation === '其他'){
-        const other = document.getElementById('a-relation-other').value.trim();
-        if(!other){
-          window.shakeField && window.shakeField('a-relation-other');
-          showFieldError('a-relation-other', '請填寫您與新人的關係');
-          return;
-        }
-        relation = other;
-      }
-
-      if(window.syncDietToTotal) window.syncDietToTotal();
-      const meat = parseInt(document.getElementById('a-meat').value)||0;
-      const veg  = parseInt(document.getElementById('a-veg').value)||0;
-
-      if(meat + veg !== total){
-        showFieldError('a-meat', `葷素總數（${meat+veg}）需等於出席人數（${total}）`);
-        return;
-      }
-
-      // *** 顯示確認視窗 ***
-      const relLabel = relation || '未填寫';
-      document.getElementById('confirm-body').innerHTML = `
-        <div>👤 姓名　　<strong>${name}</strong></div>
-        <div>📞 電話　　<strong>${phone}</strong></div>
-        <div>👔 關係　　<strong>${relLabel}</strong></div>
-        <div>🧑 成人　　<strong>${count} 位</strong>　　👶 兒童　<strong>${kids} 位</strong></div>
-        <div>🍖 葷食　　<strong>${meat} 位</strong>　　🥗 素食　<strong>${veg} 位</strong></div>
-        ${chair > 0 ? `<div>🪑 嬰兒座椅　<strong>${chair} 張</strong></div>` : '<div>🪑 嬰兒座椅　<strong>不需要</strong></div>'}
-        ${note ? `<div>📝 備註　　<strong>${note}</strong></div>` : ''}
-        ${bless ? `<div>💌 祝福語　<strong>${bless}</strong></div>` : ''}
-      `;
-
-      // 確認按鈕綁定送出
-      const btn = document.getElementById('confirm-submit-btn');
-      const newBtn = btn.cloneNode(true); // 移除舊的 listener
-      btn.parentNode.replaceChild(newBtn, btn);
-      newBtn.onclick = async function(){
-        newBtn.disabled = true;
-        newBtn.textContent = '送出中…';
-        const rsvp = { n: name, ph: phone, r: relation, c: count, k: kids, chair, meat, veg, note, t: new Date().toLocaleString('zh-TW') };
-        const ok = await window.submitAttendFB(rsvp);
-        if(ok){
-          // *** 如果有填祝福語，同步存進 blessings ***
-          if(bless) await window.submitBlessFB({ n: name, t: bless });
-          if(window.cm){ window.cm('m-attend-confirm'); window.cm('m-attend'); }
-          if(window.burst) window.burst();
-          // 清空祝福欄位
-          const blessEl = document.getElementById('a-bless');
-          if(blessEl) blessEl.value = '';
-          document.getElementById('success-name').textContent = name;
-          setTimeout(()=>{ if(window.om) window.om('m-success'); if(window.burst) setTimeout(window.burst,200); },400);
-        } else {
-          newBtn.disabled = false;
-          newBtn.textContent = '確認送出 🎊';
-          window.toast && window.toast('送出失敗，請檢查網路連線');
-        }
-      };
-
-      if(window.om) window.om('m-attend-confirm');
-    };
-  }
-
-  // 覆寫 submitBless（直接覆寫，不判斷 _origSubmitBless）
-  window.submitBless = async function() {
-    const name = document.getElementById('b-name').value.trim();
-    const text = document.getElementById('b-text').value.trim();
-    if(!text){ showFieldError('b-text','請填寫祝福語'); return; }
-    const ok = await window.submitBlessFB({ n: name || '匿名', t: text });
-    if(ok) {
-      document.getElementById('b-name').value = '';
-      document.getElementById('b-text').value = '';
-      if(window.cm){ window.cm('m-bless-confirm'); window.cm('m-bless'); }
-      if(window.burst) window.burst();
-      window.toast && window.toast('祝福送出 🌸 謝謝您！');
-    } else {
-      window.toast && window.toast('送出失敗，請檢查網路連線');
-    }
-  };
-
   // 包裝後台登入
   const _origCheckAdmLogin = window.checkAdmLogin;
   if(_origCheckAdmLogin) {
@@ -4909,38 +4930,6 @@ setTimeout(() => {
     };
   }
 
-  // *** 修正：在此覆寫 submitDecline，確保 Firebase 函式已就緒 ***
-  window.submitDecline = async function(){
-    const name = document.getElementById('dec-name').value.trim();
-    const msg  = document.getElementById('dec-msg').value.trim();
-    if(!name){
-      document.getElementById('dec-name').style.borderColor = 'var(--red)';
-      document.getElementById('dec-name').focus();
-      return;
-    }
-
-    const rsvpData = {
-      n: name, ph: '—', r: '💝 無法出席',
-      c: 0, k: 0, meat: 0, veg: 0,
-      note: msg, status: 'no',
-      t: new Date().toLocaleString('zh-TW')
-    };
-
-    // 存入 Firestore rsvps
-    const ok = await window.submitAttendFB(rsvpData);
-    if(!ok){ window.toast && window.toast('送出失敗，請檢查網路連線'); return; }
-
-    // 如果有留言，也存入 Firestore blessings
-    if(msg){ await window.submitBlessFB({ n: name, t: msg }); }
-
-    if(window.cm) window.cm('m-decline');
-    if(window.refreshInv) window.refreshInv();
-
-    // 顯示無法出席的專屬感謝視窗
-    const nameEl = document.getElementById('decline-success-name');
-    if(nameEl) nameEl.textContent = name;
-    setTimeout(()=>{ if(window.om) window.om('m-decline-success'); }, 400);
-  };
 
 }, 500);
 
