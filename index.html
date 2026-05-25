@@ -4723,15 +4723,23 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 // ═══ 匿名登入（賓客） ═══
-signInAnonymously(auth).catch(e => console.log('anon auth:', e));
+// 匿名登入，失敗時自動重試一次
+signInAnonymously(auth).catch(e => {
+  console.warn('[FB] anon auth failed, retrying...', e.code);
+  setTimeout(() => signInAnonymously(auth).catch(e2 => console.error('[FB] anon auth retry failed:', e2.code)), 2000);
+});
 
 // ═══ 覆寫資料函式：localStorage → Firestore ═══
 
-// 等待 auth 就緒的共用工具
+// 等待 auth 就緒的共用工具（最多等 4 秒，失敗也繼續執行）
 async function waitForAuth() {
   if (auth.currentUser) return auth.currentUser;
-  return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => reject(new Error('auth timeout')), 5000);
+  return new Promise((resolve) => {
+    const timeout = setTimeout(() => {
+      console.warn('[FB] waitForAuth timeout — proceeding without auth');
+      unsub();
+      resolve(null); // 不 reject，繼續執行
+    }, 4000);
     const unsub = onAuthStateChanged(auth, user => {
       if (user) { clearTimeout(timeout); unsub(); resolve(user); }
     });
@@ -4741,19 +4749,31 @@ async function waitForAuth() {
 // 提交 RSVP
 window.submitAttendFB = async function(rsvp) {
   try {
-    await waitForAuth();
+    const user = await waitForAuth();
+    console.log('[FB] submitAttendFB, uid=', user?.uid);
     await addDoc(collection(db, 'rsvps'), { ...rsvp, createdAt: serverTimestamp() });
+    console.log('[FB] rsvp saved OK');
     return true;
-  } catch(e) { console.error('submitAttend FB:', e); return false; }
+  } catch(e) {
+    console.error('[FB] submitAttendFB error:', e.code, e.message);
+    window._fbLastError = e.code + ': ' + e.message;
+    return false;
+  }
 };
 
 // 提交祝福
 window.submitBlessFB = async function(blessing) {
   try {
-    await waitForAuth();
+    const user = await waitForAuth();
+    console.log('[FB] submitBlessFB, uid=', user?.uid);
     await addDoc(collection(db, 'blessings'), { ...blessing, createdAt: serverTimestamp() });
+    console.log('[FB] blessing saved OK');
     return true;
-  } catch(e) { console.error('submitBless FB:', e); return false; }
+  } catch(e) {
+    console.error('[FB] submitBlessFB error:', e.code, e.message);
+    window._fbLastError = e.code + ': ' + e.message;
+    return false;
+  }
 };
 
 // ═══ Admin 登入 ═══
