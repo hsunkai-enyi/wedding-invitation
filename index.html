@@ -4291,6 +4291,7 @@ function previewDecline(){
         return;
       }
       if(msg){ const bOk = await waitForFB('submitBlessFB'); if(bOk) await window.submitBlessFB({n:name, t:msg}); }
+      newBtn.disabled=false; newBtn.textContent='確認送出 💌'; // 還原避免 cloneNode 帶走 disabled
       cm('m-decline-confirm');
       cm('m-decline');
       if(window.refreshInv) window.refreshInv();
@@ -4568,6 +4569,7 @@ async function submitAttend(){
       const ok = await window.submitAttendFB(rsvp);
       if(ok){
         if(bless){ const bOk = await waitForFB('submitBlessFB'); if(bOk) await window.submitBlessFB({n:name, t:bless}); }
+        newBtn.disabled=false; newBtn.textContent='確認送出 🎊'; // 還原，避免 cloneNode 帶走 disabled
         cm('m-attend-confirm'); cm('m-attend');
         if(window.burst) window.burst();
         const snEl = document.getElementById('success-name'); if(snEl) snEl.textContent = name;
@@ -4703,10 +4705,8 @@ async function previewBless(){
       newBtn.disabled = true;
       newBtn.textContent = '送出中…';
       const ok = await doSubmitBless(name, text);
-      if(!ok){
-        newBtn.disabled = false;
-        newBtn.textContent = '確認送出 🌸';
-      }
+      newBtn.disabled = false;
+      newBtn.textContent = '確認送出 🌸'; // 永遠還原，避免 cloneNode 帶走 disabled
     };
   }
 
