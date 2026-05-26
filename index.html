@@ -2897,7 +2897,7 @@ IMGS.map = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFB
 
 // Setup image src
 // *** 修正：直接從資料套用照片，不依賴 localStorage ***
-function applyPhotosDirectly(photos) {
+window.applyPhotosDirectly = function applyPhotosDirectly(photos) {
   if(!photos) return;
   const setBg = (id, src) => {
     if (!src || src.length < 50) return;
@@ -4015,7 +4015,7 @@ function applyCropToImage(key) {
   }
 }
 
-function applyCropToFrontend() {
+window.applyCropToFrontend = function applyCropToFrontend() {
   const s = getPhotoSettings();
   const map = {
     b_kiss: 'pg0', b_fun: 'pg1', b_full: 'pg2', b_close: 'pg3',
