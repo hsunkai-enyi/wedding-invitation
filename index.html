@@ -4922,7 +4922,10 @@ window.fbDeleteBless = async function(id) {
 
 // ═══ 儲存設定（Firestore）═══
 window.fbSaveConfig = async function(partial) {
-  if(!window._isAdmin) return;
+  if(!window._isAdmin) {
+    console.warn('[fbSaveConfig] 未登入管理員，略過寫入。_isAdmin=', window._isAdmin, '_fbUser=', window._fbUser?.email);
+    return;
+  }
   try {
     // merge with existing config
     const snap = await getDoc(doc(db, 'config', 'main'));
@@ -4932,8 +4935,10 @@ window.fbSaveConfig = async function(partial) {
     if(partial.content && existing.content) {
       merged.content = { ...existing.content, ...partial.content };
     }
+    console.log('[fbSaveConfig] 正在寫入 Firestore，keys:', Object.keys(partial));
     await setDoc(doc(db, 'config', 'main'), merged);
-  } catch(e) { console.error('fbSaveConfig:', e); }
+    console.log('[fbSaveConfig] 寫入成功');
+  } catch(e) { console.error('[fbSaveConfig] 寫入失敗:', e.code, e.message); }
 };
 
 window.fbLoadConfig = async function() {
