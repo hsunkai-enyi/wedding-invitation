@@ -2915,6 +2915,10 @@ window.applyPhotosDirectly = function applyPhotosDirectly(photos) {
   setBg('pg1', photos['b_fun']  || '');
   setBg('pg2', photos['b_full'] || '');
   setBg('pg3', photos['b_close']|| '');
+  // 同步更新 IMGS 讓輪播視差層也能取到最新照片
+  ['h_kiss','h_fun','h_full','h_close','b_kiss','b_fun','b_full','b_close'].forEach(k => {
+    if(photos[k] && photos[k].length > 50) IMGS[k] = photos[k];
+  });
 }
 
 function initImages() {
@@ -3033,20 +3037,28 @@ function exitAdmin(){
 const hSlides=document.querySelectorAll('.hslide'),hDots=document.querySelectorAll('.hsd');
 let hCur=0;
 function startHeroSlide(){
-  const photos = ['h_kiss','h_fun','h_full','h_close'];
+  const keys = ['h_kiss','h_fun','h_full','h_close'];
+  const ids  = ['hs0','hs1','hs2','hs3'];
+  // 取得最新照片（優先讀 DOM 元素的 backgroundImage，fallback 到 IMGS）
+  const getImg = (idx) => {
+    const el = document.getElementById(ids[idx]);
+    if(el && el.style.backgroundImage && el.style.backgroundImage !== 'none' && el.style.backgroundImage !== '') {
+      return el.style.backgroundImage.replace(/^url\(['"]?/, '').replace(/['"]?\)$/, '');
+    }
+    const baseFallbacks = ['kiss','fun','full','close'];
+    return IMGS[keys[idx]] || IMGS[baseFallbacks[idx]] || '';
+  };
   setInterval(()=>{
     hSlides[hCur].classList.remove('on');
     hDots[hCur].classList.remove('on');
     hCur=(hCur+1)%hSlides.length;
     hSlides[hCur].classList.add('on');
     hDots[hCur].classList.add('on');
-    // 同步輪轉背層與中層 — 視差效果
+    // 同步輪轉背層與中層 — 視差效果（讀最新照片）
     const back = document.getElementById('hs-back');
     const mid = document.getElementById('hs-mid');
-    const backIdx = (hCur+2) % photos.length;
-    const midIdx = (hCur+1) % photos.length;
-    const baseFallbacks = ['kiss','fun','full','close'];
-    const getImg = (idx) => IMGS[photos[idx]] || IMGS[baseFallbacks[idx]];
+    const backIdx = (hCur+2) % keys.length;
+    const midIdx = (hCur+1) % keys.length;
     if(back) back.style.backgroundImage = `url('${getImg(backIdx)}')`;
     if(mid) mid.style.backgroundImage = `url('${getImg(midIdx)}')`;
   }, 5500);
