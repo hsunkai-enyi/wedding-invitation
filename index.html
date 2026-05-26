@@ -4984,7 +4984,7 @@ function startConfigListener() {
         console.warn('照片資料太大無法存入 localStorage，直接套用到畫面');
       }
       // 無論 localStorage 是否成功，直接用 Firestore 的資料套用
-      applyPhotosDirectly(data.photos);
+      if(window.applyPhotosDirectly) window.applyPhotosDirectly(data.photos);
       if(window.applyCropToFrontend) window.applyCropToFrontend();
     }
   });
