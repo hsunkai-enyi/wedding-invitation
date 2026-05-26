@@ -466,6 +466,8 @@ select.m-field{appearance:none;-webkit-appearance:none;background-image:url("dat
 .gw-yes:hover .gw-lbl{color:var(--peach);}
 .gw-no:hover{border-color:var(--blue);background:linear-gradient(135deg,rgba(91,143,212,.08),rgba(91,143,212,.15));}
 .gw-no:hover .gw-lbl{color:var(--blue);}
+.gw-bless:hover{border-color:#c77dbb;background:linear-gradient(135deg,rgba(199,125,187,.08),rgba(199,125,187,.15));}
+.gw-bless:hover .gw-lbl{color:#c77dbb;}
 
 /* ═══ WIZARD FORM ═══ */
 .wizard{padding:0 !important;overflow:hidden !important;}
@@ -2020,8 +2022,8 @@ div.photo-slot .photo-pos-badge {
       </div>
 
       <div class="icard actions">
-        <button class="btn btn-p" onclick="openGateway()">🎉 &nbsp;確認出席</button>
-        <button class="btn btn-s" onclick="om('m-bless')">💌 &nbsp;送上祝福</button>
+        <button class="btn btn-p" onclick="openWizard()">🎉 &nbsp;確定出席</button>
+        <button class="btn btn-s" onclick="openDecline()">💝 &nbsp;無法出席</button>
       </div>
 
       <!-- 地圖放大檢視 modal -->
@@ -2593,6 +2595,7 @@ div.photo-slot .photo-pos-badge {
         <span class="gw-lbl">無法出席</span>
         <span class="gw-desc">送上心意祝福</span>
       </button>
+
     </div>
   </div>
 </div>
@@ -4240,11 +4243,30 @@ function openGateway(){
   om('m-gateway');
 }
 
+function openDecline(){
+  document.getElementById('dec-name').value = '';
+  document.getElementById('dec-msg').value = '';
+  const phoneLbl = document.getElementById('dec-phone-lbl');
+  const phoneInp = document.getElementById('dec-phone');
+  if(phoneLbl) phoneLbl.style.display = 'none';
+  if(phoneInp){ phoneInp.style.display = 'none'; phoneInp.value = ''; }
+  document.getElementById('dec-ttl').textContent = '💝 收到您的心意';
+  document.getElementById('dec-sub').textContent = '雖然無法相聚，但您的祝福我們收到了';
+  document.getElementById('dec-msg').placeholder = '送上您的祝福⋯（選填）';
+  om('m-decline');
+  setTimeout(()=>document.getElementById('dec-name').focus(),350);
+}
+
 function gwChoose(type){
   cm('m-gateway');
   setTimeout(()=>{
     if(type === 'yes'){
       openWizard();
+    } else if(type === 'bless'){
+      document.getElementById('b-name').value = '';
+      document.getElementById('b-text').value = '';
+      om('m-bless');
+      setTimeout(()=>document.getElementById('b-name').focus(),350);
     } else {
       // decline only
       document.getElementById('dec-name').value = '';
