@@ -319,6 +319,10 @@ tbody tr:hover td{background:rgba(249,180,150,.06);}
 .tbtn2.primary:hover{transform:translateY(-1px);color:#fff;}
 .tbtn2.danger:hover{border-color:var(--red);color:var(--red);}
 .bless-grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:13px;}
+.bc2-badge{display:inline-block;font-size:10px;letter-spacing:.5px;padding:2px 8px;border-radius:50px;margin-left:7px;vertical-align:middle;font-weight:600;}
+.bc2-att{background:rgba(249,123,90,.12);color:#c05030;}
+.bc2-dec{background:rgba(91,143,212,.12);color:#3a6aaa;}
+.bc2-unk{background:rgba(0,0,0,.06);color:#999;}
 .bc2{background:white;border:1.5px solid rgba(249,180,150,.3);border-radius:16px;padding:20px;position:relative;transition:transform .25s;box-shadow:0 2px 12px rgba(180,80,40,.06);}
 .bc2:hover{transform:translateY(-3px);}
 .bc2-q{position:absolute;top:8px;right:12px;font-size:28px;color:rgba(249,180,150,.25);line-height:1;}
@@ -3268,10 +3272,24 @@ function renderAdmBless(resetPage){
     const start = (_bPage-1)*_bPageSize;
     const pageData = sorted.slice(start, start+_bPageSize);
 
+    // 建立姓名→出席狀態對照表
+    const d2=gd();
+    const rsvpMap={};
+    d2.r.forEach(r=>{
+      const key=(r.n||'').trim();
+      if(key) rsvpMap[key]=r.status==='no'?'no':'yes';
+    });
+    const getStatusBadge=(name)=>{
+      const key=(name||'').trim();
+      const s=rsvpMap[key];
+      if(s==='yes') return `<span class="bc2-badge bc2-att">🎉 確定出席</span>`;
+      if(s==='no')  return `<span class="bc2-badge bc2-dec">💝 無法出席</span>`;
+      return `<span class="bc2-badge bc2-unk">— 未填出席</span>`;
+    };
     wrap.innerHTML=pageData.map(x=>`<div class="bc2">
       <button class="bc2-del" onclick="deleteBlessing('${x._id||''}','${x._id||''}')">✕</button>
       <div class="bc2-q">"</div>
-      <div class="bc2-auth">💌 ${x.n}</div>
+      <div class="bc2-auth">💌 ${x.n}${getStatusBadge(x.n)}</div>
       <div class="bc2-body">${x.t||''}</div>
       <div class="bc2-time">${x.d||x.ts||''}</div>
     </div>`).join('');
