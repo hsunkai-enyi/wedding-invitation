@@ -4858,24 +4858,30 @@ const BGM = {
   },
 
   // 點信封後觸發
-  async start() {
+  // 點信封後觸發
+  start() {
     if(this.started) return;
     this.started = true;
     if(!this.enabled) return;
 
-    // 如果 src === 'indexeddb'，從 IndexedDB 讀 Blob
     if(this.src === 'indexeddb') {
-      try {
-        const blob = await MusicDB.load();
+      if(!this.audio) return;
+      // 先用無聲音訊解鎖 Chrome autoplay，再換真實音樂
+      this.audio.volume = 0.001;
+      this.audio.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+      this.audio.play().catch(()=>{});
+      MusicDB.load().then(blob => {
         if(blob) {
           if(this.blobUrl) URL.revokeObjectURL(this.blobUrl);
           this.blobUrl = URL.createObjectURL(blob);
-          this._setAndPlay(this.blobUrl);
+          this.audio.src = this.blobUrl;
+          this.audio.volume = this.volume;
+          this.audio.load();
+          this.audio.play().then(() => { this.playing = true; this._updateFab(); }).catch(()=>{});
           this._showFab();
-          return;
         }
-      } catch(e) { console.warn('BGM IndexedDB load error:', e); }
-      return; // 沒有資料就不播
+      }).catch(e => console.warn('BGM IndexedDB load error:', e));
+      return;
     }
 
     if(!this.src) return;
