@@ -3042,12 +3042,14 @@ function getInv(){return parseInt(gc().invited)||80;}
 let invStage=1;
 function openEnvelope(){
   if(invStage!==1)return;
+  // ▼ 在用戶手勢當下立刻啟動音樂（Chrome 要求必須在 click 事件內呼叫 play）
+  BGM.start();
   document.getElementById('env-flap').classList.add('open');
   setTimeout(()=>{
     document.getElementById('st-env').classList.remove('on');
     document.getElementById('st-main').classList.add('on');
     ['fd1','fd2','fd3','fd4'].forEach(id=>document.getElementById(id).style.display='block');
-    invStage=2;startHeroSlide();refreshInv();burst();BGM.start();
+    invStage=2;startHeroSlide();refreshInv();burst();
   },700);
 }
 
