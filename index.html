@@ -2574,7 +2574,7 @@ div.photo-slot .photo-pos-badge {
           <div style="margin-bottom:10px;"><div class="set-lbl">上傳音樂檔案</div><div class="set-desc">MP3 / AAC / MP4 / M4A / OGG / WAV / FLAC / WebM，建議 30MB 以內</div></div>
           <div id="music-upload-zone" onclick="document.getElementById('music-file-inp').click()" style="border:2px dashed rgba(249,180,150,.5);border-radius:12px;padding:18px;text-align:center;cursor:pointer;background:rgba(255,248,243,.6);transition:all .25s;">
             <div style="font-size:28px;margin-bottom:6px;">🎵</div>
-            <div id="music-upload-label" style="font-family:var(--font-sans);font-size:13px;letter-spacing:2px;color:var(--muted);">點此選擇 MP3 檔案</div>
+            <div id="music-upload-label" style="font-family:var(--font-sans);font-size:13px;letter-spacing:2px;color:var(--muted);">點此選擇音樂檔案</div>
           </div>
           <input type="file" id="music-file-inp" accept="audio/*,video/mp4,.mp3,.aac,.m4a,.ogg,.wav,.flac,.mp4,.webm" style="display:none;" onchange="uploadMusicFile(this)"/>
         </div>
@@ -4775,16 +4775,69 @@ window.uploadClick = function(key) {
 };
 
 // ═══════════════════════════════════════════════
+// 🎵 IndexedDB 音樂儲存（解決 localStorage 容量限制）
+// ═══════════════════════════════════════════════
+const MusicDB = {
+  _db: null,
+  DB_NAME: 'hpy_music_db',
+  DB_VER: 1,
+  STORE: 'music',
+
+  open() {
+    return new Promise((resolve, reject) => {
+      if(this._db) return resolve(this._db);
+      const req = indexedDB.open(this.DB_NAME, this.DB_VER);
+      req.onupgradeneeded = (e) => {
+        e.target.result.createObjectStore(this.STORE);
+      };
+      req.onsuccess = (e) => { this._db = e.target.result; resolve(this._db); };
+      req.onerror = () => reject(req.error);
+    });
+  },
+
+  async save(blob) {
+    const db = await this.open();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(this.STORE, 'readwrite');
+      tx.objectStore(this.STORE).put(blob, 'current');
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    });
+  },
+
+  async load() {
+    const db = await this.open();
+    return new Promise((resolve) => {
+      const tx = db.transaction(this.STORE, 'readonly');
+      const req = tx.objectStore(this.STORE).get('current');
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => resolve(null);
+    });
+  },
+
+  async clear() {
+    const db = await this.open();
+    return new Promise((resolve) => {
+      const tx = db.transaction(this.STORE, 'readwrite');
+      tx.objectStore(this.STORE).delete('current');
+      tx.oncomplete = resolve;
+      tx.onerror = resolve;
+    });
+  }
+};
+
+// ═══════════════════════════════════════════════
 // 🎵 背景音樂系統
 // ═══════════════════════════════════════════════
 const BGM = {
   audio: null,
   enabled: false,
   volume: 0.6,
-  src: '',
+  src: '',          // URL 或 'indexeddb'（表示從 IndexedDB 讀）
+  blobUrl: null,    // 本機檔案產生的 Object URL
   playing: false,
-  userPaused: false,   // 賓客主動暫停
-  started: false,      // 是否已觸發過播放
+  userPaused: false,
+  started: false,
 
   init() {
     this.audio = document.getElementById('bg-music');
@@ -4794,7 +4847,6 @@ const BGM = {
   },
 
   loadFromConfig() {
-    // 讀 localStorage
     const cfg = (() => { try{ return JSON.parse(localStorage.getItem('hpy_cfg')||'{}'); }catch{ return{}; } })();
     const m = cfg.music || {};
     this.enabled = !!m.enabled;
@@ -4803,19 +4855,36 @@ const BGM = {
     if(this.audio) this.audio.volume = this.volume;
   },
 
-  // 點信封後觸發（第一次播放需用戶手勢）
-  start() {
+  // 點信封後觸發
+  async start() {
     if(this.started) return;
     this.started = true;
-    if(!this.enabled || !this.src) return;
-    this.applyAndPlay();
+    if(!this.enabled) return;
+
+    // 如果 src === 'indexeddb'，從 IndexedDB 讀 Blob
+    if(this.src === 'indexeddb') {
+      try {
+        const blob = await MusicDB.load();
+        if(blob) {
+          if(this.blobUrl) URL.revokeObjectURL(this.blobUrl);
+          this.blobUrl = URL.createObjectURL(blob);
+          this._setAndPlay(this.blobUrl);
+          this._showFab();
+          return;
+        }
+      } catch(e) { console.warn('BGM IndexedDB load error:', e); }
+      return; // 沒有資料就不播
+    }
+
+    if(!this.src) return;
+    this._setAndPlay(this.src);
     this._showFab();
   },
 
-  applyAndPlay() {
-    if(!this.audio || !this.src) return;
-    if(this.audio.src !== this.src) {
-      this.audio.src = this.src;
+  _setAndPlay(url) {
+    if(!this.audio) return;
+    if(this.audio.src !== url) {
+      this.audio.src = url;
       this.audio.load();
     }
     this.audio.volume = this.volume;
@@ -4824,7 +4893,6 @@ const BGM = {
       this.playing = true;
       this._updateFab();
     }).catch(e => {
-      // autoplay blocked：等賓客互動後再試
       console.log('BGM autoplay blocked, will retry on interaction:', e.name);
       const retry = () => {
         if(!this.userPaused) this.audio.play().then(() => {
@@ -4838,21 +4906,31 @@ const BGM = {
     });
   },
 
+  applyAndPlay() {
+    if(this.src === 'indexeddb') {
+      if(this.blobUrl) this._setAndPlay(this.blobUrl);
+    } else if(this.src) {
+      this._setAndPlay(this.src);
+    }
+  },
+
   toggle() {
-    if(!this.audio || !this.src) { toast('尚未設定音樂'); return; }
+    const hasAudio = this.src === 'indexeddb' ? !!this.blobUrl : !!this.src;
+    if(!hasAudio) { toast('尚未設定音樂'); return; }
     if(this.playing) {
       this.audio.pause();
       this.playing = false;
       this.userPaused = true;
     } else {
-      this.audio.play().then(() => { this.playing = true; this.userPaused = false; }).catch(()=>{});
+      this.applyAndPlay();
+      this.userPaused = false;
     }
     this._updateFab();
   },
 
   _showFab() {
     const fab = document.getElementById('music-fab');
-    if(fab) { fab.style.display = 'flex'; }
+    if(fab) fab.style.display = 'flex';
   },
 
   _updateFab() {
@@ -4862,7 +4940,6 @@ const BGM = {
     if(fab) fab.classList.toggle('playing', this.playing);
   },
 
-  // 後台：config 更新後重新套用（賓客端 onSnapshot 觸發）
   applyFromConfig(m) {
     if(!m) return;
     this.enabled = !!m.enabled;
@@ -4871,21 +4948,27 @@ const BGM = {
     if(this.audio) this.audio.volume = this.volume;
     if(newSrc !== this.src) {
       this.src = newSrc;
-      if(this.audio && newSrc) {
-        this.audio.src = newSrc;
-        this.audio.load();
-        if(this.enabled && this.started && !this.userPaused) {
-          this.audio.play().then(() => { this.playing = true; this._updateFab(); }).catch(()=>{});
+      if(this.enabled && this.started && !this.userPaused) {
+        if(newSrc === 'indexeddb') {
+          MusicDB.load().then(blob => {
+            if(blob) {
+              if(this.blobUrl) URL.revokeObjectURL(this.blobUrl);
+              this.blobUrl = URL.createObjectURL(blob);
+              this._setAndPlay(this.blobUrl);
+            }
+          }).catch(()=>{});
+        } else if(newSrc) {
+          this._setAndPlay(newSrc);
         }
       }
     }
     if(!this.enabled && this.playing) {
       this.audio && this.audio.pause();
       this.playing = false; this._updateFab();
-    } else if(this.enabled && this.src && this.started && !this.playing && !this.userPaused) {
+    } else if(this.enabled && this.started && !this.playing && !this.userPaused) {
       this.applyAndPlay();
     }
-    if(this.enabled && this.src && this.started) this._showFab();
+    if(this.enabled && this.started) this._showFab();
     this._updateFab();
   }
 };
@@ -4902,7 +4985,7 @@ function saveMusicSetting(){
   cfg.music.volume  = volume;
   sc(cfg);
   BGM.loadFromConfig();
-  if(window.fbSaveConfig) window.fbSaveConfig({ music: cfg.music });
+  if(window.fbSaveConfig) window.fbSaveConfig({ music: { enabled, volume, src: cfg.music.src || '' } });
   toast(enabled ? '✓ 音樂已啟用' : '✓ 音樂已關閉');
 }
 
@@ -4922,23 +5005,39 @@ function saveMusicUrl(){
 function uploadMusicFile(input){
   const file = input.files[0];
   if(!file) return;
-  if(file.size > 50*1024*1024){ toast('音樂檔案請小於 50MB'); return; }
-  if(file.size > 15*1024*1024){ toast('🔄 檔案較大，轉換中請稍候…'); }
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const src = e.target.result; // base64 data URL
+  if(file.size > 100*1024*1024){ toast('音樂檔案請小於 100MB'); return; }
+
+  // 顯示進度
+  const label = document.getElementById('music-upload-label');
+  if(label) label.textContent = '⏳ 上傳中…';
+  toast('🔄 正在處理音樂檔案…');
+
+  // 直接存 Blob 到 IndexedDB，不走 base64
+  MusicDB.save(file).then(() => {
+    // 設定 cfg.music.src = 'indexeddb'（標記來源）
     const cfg = gc();
     cfg.music = cfg.music || {};
-    cfg.music.src = src;
-    try { sc(cfg); } catch(err){ toast('❌ 音樂太大，無法存入本機，請使用網址方式'); return; }
+    cfg.music.src = 'indexeddb';
+    sc(cfg);
+
+    // 產生 Object URL 供播放
+    if(BGM.blobUrl) URL.revokeObjectURL(BGM.blobUrl);
+    BGM.blobUrl = URL.createObjectURL(file);
+    BGM.src = 'indexeddb';
+
+    if(label) label.textContent = '✅ ' + file.name;
     document.getElementById('music-url').value = '';
-    document.getElementById('music-upload-label').textContent = '✅ ' + file.name;
-    BGM.src = src;
     _updateMusicStatusBar(file.name);
-    if(window.fbSaveConfig) window.fbSaveConfig({ music: cfg.music }).catch(() => toast('⚠️ 音樂太大，Firebase 僅儲存設定，音樂存本機'));
-    toast('✓ 音樂上傳完成');
-  };
-  reader.readAsDataURL(file);
+
+    // Firebase 只存設定，不存音訊本體（太大）
+    if(window.fbSaveConfig) window.fbSaveConfig({ music: cfg.music }).catch(()=>{});
+    toast('✓ 音樂上傳完成！');
+  }).catch(err => {
+    console.error('MusicDB save error:', err);
+    if(label) label.textContent = '點此選擇音樂檔案';
+    toast('❌ 上傳失敗：' + (err.message || err));
+  });
+
   input.value = '';
 }
 
@@ -4947,13 +5046,15 @@ function clearMusicSetting(){
   const cfg = gc();
   cfg.music = { enabled: false, volume: 60, src: '' };
   sc(cfg);
+  MusicDB.clear().catch(()=>{});
+  if(BGM.blobUrl) { URL.revokeObjectURL(BGM.blobUrl); BGM.blobUrl = null; }
   BGM.audio && BGM.audio.pause();
   BGM.playing = false; BGM.src = ''; BGM.enabled = false;
   BGM._updateFab();
   document.getElementById('music-fab').style.display = 'none';
   document.getElementById('music-enabled').checked = false;
   document.getElementById('music-url').value = '';
-  document.getElementById('music-upload-label').textContent = '點此選擇 MP3 檔案';
+  document.getElementById('music-upload-label').textContent = '點此選擇音樂檔案';
   _updateMusicStatusBar('');
   if(window.fbSaveConfig) window.fbSaveConfig({ music: cfg.music });
   toast('✓ 音樂已清除');
@@ -4965,7 +5066,9 @@ function _updateMusicStatusBar(src){
   if(!bar || !txt) return;
   if(src){
     bar.style.display = 'flex';
-    const name = src.startsWith('data:') ? '已上傳本機音樂檔案' : src.replace(/.*\//,'').substring(0,40);
+    const name = (src === 'indexeddb') ? '已上傳本機音樂檔案'
+      : src.startsWith('data:') ? '已上傳本機音樂檔案'
+      : src.replace(/.*\//,'').substring(0,40);
     txt.textContent = '🎶 ' + name;
   } else {
     bar.style.display = 'none';
@@ -4980,8 +5083,13 @@ function loadMusicSettingsUI(){
   const urlEl = document.getElementById('music-url');
   if(enEl)  enEl.checked = !!m.enabled;
   if(volEl) volEl.value  = m.volume !== undefined ? m.volume : 60;
-  if(urlEl && m.src && !m.src.startsWith('data:')) urlEl.value = m.src;
+  if(urlEl && m.src && m.src !== 'indexeddb' && !m.src.startsWith('data:')) urlEl.value = m.src;
   _updateMusicStatusBar(m.src || '');
+  // 若是 IndexedDB 來源，顯示已上傳標示
+  if(m.src === 'indexeddb'){
+    const label = document.getElementById('music-upload-label');
+    if(label) label.textContent = '✅ 已有上傳的音樂';
+  }
 }
 
 // ═══ INITIALIZATION ═══
