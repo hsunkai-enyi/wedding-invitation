@@ -4975,6 +4975,8 @@ const BGM = {
   }
 };
 
+window.BGM = BGM;
+
 function toggleBgMusic(){ BGM.toggle(); }
 
 // ───── 後台音樂設定函式 ─────
@@ -5428,7 +5430,7 @@ function startConfigListener() {
       const cfg2 = (() => { try{ return JSON.parse(localStorage.getItem('hpy_cfg')||'{}'); }catch{ return{}; } })();
       cfg2.music = data.music;
       try { localStorage.setItem('hpy_cfg', JSON.stringify(cfg2)); } catch(e){}
-      if(window.BGM) BGM.applyFromConfig(data.music);
+      if(window.BGM) window.BGM.applyFromConfig(data.music);
     }
     // ═══ 同步照片設定（裁剪/焦點）═══
     if(data.photoSettings) {
