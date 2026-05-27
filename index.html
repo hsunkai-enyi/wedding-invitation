@@ -3065,6 +3065,16 @@ function startHeroSlide(){
     const baseFallbacks = ['kiss','fun','full','close'];
     return IMGS[keys[idx]] || IMGS[baseFallbacks[idx]] || '';
   };
+  // ▼ 立刻設定背層與中層，不等第一次 interval（修正：進入即可見視差）
+  (function initBackMid(){
+    const back = document.getElementById('hs-back');
+    const mid  = document.getElementById('hs-mid');
+    const backIdx = (hCur + 2) % keys.length;
+    const midIdx  = (hCur + 1) % keys.length;
+    if(back) back.style.backgroundImage = `url('${getImg(backIdx)}')`;
+    if(mid)  mid.style.backgroundImage  = `url('${getImg(midIdx)}')`;
+  })();
+
   setInterval(()=>{
     hSlides[hCur].classList.remove('on');
     hDots[hCur].classList.remove('on');
@@ -3078,7 +3088,7 @@ function startHeroSlide(){
     const midIdx = (hCur+1) % keys.length;
     if(back) back.style.backgroundImage = `url('${getImg(backIdx)}')`;
     if(mid) mid.style.backgroundImage = `url('${getImg(midIdx)}')`;
-  }, 5500);
+  }, 5000);
 }
 
 // REFRESH INVITATION
