@@ -5011,38 +5011,57 @@ function uploadMusicFile(input){
   if(!file) return;
   if(file.size > 100*1024*1024){ toast('音樂檔案請小於 100MB'); return; }
 
-  // 顯示進度
   const label = document.getElementById('music-upload-label');
   if(label) label.textContent = '⏳ 上傳中…';
-  toast('🔄 正在處理音樂檔案…');
+  toast('🔄 正在上傳音樂檔案…');
 
-  // 直接存 Blob 到 IndexedDB，不走 base64
-  MusicDB.save(file).then(() => {
-    // 設定 cfg.music.src = 'indexeddb'（標記來源）
+  const applyMusicUrl = (url, displayName, syncToCloud = true) => {
     const cfg = gc();
     cfg.music = cfg.music || {};
-    cfg.music.src = 'indexeddb';
+    cfg.music.src = url;
+    cfg.music.enabled = true;
     sc(cfg);
 
-    // 產生 Object URL 供播放
+    BGM.applyFromConfig(cfg.music);
+
+    if(label) label.textContent = '✅ ' + (displayName || file.name);
+    const urlInput = document.getElementById('music-url');
+    if(urlInput) urlInput.value = url.startsWith('blob:') || url === 'indexeddb' ? '' : url;
+    const enabledInput = document.getElementById('music-enabled');
+    if(enabledInput) enabledInput.checked = true;
+    _updateMusicStatusBar(displayName || url);
+
+    if(syncToCloud && window.fbSaveConfig) window.fbSaveConfig({ music: cfg.music }).catch(()=>{});
+  };
+
+  if(window.fbUploadMusicFile) {
+    window.fbUploadMusicFile(file).then(url => {
+      applyMusicUrl(url, file.name);
+      toast('✓ 音樂已上傳，前台會自動同步');
+    }).catch(err => {
+      console.error('Firebase music upload error:', err);
+      if(label) label.textContent = '雲端上傳失敗，改存本機…';
+      toast('雲端上傳失敗，改存本機音樂');
+      saveMusicFileLocally(file, applyMusicUrl, label);
+    });
+  } else {
+    saveMusicFileLocally(file, applyMusicUrl, label);
+  }
+
+  input.value = '';
+}
+
+function saveMusicFileLocally(file, applyMusicUrl, label){
+  MusicDB.save(file).then(() => {
     if(BGM.blobUrl) URL.revokeObjectURL(BGM.blobUrl);
     BGM.blobUrl = URL.createObjectURL(file);
-    BGM.src = 'indexeddb';
-
-    if(label) label.textContent = '✅ ' + file.name;
-    document.getElementById('music-url').value = '';
-    _updateMusicStatusBar(file.name);
-
-    // Firebase 只存設定，不存音訊本體（太大）
-    if(window.fbSaveConfig) window.fbSaveConfig({ music: cfg.music }).catch(()=>{});
-    toast('✓ 音樂上傳完成！');
+    applyMusicUrl('indexeddb', file.name + '（僅本機）', false);
+    toast('✓ 音樂已存在本機；賓客端請使用音樂網址或雲端上傳');
   }).catch(err => {
     console.error('MusicDB save error:', err);
     if(label) label.textContent = '點此選擇音樂檔案';
     toast('❌ 上傳失敗：' + (err.message || err));
   });
-
-  input.value = '';
 }
 
 function clearMusicSetting(){
@@ -5222,6 +5241,7 @@ async function doSubmitBless(name, text){
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, setDoc, getDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getAuth, signInWithEmailAndPassword, signInAnonymously, onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 
 // ═══ Firebase Config ═══
 const firebaseConfig = {
@@ -5238,6 +5258,7 @@ const ADMIN_EMAIL = 'a0934138511@gmail.com';
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const storage = getStorage(app);
 
 // ═══ 匿名登入（賓客） ═══
 // 匿名登入，失敗時自動重試一次
@@ -5403,6 +5424,14 @@ window.fbSaveConfig = async function(partial) {
     await setDoc(doc(db, 'config', 'main'), merged);
     console.log('[fbSaveConfig] 寫入成功');
   } catch(e) { console.error('[fbSaveConfig] 寫入失敗:', e.code, e.message); }
+};
+
+window.fbUploadMusicFile = async function(file) {
+  if(!window._isAdmin) throw new Error('請先登入管理員再上傳音樂');
+  const ext = (file.name.split('.').pop() || 'mp3').replace(/[^a-z0-9]/gi, '').toLowerCase();
+  const fileRef = ref(storage, `music/background.${ext}`);
+  await uploadBytes(fileRef, file, { contentType: file.type || 'audio/mpeg' });
+  return await getDownloadURL(fileRef);
 };
 
 window.fbLoadConfig = async function() {
