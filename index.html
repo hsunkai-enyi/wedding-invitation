@@ -349,7 +349,17 @@ tbody tr:hover td{background:rgba(249,180,150,.06);}
 .rel-add{display:flex;gap:8px;align-items:center;}
 .rel-empty{color:var(--muted);font-size:11px;font-family:var(--font-sans);letter-spacing:2px;width:100%;text-align:center;padding:8px 0;font-style:italic;}
 
-/* ═══ 內容管理表單 ═══ */
+/* ═══ 音樂 Toggle 開關 ═══ */
+.music-toggle{position:relative;display:inline-block;width:52px;height:28px;flex-shrink:0;}
+.music-toggle input{opacity:0;width:0;height:0;}
+.music-slider{position:absolute;inset:0;background:rgba(154,102,85,.25);border-radius:28px;transition:.3s;cursor:pointer;}
+.music-slider::before{content:'';position:absolute;height:22px;width:22px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;box-shadow:0 2px 6px rgba(0,0,0,.18);}
+.music-toggle input:checked+.music-slider{background:linear-gradient(135deg,var(--peach),#d05030);}
+.music-toggle input:checked+.music-slider::before{transform:translateX(24px);}
+/* 音樂 FAB 脈動動畫（播放中）*/
+@keyframes musicPulse{0%,100%{box-shadow:0 4px 16px rgba(200,70,30,.4)}50%{box-shadow:0 4px 24px rgba(200,70,30,.7),0 0 0 8px rgba(249,123,90,.12)}}
+#music-fab.playing{animation:musicPulse 2s ease-in-out infinite;}
+
 .set-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:14px 0;}
 .set-field{display:flex;flex-direction:column;gap:4px;}
 .set-field.set-full{grid-column:1/-1;}
@@ -2537,6 +2547,44 @@ div.photo-slot .photo-pos-badge {
         <button class="set-save full-btn" onclick="saveSetting('messages')">💾 儲存邀請語設定</button>
       </div>
 
+      <!-- ═══ 音樂設定 ═══ -->
+      <div class="ac">
+        <div class="ac-ttl"><span>🎵</span>背景音樂</div>
+        <!-- 開關 -->
+        <div class="set-row">
+          <div><div class="set-lbl">啟用背景音樂</div><div class="set-desc">賓客進入喜帖時自動播放</div></div>
+          <label class="music-toggle" id="music-toggle-wrap">
+            <input type="checkbox" id="music-enabled" onchange="saveMusicSetting()"/>
+            <span class="music-slider"></span>
+          </label>
+        </div>
+        <!-- 音量 -->
+        <div class="set-row">
+          <div><div class="set-lbl">音量</div><div class="set-desc">預設播放音量（0–100）</div></div>
+          <input class="set-inp" id="music-volume" type="number" min="0" max="100" value="60" style="width:72px;" oninput="saveMusicSetting()"/>
+        </div>
+        <!-- URL 輸入 -->
+        <div class="set-row" style="display:block;padding:14px 0;">
+          <div style="margin-bottom:10px;"><div class="set-lbl">音樂網址（URL）</div><div class="set-desc">貼上 MP3 直連網址（e.g. GitHub Raw、Dropbox 直連）</div></div>
+          <input class="set-inp full" id="music-url" type="url" placeholder="https://example.com/song.mp3"/>
+          <button class="set-save full-btn" style="margin-top:8px;" onclick="saveMusicUrl()">🔗 套用網址</button>
+        </div>
+        <!-- 本機上傳 -->
+        <div class="set-row" style="display:block;padding:10px 0 14px;">
+          <div style="margin-bottom:10px;"><div class="set-lbl">上傳音樂檔案</div><div class="set-desc">MP3 / AAC，建議 5MB 以內（太大可能載入慢）</div></div>
+          <div id="music-upload-zone" onclick="document.getElementById('music-file-inp').click()" style="border:2px dashed rgba(249,180,150,.5);border-radius:12px;padding:18px;text-align:center;cursor:pointer;background:rgba(255,248,243,.6);transition:all .25s;">
+            <div style="font-size:28px;margin-bottom:6px;">🎵</div>
+            <div id="music-upload-label" style="font-family:var(--font-sans);font-size:13px;letter-spacing:2px;color:var(--muted);">點此選擇 MP3 檔案</div>
+          </div>
+          <input type="file" id="music-file-inp" accept="audio/mp3,audio/mpeg,audio/aac,audio/*" style="display:none;" onchange="uploadMusicFile(this)"/>
+        </div>
+        <!-- 目前狀態 -->
+        <div id="music-status-bar" style="display:none;padding:10px 14px;border-radius:10px;background:rgba(76,175,130,.1);border:1.5px solid rgba(76,175,130,.3);font-family:var(--font-sans);font-size:12px;letter-spacing:1px;color:#2e7a55;margin-bottom:4px;align-items:center;gap:8px;">
+          <span>🎶</span><span id="music-status-txt">已設定音樂</span>
+          <button onclick="clearMusicSetting()" style="margin-left:auto;background:rgba(224,85,85,.12);border:1.5px solid rgba(224,85,85,.35);color:var(--red);border-radius:50px;font-size:11px;letter-spacing:1px;padding:3px 12px;cursor:pointer;font-family:var(--font-sans);">✕ 清除</button>
+        </div>
+      </div>
+
       <!-- ═══ 系統設定 ═══ -->
       <div class="ac">
         <div class="ac-ttl"><span>🎛</span>系統設定</div>
@@ -2999,7 +3047,7 @@ function openEnvelope(){
     document.getElementById('st-env').classList.remove('on');
     document.getElementById('st-main').classList.add('on');
     ['fd1','fd2','fd3','fd4'].forEach(id=>document.getElementById(id).style.display='block');
-    invStage=2;startHeroSlide();refreshInv();burst();
+    invStage=2;startHeroSlide();refreshInv();burst();BGM.start();
   },700);
 }
 
@@ -3038,6 +3086,7 @@ function checkAdmLogin(){
     loadContentSettings();
     refreshAdmin();
     loadPhotoSettingsUI();
+    loadMusicSettingsUI();
   }else{
     const inp=document.getElementById('adm-pwd-inp');
     inp.classList.add('err');document.getElementById('adm-err').classList.add('show');
@@ -4725,11 +4774,222 @@ window.uploadClick = function(key) {
   }
 };
 
+// ═══════════════════════════════════════════════
+// 🎵 背景音樂系統
+// ═══════════════════════════════════════════════
+const BGM = {
+  audio: null,
+  enabled: false,
+  volume: 0.6,
+  src: '',
+  playing: false,
+  userPaused: false,   // 賓客主動暫停
+  started: false,      // 是否已觸發過播放
+
+  init() {
+    this.audio = document.getElementById('bg-music');
+    if(!this.audio) return;
+    this.audio.addEventListener('ended', () => this.audio.play().catch(()=>{}));
+    this.loadFromConfig();
+  },
+
+  loadFromConfig() {
+    // 讀 localStorage
+    const cfg = (() => { try{ return JSON.parse(localStorage.getItem('hpy_cfg')||'{}'); }catch{ return{}; } })();
+    const m = cfg.music || {};
+    this.enabled = !!m.enabled;
+    this.volume = (m.volume !== undefined) ? m.volume / 100 : 0.6;
+    this.src = m.src || '';
+    if(this.audio) this.audio.volume = this.volume;
+  },
+
+  // 點信封後觸發（第一次播放需用戶手勢）
+  start() {
+    if(this.started) return;
+    this.started = true;
+    if(!this.enabled || !this.src) return;
+    this.applyAndPlay();
+    this._showFab();
+  },
+
+  applyAndPlay() {
+    if(!this.audio || !this.src) return;
+    if(this.audio.src !== this.src) {
+      this.audio.src = this.src;
+      this.audio.load();
+    }
+    this.audio.volume = this.volume;
+    const p = this.audio.play();
+    if(p) p.then(() => {
+      this.playing = true;
+      this._updateFab();
+    }).catch(e => {
+      // autoplay blocked：等賓客互動後再試
+      console.log('BGM autoplay blocked, will retry on interaction:', e.name);
+      const retry = () => {
+        if(!this.userPaused) this.audio.play().then(() => {
+          this.playing = true; this._updateFab();
+        }).catch(()=>{});
+        document.removeEventListener('touchstart', retry);
+        document.removeEventListener('click', retry);
+      };
+      document.addEventListener('touchstart', retry, {once:true});
+      document.addEventListener('click', retry, {once:true});
+    });
+  },
+
+  toggle() {
+    if(!this.audio || !this.src) { toast('尚未設定音樂'); return; }
+    if(this.playing) {
+      this.audio.pause();
+      this.playing = false;
+      this.userPaused = true;
+    } else {
+      this.audio.play().then(() => { this.playing = true; this.userPaused = false; }).catch(()=>{});
+    }
+    this._updateFab();
+  },
+
+  _showFab() {
+    const fab = document.getElementById('music-fab');
+    if(fab) { fab.style.display = 'flex'; }
+  },
+
+  _updateFab() {
+    const icon = document.getElementById('music-fab-icon');
+    const fab  = document.getElementById('music-fab');
+    if(icon) icon.textContent = this.playing ? '🎵' : '🔇';
+    if(fab) fab.classList.toggle('playing', this.playing);
+  },
+
+  // 後台：config 更新後重新套用（賓客端 onSnapshot 觸發）
+  applyFromConfig(m) {
+    if(!m) return;
+    this.enabled = !!m.enabled;
+    this.volume  = (m.volume !== undefined) ? m.volume / 100 : 0.6;
+    const newSrc = m.src || '';
+    if(this.audio) this.audio.volume = this.volume;
+    if(newSrc !== this.src) {
+      this.src = newSrc;
+      if(this.audio && newSrc) {
+        this.audio.src = newSrc;
+        this.audio.load();
+        if(this.enabled && this.started && !this.userPaused) {
+          this.audio.play().then(() => { this.playing = true; this._updateFab(); }).catch(()=>{});
+        }
+      }
+    }
+    if(!this.enabled && this.playing) {
+      this.audio && this.audio.pause();
+      this.playing = false; this._updateFab();
+    } else if(this.enabled && this.src && this.started && !this.playing && !this.userPaused) {
+      this.applyAndPlay();
+    }
+    if(this.enabled && this.src && this.started) this._showFab();
+    this._updateFab();
+  }
+};
+
+function toggleBgMusic(){ BGM.toggle(); }
+
+// ───── 後台音樂設定函式 ─────
+function saveMusicSetting(){
+  const enabled = document.getElementById('music-enabled').checked;
+  const volume  = parseInt(document.getElementById('music-volume').value) || 60;
+  const cfg = gc();
+  cfg.music = cfg.music || {};
+  cfg.music.enabled = enabled;
+  cfg.music.volume  = volume;
+  sc(cfg);
+  BGM.loadFromConfig();
+  if(window.fbSaveConfig) window.fbSaveConfig({ music: cfg.music });
+  toast(enabled ? '✓ 音樂已啟用' : '✓ 音樂已關閉');
+}
+
+function saveMusicUrl(){
+  const url = document.getElementById('music-url').value.trim();
+  if(!url){ toast('請輸入音樂網址'); return; }
+  const cfg = gc();
+  cfg.music = cfg.music || {};
+  cfg.music.src = url;
+  sc(cfg);
+  BGM.src = url;
+  _updateMusicStatusBar(url);
+  if(window.fbSaveConfig) window.fbSaveConfig({ music: cfg.music });
+  toast('✓ 音樂網址已儲存');
+}
+
+function uploadMusicFile(input){
+  const file = input.files[0];
+  if(!file) return;
+  if(file.size > 8*1024*1024){ toast('音樂檔案請小於 8MB'); return; }
+  toast('🔄 音樂上傳中…');
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const src = e.target.result; // base64 data URL
+    const cfg = gc();
+    cfg.music = cfg.music || {};
+    cfg.music.src = src;
+    try { sc(cfg); } catch(err){ toast('❌ 音樂太大，無法存入本機，請使用網址方式'); return; }
+    document.getElementById('music-url').value = '';
+    document.getElementById('music-upload-label').textContent = '✅ ' + file.name;
+    BGM.src = src;
+    _updateMusicStatusBar(file.name);
+    if(window.fbSaveConfig) window.fbSaveConfig({ music: cfg.music }).catch(() => toast('⚠️ 音樂太大，Firebase 僅儲存設定，音樂存本機'));
+    toast('✓ 音樂上傳完成');
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+function clearMusicSetting(){
+  if(!confirm('確定清除音樂設定？')) return;
+  const cfg = gc();
+  cfg.music = { enabled: false, volume: 60, src: '' };
+  sc(cfg);
+  BGM.audio && BGM.audio.pause();
+  BGM.playing = false; BGM.src = ''; BGM.enabled = false;
+  BGM._updateFab();
+  document.getElementById('music-fab').style.display = 'none';
+  document.getElementById('music-enabled').checked = false;
+  document.getElementById('music-url').value = '';
+  document.getElementById('music-upload-label').textContent = '點此選擇 MP3 檔案';
+  _updateMusicStatusBar('');
+  if(window.fbSaveConfig) window.fbSaveConfig({ music: cfg.music });
+  toast('✓ 音樂已清除');
+}
+
+function _updateMusicStatusBar(src){
+  const bar = document.getElementById('music-status-bar');
+  const txt = document.getElementById('music-status-txt');
+  if(!bar || !txt) return;
+  if(src){
+    bar.style.display = 'flex';
+    const name = src.startsWith('data:') ? '已上傳本機音樂檔案' : src.replace(/.*\//,'').substring(0,40);
+    txt.textContent = '🎶 ' + name;
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+function loadMusicSettingsUI(){
+  const cfg = gc();
+  const m = cfg.music || {};
+  const enEl = document.getElementById('music-enabled');
+  const volEl = document.getElementById('music-volume');
+  const urlEl = document.getElementById('music-url');
+  if(enEl)  enEl.checked = !!m.enabled;
+  if(volEl) volEl.value  = m.volume !== undefined ? m.volume : 60;
+  if(urlEl && m.src && !m.src.startsWith('data:')) urlEl.value = m.src;
+  _updateMusicStatusBar(m.src || '');
+}
+
 // ═══ INITIALIZATION ═══
 // 立刻同步執行
 try { loadCustomPhotos(); } catch(e){}
 try { initImages(); } catch(e){}
 try { applyContent(); } catch(e){}
+try { BGM.init(); } catch(e){}
 
 // window.load 後再補一次（確保完整）
 window.addEventListener('load', () => {
@@ -5053,6 +5313,13 @@ function startConfigListener() {
     try { localStorage.setItem('hpy_cfg', JSON.stringify(cfg)); } catch(e){}
     // 套用到前台
     if(window.applyContent) window.applyContent();
+    // ═══ 同步音樂設定 ═══
+    if(data.music !== undefined) {
+      const cfg2 = (() => { try{ return JSON.parse(localStorage.getItem('hpy_cfg')||'{}'); }catch{ return{}; } })();
+      cfg2.music = data.music;
+      try { localStorage.setItem('hpy_cfg', JSON.stringify(cfg2)); } catch(e){}
+      if(window.BGM) BGM.applyFromConfig(data.music);
+    }
     // ═══ 同步照片設定（裁剪/焦點）═══
     if(data.photoSettings) {
       try { localStorage.setItem('hpy_photo_settings', JSON.stringify(data.photoSettings)); } catch(e){}
@@ -5088,6 +5355,7 @@ setTimeout(() => {
         document.getElementById('view-admin').classList.add('active');
         document.getElementById('set-invited').value = window.getInv ? window.getInv() : 80;
         if(window.loadContentSettings) window.loadContentSettings();
+        if(window.loadMusicSettingsUI) window.loadMusicSettingsUI();
         if(window.refreshAdmin) window.refreshAdmin();
       } else {
         const inp = document.getElementById('adm-pwd-inp');
@@ -5170,6 +5438,12 @@ console.log('🔥 Firebase 整合完成 — 勛凱 & 恩懿 婚禮喜帖');
       <button class="crop-act-btn confirm" onclick="applyCrop()">套用裁剪</button>
     </div>
   </div>
+</div>
+<!-- ═══ 背景音樂播放器 ═══ -->
+<audio id="bg-music" loop preload="none" style="display:none;"></audio>
+<!-- 浮動音樂控制鈕（前台右下角） -->
+<div id="music-fab" style="position:fixed;bottom:84px;right:16px;z-index:999;width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--peach),#d05030);box-shadow:0 4px 16px rgba(200,70,30,.4);cursor:pointer;display:none;align-items:center;justify-content:center;font-size:20px;transition:all .3s;-webkit-tap-highlight-color:transparent;" onclick="toggleBgMusic()" title="音樂控制">
+  <span id="music-fab-icon">🎵</span>
 </div>
 
 </body>
