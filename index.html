@@ -319,6 +319,9 @@ tbody tr:hover td{background:rgba(249,180,150,.06);}
 .tbtn2.primary:hover{transform:translateY(-1px);color:#fff;}
 .tbtn2.danger:hover{border-color:var(--red);color:var(--red);}
 .bless-grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:13px;}
+.bf-btn{padding:6px 14px;border-radius:50px;border:1.5px solid rgba(249,180,150,.35);background:#fff;cursor:pointer;font-size:12px;color:var(--muted);letter-spacing:.5px;transition:all .2s;}
+.bf-btn:hover{border-color:var(--warm);color:var(--warm);}
+.bf-active{background:var(--warm)!important;color:#fff!important;border-color:var(--warm)!important;}
 .bc2-badge{display:inline-block;font-size:10px;letter-spacing:.5px;padding:2px 8px;border-radius:50px;margin-left:7px;vertical-align:middle;font-weight:600;}
 .bc2-att{background:rgba(249,123,90,.12);color:#c05030;}
 .bc2-dec{background:rgba(91,143,212,.12);color:#3a6aaa;}
@@ -2167,6 +2170,12 @@ div.photo-slot .photo-pos-badge {
         <input class="srch" id="b-srch" placeholder="🔍 搜尋留言或姓名…" oninput="renderAdmBless(true)"/>
         <button class="tbtn2 danger" onclick="clearBlessings()">🗑 清除全部</button>
       </div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <button id="bf-all"  class="bf-btn bf-active" onclick="setBlessFilter('all')">全部</button>
+        <button id="bf-att"  class="bf-btn" onclick="setBlessFilter('yes')">🎉 確定出席</button>
+        <button id="bf-dec"  class="bf-btn" onclick="setBlessFilter('no')">💝 無法出席</button>
+        <button id="bf-unk"  class="bf-btn" onclick="setBlessFilter('unk')">— 未填出席</button>
+      </div>
       <div id="adm-b-grid" class="bless-grid2"></div>
       <div id="adm-b-empty" class="empty-st" style="display:none;"><div class="empty-icon">💌</div><div class="empty-txt">尚無祝福留言</div></div>
     </div>
@@ -3250,10 +3259,30 @@ function parseBlessTime(x) {
   return 0;
 }
 
+let _bFilter = 'all';
+function setBlessFilter(f){
+  _bFilter = f;
+  document.querySelectorAll('.bf-btn').forEach(b=>b.classList.remove('bf-active'));
+  const map={all:'bf-all',yes:'bf-att',no:'bf-dec',unk:'bf-unk'};
+  const el=document.getElementById(map[f]);
+  if(el) el.classList.add('bf-active');
+  renderAdmBless(true);
+}
+
 function renderAdmBless(resetPage){
   if(resetPage) _bPage = 1;
   const d=gd(),q=(document.getElementById('b-srch')?.value||'').toLowerCase();
-  const fl=d.b.filter(x=>!q||x.n.toLowerCase().includes(q)||(x.t||'').toLowerCase().includes(q));
+  // 建立 rsvp 對照表（用於篩選）
+  const rsvpStatus={};
+  d.r.forEach(r=>{ const k=(r.n||'').trim(); if(k) rsvpStatus[k]=r.status==='no'?'no':'yes'; });
+  const matchFilter=(x)=>{
+    const s=rsvpStatus[(x.n||'').trim()];
+    if(_bFilter==='yes') return s==='yes';
+    if(_bFilter==='no')  return s==='no';
+    if(_bFilter==='unk') return !s;
+    return true;
+  };
+  const fl=d.b.filter(x=>(matchFilter(x))&&(!q||x.n.toLowerCase().includes(q)||(x.t||'').toLowerCase().includes(q)));
   const wrap=document.getElementById('adm-b-grid'),empty=document.getElementById('adm-b-empty');
   if(!wrap)return;
   if(fl.length===0){
