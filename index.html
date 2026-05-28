@@ -2550,38 +2550,61 @@ div.photo-slot .photo-pos-badge {
       <!-- ═══ 音樂設定 ═══ -->
       <div class="ac">
         <div class="ac-ttl"><span>🎵</span>背景音樂</div>
-        <!-- 開關 -->
+        <!-- 開關 + 音量同排 -->
         <div class="set-row">
-          <div><div class="set-lbl">啟用背景音樂</div><div class="set-desc">賓客進入喜帖時自動播放</div></div>
+          <div><div class="set-lbl">啟用背景音樂</div><div class="set-desc">賓客點開信封後自動播放</div></div>
           <label class="music-toggle" id="music-toggle-wrap">
             <input type="checkbox" id="music-enabled" onchange="saveMusicSetting()"/>
             <span class="music-slider"></span>
           </label>
         </div>
-        <!-- 音量 -->
         <div class="set-row">
           <div><div class="set-lbl">音量</div><div class="set-desc">預設播放音量（0–100）</div></div>
-          <input class="set-inp" id="music-volume" type="number" min="0" max="100" value="60" style="width:72px;" oninput="saveMusicSetting()"/>
-        </div>
-        <!-- URL 輸入 -->
-        <div class="set-row" style="display:block;padding:14px 0;">
-          <div style="margin-bottom:10px;"><div class="set-lbl">音樂網址（URL）</div><div class="set-desc">貼上 MP3 直連網址（e.g. GitHub Raw、Dropbox 直連）</div></div>
-          <input class="set-inp full" id="music-url" type="url" placeholder="https://example.com/song.mp3"/>
-          <button class="set-save full-btn" style="margin-top:8px;" onclick="saveMusicUrl()">🔗 套用網址</button>
-        </div>
-        <!-- 本機上傳 -->
-        <div class="set-row" style="display:block;padding:10px 0 14px;">
-          <div style="margin-bottom:10px;"><div class="set-lbl">上傳音樂檔案</div><div class="set-desc">MP3 / AAC / MP4 / M4A / OGG / WAV / FLAC / WebM，建議 30MB 以內</div></div>
-          <div id="music-upload-zone" onclick="document.getElementById('music-file-inp').click()" style="border:2px dashed rgba(249,180,150,.5);border-radius:12px;padding:18px;text-align:center;cursor:pointer;background:rgba(255,248,243,.6);transition:all .25s;">
-            <div style="font-size:28px;margin-bottom:6px;">🎵</div>
-            <div id="music-upload-label" style="font-family:var(--font-sans);font-size:13px;letter-spacing:2px;color:var(--muted);">點此選擇音樂檔案</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input class="set-inp" id="music-volume" type="range" min="0" max="100" value="60" style="width:90px;accent-color:var(--peach);" oninput="document.getElementById('music-vol-num').textContent=this.value" onchange="saveMusicSetting()"/>
+            <span id="music-vol-num" style="font-family:var(--font-sans);font-size:13px;color:var(--peach);font-weight:700;min-width:28px;">60</span>
           </div>
-          <input type="file" id="music-file-inp" accept="audio/*,video/mp4,.mp3,.aac,.m4a,.ogg,.wav,.flac,.mp4,.webm" style="display:none;" onchange="uploadMusicFile(this)"/>
         </div>
         <!-- 目前狀態 -->
         <div id="music-status-bar" style="display:none;padding:10px 14px;border-radius:10px;background:rgba(76,175,130,.1);border:1.5px solid rgba(76,175,130,.3);font-family:var(--font-sans);font-size:12px;letter-spacing:1px;color:#2e7a55;margin-bottom:4px;align-items:center;gap:8px;">
           <span>🎶</span><span id="music-status-txt">已設定音樂</span>
+          <button onclick="previewBgMusic()" id="music-preview-btn" style="margin-left:8px;background:rgba(91,143,212,.12);border:1.5px solid rgba(91,143,212,.35);color:#3e6fb3;border-radius:50px;font-size:11px;letter-spacing:1px;padding:3px 12px;cursor:pointer;font-family:var(--font-sans);">▶ 試聽</button>
           <button onclick="clearMusicSetting()" style="margin-left:auto;background:rgba(224,85,85,.12);border:1.5px solid rgba(224,85,85,.35);color:var(--red);border-radius:50px;font-size:11px;letter-spacing:1px;padding:3px 12px;cursor:pointer;font-family:var(--font-sans);">✕ 清除</button>
+        </div>
+        <!-- 方法一：URL 輸入 -->
+        <div class="set-row" style="display:block;padding:14px 0 10px;">
+          <div style="margin-bottom:10px;display:flex;align-items:center;gap:8px;">
+            <div style="background:rgba(91,143,212,.12);color:#3e6fb3;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">1</div>
+            <div><div class="set-lbl" style="margin:0;">音樂網址（URL）</div><div class="set-desc" style="margin:0;">MP3 直連網址（GitHub Raw、Dropbox 直連、Firebase Storage 等）</div></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input class="set-inp full" id="music-url" type="url" placeholder="https://example.com/song.mp3" style="flex:1;margin:0;"/>
+            <button class="set-save" style="white-space:nowrap;padding:10px 16px;" onclick="saveMusicUrl()">🔗 套用</button>
+          </div>
+        </div>
+        <!-- 方法二：本機上傳 -->
+        <div class="set-row" style="display:block;padding:10px 0 14px;">
+          <div style="margin-bottom:10px;display:flex;align-items:center;gap:8px;">
+            <div style="background:rgba(249,123,90,.12);color:var(--peach);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">2</div>
+            <div><div class="set-lbl" style="margin:0;">上傳音樂檔案</div><div class="set-desc" style="margin:0;">MP3 / M4A / AAC / OGG / WAV，建議 30MB 以內。上傳後自動同步至所有裝置</div></div>
+          </div>
+          <div id="music-upload-zone"
+            onclick="document.getElementById('music-file-inp').click()"
+            ondragover="event.preventDefault();this.style.borderColor='var(--peach)';this.style.background='rgba(249,123,90,.08)'"
+            ondragleave="this.style.borderColor='';this.style.background=''"
+            ondrop="event.preventDefault();this.style.borderColor='';this.style.background='';if(event.dataTransfer.files[0]){const fi=document.getElementById('music-file-inp');const dt=new DataTransfer();dt.items.add(event.dataTransfer.files[0]);fi.files=dt.files;uploadMusicFile(fi);}"
+            style="border:2px dashed rgba(249,180,150,.5);border-radius:12px;padding:20px;text-align:center;cursor:pointer;background:rgba(255,248,243,.6);transition:all .25s;">
+            <div style="font-size:30px;margin-bottom:6px;">🎵</div>
+            <div id="music-upload-label" style="font-family:var(--font-sans);font-size:13px;letter-spacing:2px;color:var(--muted);">點此選擇，或拖曳音樂檔案至此</div>
+          </div>
+          <input type="file" id="music-file-inp" accept="audio/*,video/mp4,.mp3,.aac,.m4a,.ogg,.wav,.flac,.mp4,.webm" style="display:none;" onchange="uploadMusicFile(this)"/>
+        </div>
+        <!-- 上傳進度條 -->
+        <div id="music-upload-progress" style="display:none;padding:8px 0;">
+          <div style="background:rgba(249,180,150,.2);border-radius:50px;height:6px;overflow:hidden;">
+            <div id="music-progress-bar" style="height:100%;background:linear-gradient(90deg,var(--peach),#d05030);width:0%;transition:width .3s;border-radius:50px;"></div>
+          </div>
+          <div id="music-progress-txt" style="font-family:var(--font-sans);font-size:11px;color:var(--muted);letter-spacing:1px;margin-top:4px;text-align:center;">上傳中…</div>
         </div>
       </div>
 
@@ -4862,6 +4885,8 @@ const BGM = {
   start() {
     if(this.started) return;
     this.started = true;
+    // 重新讀取最新設定（修正：Firestore 可能在 init() 後才推送設定）
+    this.loadFromConfig();
     if(!this.enabled) return;
 
     if(this.src === 'indexeddb') {
@@ -4985,6 +5010,37 @@ window.BGM = BGM;
 
 function toggleBgMusic(){ BGM.toggle(); }
 
+// ───── 試聽（後台管理員）─────
+function previewBgMusic(){
+  const btn = document.getElementById('music-preview-btn');
+  if(!BGM.audio) return;
+  if(!BGM.audio.paused){
+    BGM.audio.pause();
+    if(btn) btn.textContent = '▶ 試聽';
+    return;
+  }
+  const cfg = gc();
+  const m = cfg.music || {};
+  const src = m.src || '';
+  if(!src){ toast('尚未設定音樂來源'); return; }
+  if(src === 'indexeddb'){
+    MusicDB.load().then(blob => {
+      if(!blob){ toast('本機找不到音樂檔案'); return; }
+      if(BGM.blobUrl) URL.revokeObjectURL(BGM.blobUrl);
+      BGM.blobUrl = URL.createObjectURL(blob);
+      BGM.audio.src = BGM.blobUrl;
+      BGM.audio.volume = (m.volume !== undefined ? m.volume : 60) / 100;
+      BGM.audio.play().then(()=>{ if(btn) btn.textContent = '⏸ 停止'; }).catch(e=>{ toast('播放失敗：' + e.message); });
+    });
+  } else {
+    BGM.audio.src = src;
+    BGM.audio.volume = (m.volume !== undefined ? m.volume : 60) / 100;
+    BGM.audio.play().then(()=>{ if(btn) btn.textContent = '⏸ 停止'; }).catch(e=>{ toast('播放失敗，請確認網址是否可直接存取'); });
+  }
+  // 播完後重設按鈕
+  BGM.audio.onended = () => { if(btn) btn.textContent = '▶ 試聽'; };
+}
+
 // ───── 後台音樂設定函式 ─────
 function saveMusicSetting(){
   const enabled = document.getElementById('music-enabled').checked;
@@ -4994,22 +5050,31 @@ function saveMusicSetting(){
   cfg.music.enabled = enabled;
   cfg.music.volume  = volume;
   sc(cfg);
-  BGM.loadFromConfig();
+  // 用 applyFromConfig 驅動 FAB 顯示/隱藏與播放控制
+  BGM.applyFromConfig(cfg.music);
   if(window.fbSaveConfig) window.fbSaveConfig({ music: { enabled, volume, src: cfg.music.src || '' } });
-  toast(enabled ? '✓ 音樂已啟用' : '✓ 音樂已關閉');
+  if(enabled && !cfg.music.src) toast('⚠️ 請先設定音樂來源（網址或上傳檔案）');
+  else toast(enabled ? '✓ 音樂已啟用，前台會自動同步' : '✓ 音樂已關閉');
 }
 
 function saveMusicUrl(){
   const url = document.getElementById('music-url').value.trim();
   if(!url){ toast('請輸入音樂網址'); return; }
+  if(!url.startsWith('http://') && !url.startsWith('https://')){ toast('❌ 請輸入完整網址（https://...）'); return; }
   const cfg = gc();
   cfg.music = cfg.music || {};
   cfg.music.src = url;
+  // 套用網址時自動啟用
+  if(!cfg.music.enabled) {
+    cfg.music.enabled = true;
+    const enEl = document.getElementById('music-enabled');
+    if(enEl) enEl.checked = true;
+  }
   sc(cfg);
-  BGM.src = url;
+  BGM.applyFromConfig(cfg.music);
   _updateMusicStatusBar(url);
   if(window.fbSaveConfig) window.fbSaveConfig({ music: cfg.music });
-  toast('✓ 音樂網址已儲存');
+  toast('✓ 音樂網址已儲存，前台會自動同步');
 }
 
 function uploadMusicFile(input){
@@ -5019,6 +5084,14 @@ function uploadMusicFile(input){
 
   const label = document.getElementById('music-upload-label');
   if(label) label.textContent = '⏳ 上傳中…';
+  // 顯示進度條
+  const progWrap = document.getElementById('music-upload-progress');
+  const progBar  = document.getElementById('music-progress-bar');
+  const progTxt  = document.getElementById('music-progress-txt');
+  if(progWrap){ progWrap.style.display = 'block'; }
+  if(progBar)  { progBar.style.width = '10%'; }
+  if(progTxt)  { progTxt.textContent = '準備上傳…'; }
+  const hideProgress = () => { if(progWrap) setTimeout(()=>{ progWrap.style.display='none'; progBar && (progBar.style.width='0%'); }, 1500); };
   toast('🔄 正在上傳音樂檔案…');
 
   const applyMusicUrl = (url, displayName, syncToCloud = true) => {
@@ -5041,32 +5114,47 @@ function uploadMusicFile(input){
   };
 
   if(window.fbUploadMusicFile) {
+    if(progBar) progBar.style.width = '30%';
+    if(progTxt) progTxt.textContent = '上傳至雲端…';
     window.fbUploadMusicFile(file).then(url => {
+      if(progBar) progBar.style.width = '100%';
+      if(progTxt) progTxt.textContent = '✅ 上傳完成！';
+      hideProgress();
       applyMusicUrl(url, file.name);
       toast('✓ 音樂已上傳，前台會自動同步');
     }).catch(err => {
       console.error('Firebase music upload error:', err);
       if(label) label.textContent = '雲端上傳失敗，改存本機…';
-      toast('雲端上傳失敗，改存本機音樂');
+      if(progTxt) progTxt.textContent = '雲端上傳失敗，改存本機';
+      hideProgress();
+      toast('⚠️ 雲端上傳失敗，改存本機（只有此裝置有效）');
       saveMusicFileLocally(file, applyMusicUrl, label);
     });
   } else {
-    saveMusicFileLocally(file, applyMusicUrl, label);
+    if(progBar) progBar.style.width = '60%';
+    if(progTxt) progTxt.textContent = '存至本機…';
+    saveMusicFileLocally(file, applyMusicUrl, label, hideProgress);
   }
 
   input.value = '';
 }
 
-function saveMusicFileLocally(file, applyMusicUrl, label){
+function saveMusicFileLocally(file, applyMusicUrl, label, hideProgress){
   MusicDB.save(file).then(() => {
     if(BGM.blobUrl) URL.revokeObjectURL(BGM.blobUrl);
     BGM.blobUrl = URL.createObjectURL(file);
+    const progBar = document.getElementById('music-progress-bar');
+    const progTxt = document.getElementById('music-progress-txt');
+    if(progBar) progBar.style.width = '100%';
+    if(progTxt) progTxt.textContent = '✅ 已存本機';
+    if(hideProgress) hideProgress();
     applyMusicUrl('indexeddb', file.name + '（僅本機）', false);
-    toast('✓ 音樂已存在本機；賓客端請使用音樂網址或雲端上傳');
+    toast('✓ 音樂已存本機。⚠️ 賓客裝置看不到，請改用雲端上傳或音樂網址');
   }).catch(err => {
     console.error('MusicDB save error:', err);
     if(label) label.textContent = '點此選擇音樂檔案';
-    toast('❌ 上傳失敗：' + (err.message || err));
+    if(hideProgress) hideProgress();
+    toast('❌ 儲存失敗：' + (err.message || err));
   });
 }
 
@@ -5111,13 +5199,33 @@ function loadMusicSettingsUI(){
   const volEl = document.getElementById('music-volume');
   const urlEl = document.getElementById('music-url');
   if(enEl)  enEl.checked = !!m.enabled;
-  if(volEl) volEl.value  = m.volume !== undefined ? m.volume : 60;
+  if(volEl) { volEl.value = m.volume !== undefined ? m.volume : 60; const vn=document.getElementById('music-vol-num'); if(vn) vn.textContent = volEl.value; }
   if(urlEl && m.src && m.src !== 'indexeddb' && !m.src.startsWith('data:')) urlEl.value = m.src;
   _updateMusicStatusBar(m.src || '');
   // 若是 IndexedDB 來源，顯示已上傳標示
   if(m.src === 'indexeddb'){
     const label = document.getElementById('music-upload-label');
     if(label) label.textContent = '✅ 已有上傳的音樂';
+  }
+  // 補：從 Firestore 補讀最新設定（localStorage 可能是舊的）
+  if(window.fbLoadConfig) {
+    window.fbLoadConfig().then(data => {
+      if(!data || !data.music) return;
+      const fm = data.music;
+      // 合併進 localStorage
+      const cfg2 = gc();
+      cfg2.music = { ...cfg2.music, ...fm };
+      sc(cfg2);
+      // 更新 UI
+      if(enEl)  enEl.checked = !!fm.enabled;
+      if(volEl) volEl.value  = fm.volume !== undefined ? fm.volume : 60;
+      if(urlEl && fm.src && fm.src !== 'indexeddb' && !fm.src.startsWith('data:')) urlEl.value = fm.src;
+      _updateMusicStatusBar(fm.src || '');
+      if(fm.src === 'indexeddb'){
+        const label = document.getElementById('music-upload-label');
+        if(label) label.textContent = '✅ 已有上傳的音樂';
+      }
+    }).catch(()=>{});
   }
 }
 
