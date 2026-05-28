@@ -5285,7 +5285,7 @@ function loadMusicSettingsUI(){
 try { loadCustomPhotos(); } catch(e){}
 try { initImages(); } catch(e){}
 try { applyContent(); } catch(e){}
-try { BGM.init(); } catch(e){}
+document.addEventListener('DOMContentLoaded', () => { try { BGM.init(); } catch(e){}});
 
 // window.load 後再補一次（確保完整）
 window.addEventListener('load', () => {
