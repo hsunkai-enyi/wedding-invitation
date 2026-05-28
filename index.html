@@ -358,7 +358,9 @@ tbody tr:hover td{background:rgba(249,180,150,.06);}
 .music-toggle input:checked+.music-slider::before{transform:translateX(24px);}
 /* 音樂 FAB 脈動動畫（播放中）*/
 @keyframes musicPulse{0%,100%{box-shadow:0 4px 16px rgba(200,70,30,.4)}50%{box-shadow:0 4px 24px rgba(200,70,30,.7),0 0 0 8px rgba(249,123,90,.12)}}
+@keyframes musicPending{0%,100%{opacity:1}50%{opacity:.5}}
 #music-fab.playing{animation:musicPulse 2s ease-in-out infinite;}
+#music-fab.pending{animation:musicPending 1.5s ease-in-out infinite;}
 
 .set-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:14px 0;}
 .set-field{display:flex;flex-direction:column;gap:4px;}
@@ -2531,7 +2533,7 @@ div.photo-slot .photo-pos-badge {
           <div class="set-field set-full">
             <div class="set-lbl">主頁邀請語</div>
             <div class="set-desc">姓名下方的邀請文字</div>
-            <textarea class="set-inp full set-textarea" id="set-tagline" maxlength="80" placeholder="例：我們即將攜手踏上人生最美的旅程&#10;誠心邀請您共享這份幸福時刻 🥂"></textarea>
+            <textarea class="set-inp full set-textarea" id="set-tagline" maxlength="500" placeholder="例：我們即將攜手踏上人生最美的旅程&#10;誠心邀請您共享這份幸福時刻 🥂"></textarea>
           </div>
           <div class="set-field">
             <div class="set-lbl">中文名言</div>
@@ -4863,11 +4865,18 @@ const BGM = {
   playing: false,
   userPaused: false,
   started: false,
+  _pendingPlay: false, // 等待用戶互動後播放
 
   init() {
     this.audio = document.getElementById('bg-music');
     if(!this.audio) return;
-    this.audio.addEventListener('ended', () => this.audio.play().catch(()=>{}));
+    // 監聽結束後重播
+    this.audio.addEventListener('ended', () => {
+      if(this.playing) this.audio.play().catch(()=>{});
+    });
+    // 監聽播放狀態同步
+    this.audio.addEventListener('play', () => { this.playing = true; this._updateFab(); });
+    this.audio.addEventListener('pause', () => { this.playing = false; this._updateFab(); });
     this.loadFromConfig();
   },
 
@@ -4878,19 +4887,21 @@ const BGM = {
     this.volume = (m.volume !== undefined) ? m.volume / 100 : 0.6;
     this.src = m.src || '';
     if(this.audio) this.audio.volume = this.volume;
+    // 有音樂設定時，就顯示 FAB（讓用戶知道有音樂功能）
+    if(this.enabled && this.src) this._showFab();
   },
 
-  // 點信封後觸發
   // 點信封後觸發
   start() {
     if(this.started) return;
     this.started = true;
-    // 重新讀取最新設定（修正：Firestore 可能在 init() 後才推送設定）
+    // 重新讀取最新設定（Firestore 可能在 init() 後才推送設定）
     this.loadFromConfig();
     if(!this.enabled) return;
 
     if(this.src === 'indexeddb') {
       if(!this.audio) return;
+      this._showFab();
       // 先用無聲音訊解鎖 Chrome autoplay，再換真實音樂
       this.audio.volume = 0.001;
       this.audio.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
@@ -4902,16 +4913,22 @@ const BGM = {
           this.audio.src = this.blobUrl;
           this.audio.volume = this.volume;
           this.audio.load();
-          this.audio.play().then(() => { this.playing = true; this._updateFab(); }).catch(()=>{});
-          this._showFab();
+          this.audio.play().then(() => {
+            this.playing = true;
+            this._updateFab();
+          }).catch(e => {
+            console.log('BGM autoplay blocked after indexeddb load:', e.name);
+            this._pendingPlay = true;
+            this._setupRetry();
+          });
         }
       }).catch(e => console.warn('BGM IndexedDB load error:', e));
       return;
     }
 
     if(!this.src) return;
-    this._setAndPlay(this.src);
     this._showFab();
+    this._setAndPlay(this.src);
   },
 
   _setAndPlay(url) {
@@ -4924,24 +4941,41 @@ const BGM = {
     const p = this.audio.play();
     if(p) p.then(() => {
       this.playing = true;
+      this._pendingPlay = false;
       this._updateFab();
     }).catch(e => {
       console.log('BGM autoplay blocked, will retry on interaction:', e.name);
-      const retry = () => {
-        if(!this.userPaused) this.audio.play().then(() => {
-          this.playing = true; this._updateFab();
-        }).catch(()=>{});
-        document.removeEventListener('touchstart', retry);
-        document.removeEventListener('click', retry);
-      };
-      document.addEventListener('touchstart', retry, {once:true});
-      document.addEventListener('click', retry, {once:true});
+      this._pendingPlay = true;
+      this._setupRetry();
     });
+  },
+
+  _setupRetry() {
+    // 避免重複綁定
+    if(this._retryBound) return;
+    this._retryBound = true;
+    const retry = () => {
+      this._retryBound = false;
+      if(this._pendingPlay && !this.userPaused) {
+        this.applyAndPlay();
+      }
+    };
+    document.addEventListener('touchstart', retry, {once:true});
+    document.addEventListener('click', retry, {once:true});
   },
 
   applyAndPlay() {
     if(this.src === 'indexeddb') {
       if(this.blobUrl) this._setAndPlay(this.blobUrl);
+      else {
+        MusicDB.load().then(blob => {
+          if(blob) {
+            if(this.blobUrl) URL.revokeObjectURL(this.blobUrl);
+            this.blobUrl = URL.createObjectURL(blob);
+            this._setAndPlay(this.blobUrl);
+          }
+        }).catch(()=>{});
+      }
     } else if(this.src) {
       this._setAndPlay(this.src);
     }
@@ -4954,9 +4988,11 @@ const BGM = {
       this.audio.pause();
       this.playing = false;
       this.userPaused = true;
+      this._pendingPlay = false;
     } else {
-      this.applyAndPlay();
       this.userPaused = false;
+      this._pendingPlay = false;
+      this.applyAndPlay();
     }
     this._updateFab();
   },
@@ -4969,8 +5005,19 @@ const BGM = {
   _updateFab() {
     const icon = document.getElementById('music-fab-icon');
     const fab  = document.getElementById('music-fab');
-    if(icon) icon.textContent = this.playing ? '🎵' : '🔇';
-    if(fab) fab.classList.toggle('playing', this.playing);
+    if(icon) {
+      if(this.playing) icon.textContent = '🎵';
+      else if(this._pendingPlay) icon.textContent = '⏳';
+      else icon.textContent = '🔇';
+    }
+    if(fab) {
+      fab.classList.toggle('playing', this.playing);
+      fab.classList.toggle('pending', !this.playing && !!this._pendingPlay);
+      // 更新 title 提示
+      if(this.playing) fab.title = '音樂播放中（點擊暫停）';
+      else if(this._pendingPlay) fab.title = '點擊此處開始播放音樂';
+      else fab.title = '音樂已暫停（點擊播放）';
+    }
   },
 
   applyFromConfig(m) {
@@ -4997,11 +5044,12 @@ const BGM = {
     }
     if(!this.enabled && this.playing) {
       this.audio && this.audio.pause();
-      this.playing = false; this._updateFab();
+      this.playing = false; this._pendingPlay = false; this._updateFab();
     } else if(this.enabled && this.started && !this.playing && !this.userPaused) {
       this.applyAndPlay();
     }
-    if(this.enabled && this.started) this._showFab();
+    // 有音樂設定時就顯示 FAB
+    if(this.enabled && this.src) this._showFab();
     this._updateFab();
   }
 };
@@ -5225,6 +5273,8 @@ function loadMusicSettingsUI(){
         const label = document.getElementById('music-upload-label');
         if(label) label.textContent = '✅ 已有上傳的音樂';
       }
+      // 同步後更新 FAB（確保前台也看到）
+      if(window.BGM) window.BGM.applyFromConfig(fm);
     }).catch(()=>{});
   }
 }
