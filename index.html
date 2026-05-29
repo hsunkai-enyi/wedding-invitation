@@ -1991,11 +1991,12 @@ div.photo-slot .photo-pos-badge {
             <div class="hslide" id="hs1"></div>
             <div class="hslide" id="hs2"></div>
             <div class="hslide" id="hs3"></div>
+            <div class="hslide" id="hs4"></div>
             <div class="hslide-ov"></div>
           </div>
           <div class="hsdots">
             <div class="hsd on"></div><div class="hsd"></div>
-            <div class="hsd"></div><div class="hsd"></div>
+            <div class="hsd"></div><div class="hsd"></div><div class="hsd"></div>
           </div>
         </div>
         <div class="hero-text">
@@ -2302,7 +2303,7 @@ div.photo-slot .photo-pos-badge {
           <div style="margin-bottom:14px;">
             <div class="set-lbl">分區管理 — 兩個區域可使用完全不同的照片</div>
             <div class="set-desc">
-              🎬 <b>頂部 Hero 輪播</b>：4 張，自動切換 + 三層視差<br/>
+              🎬 <b>頂部 Hero 輪播</b>：5 張，自動切換 + 三層視差<br/>
               🎨 <b>內文 Our Love Story</b>：4 張，不對稱拼貼版型<br/>
               💡 每張限 5MB · 建議橫式 16:10 或 16:9 · 自動壓縮至 900px
             </div>
@@ -2314,8 +2315,17 @@ div.photo-slot .photo-pos-badge {
               <span class="ph-section-em">🎬</span>
               <div>
                 <div class="ph-section-ttl">頂部 Hero 輪播</div>
-                <div class="ph-section-sub">4 張照片自動輪播，三層堆疊視差效果</div>
+                <div class="ph-section-sub">5 張照片自動輪播，三層堆疊視差效果</div>
               </div>
+            </div>
+
+            <!-- ⏱️ Hero 自動切換秒數設定 -->
+            <div style="display:flex;align-items:center;gap:10px;margin:0 0 14px;padding:10px 14px;background:linear-gradient(145deg,#fff8f3,#fff0e6);border:1px solid rgba(249,180,150,.35);border-radius:12px;flex-wrap:wrap;">
+              <span style="font-size:12px;font-weight:700;color:#d05030;letter-spacing:1px;">⏱️ 自動切換秒數</span>
+              <input type="number" id="set-hero-sec" min="1" max="60" step="0.5" value="5" inputmode="decimal"
+                style="width:80px;padding:6px 10px;border:1px solid rgba(249,180,150,.5);border-radius:8px;font-size:13px;text-align:center;color:#6b3a20;background:#fff;"/>
+              <span style="font-size:11px;color:#9b6a4a;">秒（範圍 1~60，預設 5）</span>
+              <button class="cslot-btn primary" onclick="saveHeroSec()" style="margin-left:auto;padding:6px 16px;white-space:nowrap;">儲存秒數</button>
             </div>
 
             <div class="hero-row">
@@ -2385,6 +2395,23 @@ div.photo-slot .photo-pos-badge {
                   <label class="cslot-btn" for="upload-h_close" style="display:flex;align-items:center;justify-content:center;cursor:pointer;">↻</label>
                   <button class="cslot-btn" onclick="deletePhoto('h_close')">刪除</button>
                   <button class="cslot-btn" onclick="resetCrop('h_close')">重置</button>
+                </div>
+              </div>
+<div class="cslot hslot" id="slot-h_extra">
+                <div class="cslot-imgbox" id="wrap-h_extra">
+                  <img id="prev-h_extra" alt="Hero 5" draggable="false"/>
+                  <label class="cslot-uhint" id="uhint-h_extra" for="upload-h_extra" style="cursor:pointer;">
+                    <div class="cslot-uicon">📷</div>
+                    <div class="cslot-ulbl">點擊上傳</div>
+                  </label>
+                </div>
+                <input type="file" id="upload-h_extra" accept="image/*" style="display:none;" onchange="uploadPhoto('h_extra',this)"/>
+                <div class="cslot-badge">⑤ Hero</div>
+                <div class="cslot-tools">
+                  <button class="cslot-btn primary" onclick="openCrop('h_extra')">✂️</button>
+                  <label class="cslot-btn" for="upload-h_extra" style="display:flex;align-items:center;justify-content:center;cursor:pointer;">↻</label>
+                  <button class="cslot-btn" onclick="deletePhoto('h_extra')">刪除</button>
+                  <button class="cslot-btn" onclick="resetCrop('h_extra')">重置</button>
                 </div>
               </div>
             </div>
@@ -2488,7 +2515,7 @@ div.photo-slot .photo-pos-badge {
               <div style="font-size:12px;font-weight:700;color:#d05030;letter-spacing:2px;margin-bottom:12px;">💡 照片設定說明</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
                 <div style="background:white;border-radius:10px;padding:10px;border:1px solid rgba(249,180,150,.2);">
-                  <div style="font-size:11px;font-weight:700;color:#f97b5a;margin-bottom:4px;">🎬 頂部 Hero（4張）</div>
+                  <div style="font-size:11px;font-weight:700;color:#f97b5a;margin-bottom:4px;">🎬 頂部 Hero（5張）</div>
                   <div style="font-size:10px;color:#6b3a20;line-height:1.6;">建議橫式照片<br/>會自動輪播切換</div>
                 </div>
                 <div style="background:white;border-radius:10px;padding:10px;border:1px solid rgba(249,180,150,.2);">
@@ -3002,12 +3029,13 @@ window.applyPhotosDirectly = function applyPhotosDirectly(photos) {
   setBg('hs1', photos['h_fun']  || '');
   setBg('hs2', photos['h_full'] || '');
   setBg('hs3', photos['h_close']|| '');
+  setBg('hs4', photos['h_extra']|| '');
   setBg('pg0', photos['b_kiss'] || '');
   setBg('pg1', photos['b_fun']  || '');
   setBg('pg2', photos['b_full'] || '');
   setBg('pg3', photos['b_close']|| '');
   // 同步更新 IMGS 讓輪播視差層也能取到最新照片
-  ['h_kiss','h_fun','h_full','h_close','b_kiss','b_fun','b_full','b_close'].forEach(k => {
+  ['h_kiss','h_fun','h_full','h_close','h_extra','b_kiss','b_fun','b_full','b_close'].forEach(k => {
     if(photos[k] && photos[k].length > 50) IMGS[k] = photos[k];
   });
 }
@@ -3030,6 +3058,7 @@ function initImages() {
   setBg('hs1', photos['h_fun']  || IMGS['h_fun']  || IMGS['fun']  || '');
   setBg('hs2', photos['h_full'] || IMGS['h_full'] || IMGS['full'] || '');
   setBg('hs3', photos['h_close']|| IMGS['h_close']|| IMGS['close']|| '');
+  setBg('hs4', photos['h_extra']|| IMGS['h_extra']|| '');
 
   // 內文拼貼
   setBg('pg0', photos['b_kiss'] || IMGS['b_kiss'] || IMGS['kiss']  || '');
@@ -3129,17 +3158,24 @@ function exitAdmin(){
 // SLIDESHOWS
 // HERO SLIDESHOW
 const hSlides=document.querySelectorAll('.hslide'),hDots=document.querySelectorAll('.hsd');
-let hCur=0;
+let hCur=0, hTimer=null;
+// 取得 Hero 自動切換秒數（後台可設定，預設 5 秒，限制 1~60 秒）
+function getHeroSec(){
+  let s = parseFloat(gc().heroSec);
+  if(!s || isNaN(s) || s < 1) s = 5;
+  if(s > 60) s = 60;
+  return s;
+}
 function startHeroSlide(){
-  const keys = ['h_kiss','h_fun','h_full','h_close'];
-  const ids  = ['hs0','hs1','hs2','hs3'];
+  const keys = ['h_kiss','h_fun','h_full','h_close','h_extra'];
+  const ids  = ['hs0','hs1','hs2','hs3','hs4'];
   // 取得最新照片（優先讀 DOM 元素的 backgroundImage，fallback 到 IMGS）
   const getImg = (idx) => {
     const el = document.getElementById(ids[idx]);
     if(el && el.style.backgroundImage && el.style.backgroundImage !== 'none' && el.style.backgroundImage !== '') {
       return el.style.backgroundImage.replace(/^url\(['"]?/, '').replace(/['"]?\)$/, '');
     }
-    const baseFallbacks = ['kiss','fun','full','close'];
+    const baseFallbacks = ['kiss','fun','full','close',''];
     return IMGS[keys[idx]] || IMGS[baseFallbacks[idx]] || '';
   };
   // ▼ 立刻設定背層與中層，不等第一次 interval（修正：進入即可見視差）
@@ -3152,7 +3188,8 @@ function startHeroSlide(){
     if(mid)  mid.style.backgroundImage  = `url('${getImg(midIdx)}')`;
   })();
 
-  setInterval(()=>{
+  if(hTimer) clearInterval(hTimer);
+  hTimer = setInterval(()=>{
     hSlides[hCur].classList.remove('on');
     hDots[hCur].classList.remove('on');
     hCur=(hCur+1)%hSlides.length;
@@ -3165,8 +3202,10 @@ function startHeroSlide(){
     const midIdx = (hCur+1) % keys.length;
     if(back) back.style.backgroundImage = `url('${getImg(backIdx)}')`;
     if(mid) mid.style.backgroundImage = `url('${getImg(midIdx)}')`;
-  }, 5000);
+  }, getHeroSec()*1000);
 }
+// 後台修改秒數後可呼叫此函式即時套用新的切換速度
+function restartHeroSlide(){ startHeroSlide(); }
 
 // REFRESH INVITATION
 function refreshInv(){
@@ -3611,8 +3650,10 @@ function loadContentSettings(){
   setVal('set-tagline', c.tagline);
   setVal('set-quote-zh', c.quoteZh);
   setVal('set-quote-en', c.quoteEn);
-  // Photo previews — Hero (4) + Body (4) = 8 photos total
-  ['h_kiss','h_fun','h_full','h_close','b_kiss','b_fun','b_full','b_close'].forEach(k => {
+  // Hero 自動切換秒數（頂層設定，預設 5）
+  { const hs=document.getElementById('set-hero-sec'); if(hs){ const v=parseFloat(gc().heroSec); hs.value=(v&&!isNaN(v))?v:5; } }
+  // Photo previews — Hero (5) + Body (4) = 9 photos total
+  ['h_kiss','h_fun','h_full','h_close','h_extra','b_kiss','b_fun','b_full','b_close'].forEach(k => {
     const img = document.getElementById('prev-'+k);
     if(img){
       // Try custom photo first, then fallback to legacy/default
@@ -3621,6 +3662,23 @@ function loadContentSettings(){
       if(src) img.src = src;
     }
   });
+}
+
+function saveHeroSec(){
+  const inp = document.getElementById('set-hero-sec');
+  if(!inp) return;
+  let v = parseFloat(inp.value);
+  if(!v || isNaN(v) || v < 1){ toast('請輸入有效秒數（1~60）'); return; }
+  if(v > 60) v = 60;
+  inp.value = v;
+  const cfg = gc();
+  cfg.heroSec = v;
+  sc(cfg);
+  // 即時套用新的切換速度
+  try { restartHeroSlide(); } catch(e){}
+  // 同步到 Firebase（賓客端即時生效）
+  if(window.fbSaveConfig) window.fbSaveConfig({heroSec: v});
+  toast(`✓ 已設定為每 ${v} 秒切換`);
 }
 
 function saveSetting(key){
@@ -3773,7 +3831,7 @@ function loadCustomPhotos(){
 // ═══ 載入後台預覽圖（從 IMGS 寫到 <img id="prev-XXX">）═══
 function loadAdminPreviews() {
   try {
-    const keys = ['h_kiss','h_fun','h_full','h_close','b_kiss','b_fun','b_full','b_close'];
+    const keys = ['h_kiss','h_fun','h_full','h_close','h_extra','b_kiss','b_fun','b_full','b_close'];
     const photos = JSON.parse(localStorage.getItem('hpy_photos') || '{}');
     keys.forEach(k => {
       const img = document.getElementById('prev-' + k);
@@ -4169,7 +4227,7 @@ window.applyCropToFrontend = function applyCropToFrontend() {
   const s = getPhotoSettings();
   const map = {
     b_kiss: 'pg0', b_fun: 'pg1', b_full: 'pg2', b_close: 'pg3',
-    h_kiss: 'hs0', h_fun: 'hs1', h_full: 'hs2', h_close: 'hs3'
+    h_kiss: 'hs0', h_fun: 'hs1', h_full: 'hs2', h_close: 'hs3', h_extra: 'hs4'
   };
   Object.entries(map).forEach(([key, id]) => {
     const el = document.getElementById(id);
@@ -4204,7 +4262,7 @@ function deletePhoto(key) {
     const hint = document.getElementById('uhint-' + key);
     if (hint) hint.classList.remove('hidden');
     // 清除前台
-    const map = {h_kiss:'hs0',h_fun:'hs1',h_full:'hs2',h_close:'hs3',b_kiss:'pg0',b_fun:'pg1',b_full:'pg2',b_close:'pg3'};
+    const map = {h_kiss:'hs0',h_fun:'hs1',h_full:'hs2',h_close:'hs3',h_extra:'hs4',b_kiss:'pg0',b_fun:'pg1',b_full:'pg2',b_close:'pg3'};
     const el = document.getElementById(map[key]);
     if (el) { el.style.backgroundImage = ''; }
     updatePhotoCount();
@@ -4223,12 +4281,12 @@ function resetCrop(key) {
 // ═══ 更新照片儲存狀態指示 ═══
 function updatePhotoCount() {
   try {
-    const keys = ['h_kiss','h_fun','h_full','h_close','b_kiss','b_fun','b_full','b_close'];
+    const keys = ['h_kiss','h_fun','h_full','h_close','h_extra','b_kiss','b_fun','b_full','b_close'];
     let uploaded = 0;
     const photos = JSON.parse(localStorage.getItem('hpy_photos') || '{}');
     keys.forEach(k => { if (photos[k]) uploaded++; });
     const lbl = document.getElementById('photo-count-lbl');
-    if (lbl) lbl.textContent = uploaded + ' / 8 張';
+    if (lbl) lbl.textContent = uploaded + ' / 9 張';
   } catch(e) {}
 }
 
@@ -4270,7 +4328,7 @@ function setPhotoZoom() { /* deprecated */ }
 function resetPhotoEdit(key) { resetCrop(key); }
 function loadPhotoEditUI() {
   loadAdminPreviews();  // 載入後台所有預覽圖
-  ['h_kiss','h_fun','h_full','h_close','b_kiss','b_fun','b_full','b_close'].forEach(applyCropToImage);
+  ['h_kiss','h_fun','h_full','h_close','h_extra','b_kiss','b_fun','b_full','b_close'].forEach(applyCropToImage);
   updatePhotoCount();
 }
 function applyPhotoSettingsToFrontend() { applyCropToFrontend(); }
@@ -4292,7 +4350,7 @@ function clearAllCropData() {
     Object.keys(s).forEach(k => { if (s[k]) delete s[k].crop; });
     savePhotoSettings(s);
     applyCropToFrontend();
-    ['h_kiss','h_fun','h_full','h_close','b_kiss','b_fun','b_full','b_close'].forEach(applyCropToImage);
+    ['h_kiss','h_fun','h_full','h_close','h_extra','b_kiss','b_fun','b_full','b_close'].forEach(applyCropToImage);
     toast('✓ 裁剪設定已清除，照片恢復置中');
   } catch(e) { toast('清除失敗：' + e.message); }
 }
@@ -5294,7 +5352,7 @@ window.addEventListener('load', () => {
 
 // 隱藏已有照片的 upload-hint，顯示指示點
 try {
-  const keys = ['h_kiss','h_fun','h_full','h_close','b_kiss','b_fun','b_full','b_close'];
+  const keys = ['h_kiss','h_fun','h_full','h_close','h_extra','b_kiss','b_fun','b_full','b_close'];
   keys.forEach(key => {
     if(IMGS[key] && !IMGS[key].includes('placeholder')){
       const uhint = document.getElementById(`uhint-${key}`);
@@ -5616,9 +5674,14 @@ function startConfigListener() {
     const cfg = (() => { try{ return JSON.parse(localStorage.getItem('hpy_cfg')||'{}'); }catch{ return{}; } })();
     if(data.content) cfg.content = { ...cfg.content, ...data.content };
     if(data.invited) cfg.invited = data.invited;
+    if(data.heroSec !== undefined) cfg.heroSec = data.heroSec;
     try { localStorage.setItem('hpy_cfg', JSON.stringify(cfg)); } catch(e){}
     // 套用到前台
     if(window.applyContent) window.applyContent();
+    // ═══ 同步 Hero 自動切換秒數（即時套用新速度）═══
+    if(data.heroSec !== undefined && typeof window.restartHeroSlide === 'function') {
+      try { window.restartHeroSlide(); } catch(e){}
+    }
     // ═══ 同步音樂設定 ═══
     if(data.music !== undefined) {
       const cfg2 = (() => { try{ return JSON.parse(localStorage.getItem('hpy_cfg')||'{}'); }catch{ return{}; } })();
