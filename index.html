@@ -359,8 +359,11 @@ tbody tr:hover td{background:rgba(249,180,150,.06);}
 /* 音樂 FAB 脈動動畫（播放中）*/
 @keyframes musicPulse{0%,100%{box-shadow:0 4px 16px rgba(200,70,30,.4)}50%{box-shadow:0 4px 24px rgba(200,70,30,.7),0 0 0 8px rgba(249,123,90,.12)}}
 @keyframes musicPending{0%,100%{opacity:1}50%{opacity:.5}}
-#music-fab.playing{animation:musicPulse 2s ease-in-out infinite;}
-#music-fab.pending{animation:musicPending 1.5s ease-in-out infinite;}
+@keyframes fabBreath{0%,100%{opacity:.85}50%{opacity:.5}}
+#music-fab{opacity:.5;}
+#music-fab.playing{opacity:.85;animation:fabBreath 2.6s ease-in-out infinite;}
+#music-fab.pending{opacity:.8;animation:musicPending 1.5s ease-in-out infinite;}
+#music-fab:hover,#music-fab:active{opacity:1 !important;transform:scale(1.12);}
 
 .set-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:14px 0;}
 .set-field{display:flex;flex-direction:column;gap:4px;}
@@ -1564,7 +1567,11 @@ div.photo-slot .photo-pos-badge {
 .hero-row > .hslot {
   flex: 1;
   min-width: 0;
-  height: 200px;
+}
+/* Hero 圖框比例對齊前台主圖（手機約 4:3 橫式）— 讓後台預覽所見即所得 */
+.hslot .cslot-imgbox {
+  aspect-ratio: 4 / 3;
+  flex: none;
 }
 
 /* 拼貼容器 */
@@ -1825,7 +1832,7 @@ div.photo-slot .photo-pos-badge {
   .collage-right > .cslot { aspect-ratio: 1/1; }
   .collage-bottom { min-height: 80px; }
   .hero-row { flex-wrap: wrap; }
-  .hero-row > .hslot { flex: 0 0 calc(50% - 4px); height: 180px; }
+  .hero-row > .hslot { flex: 0 0 calc(50% - 4px); }
 }
 
 
@@ -1946,7 +1953,7 @@ div.photo-slot .photo-pos-badge {
   .info-cards { grid-template-columns: 1fr !important; gap: 10px !important; }
   /* hero row 手機版兩欄 */
   .hero-row { flex-wrap: wrap !important; }
-  .hero-row > .hslot { flex: 0 0 calc(50% - 4px) !important; height: 160px !important; }
+  .hero-row > .hslot { flex: 0 0 calc(50% - 4px) !important; }
   /* 表格橫向捲動 */
   .tbl-wrap { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
   /* ac 卡片 padding 縮小 */
@@ -5811,7 +5818,7 @@ console.log('🔥 Firebase 整合完成 — 勛凱 & 恩懿 婚禮喜帖');
 <!-- ═══ 背景音樂播放器 ═══ -->
 <audio id="bg-music" loop preload="none" style="display:none;"></audio>
 <!-- 浮動音樂控制鈕（前台右下角） -->
-<div id="music-fab" style="position:fixed;bottom:84px;right:16px;z-index:999;width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--peach),#d05030);box-shadow:0 4px 16px rgba(200,70,30,.4);cursor:pointer;display:none;align-items:center;justify-content:center;font-size:20px;transition:all .3s;-webkit-tap-highlight-color:transparent;" onclick="toggleBgMusic()" title="音樂控制">
+<div id="music-fab" style="position:fixed;bottom:88px;right:14px;z-index:999;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.14);backdrop-filter:blur(6px) saturate(1.1);-webkit-backdrop-filter:blur(6px) saturate(1.1);box-shadow:0 1px 5px rgba(0,0,0,.12);cursor:pointer;display:none;align-items:center;justify-content:center;font-size:14px;transition:all .3s;-webkit-tap-highlight-color:transparent;" onclick="toggleBgMusic()" title="音樂控制">
   <span id="music-fab-icon">🎵</span>
 </div>
 
