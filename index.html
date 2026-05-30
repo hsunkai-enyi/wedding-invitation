@@ -3141,20 +3141,34 @@ function showAdmLogin(){
   setTimeout(()=>document.getElementById('adm-pwd-inp').focus(),280);
 }
 function cancelAdmLogin(){document.getElementById('adm-login-ov').classList.remove('show');}
-function checkAdmLogin(){
-  if(document.getElementById('adm-pwd-inp').value===getPwd()){
-    document.getElementById('adm-login-ov').classList.remove('show');
-    document.getElementById('view-inv').classList.remove('active');
-    document.getElementById('view-admin').classList.add('active');
-    document.getElementById('set-invited').value=getInv();
-    loadContentSettings();
-    refreshAdmin();
-    loadPhotoSettingsUI();
-    loadMusicSettingsUI();
-  }else{
-    const inp=document.getElementById('adm-pwd-inp');
-    inp.classList.add('err');document.getElementById('adm-err').classList.add('show');
-    inp.value='';setTimeout(()=>inp.classList.remove('err'),400);
+async function checkAdmLogin(){
+  const pwdInp = document.getElementById('adm-pwd-inp');
+  const enteredPwd = pwdInp.value; // 先存起來，之後清空前還能用
+  if(enteredPwd !== getPwd()){
+    pwdInp.classList.add('err');
+    document.getElementById('adm-err').classList.add('show');
+    pwdInp.value='';
+    setTimeout(()=>pwdInp.classList.remove('err'),400);
+    return;
+  }
+  pwdInp.value = ''; // 密碼正確後立即清空輸入框
+  // 先開啟後台畫面（立即回饋）
+  document.getElementById('adm-login-ov').classList.remove('show');
+  document.getElementById('view-inv').classList.remove('active');
+  document.getElementById('view-admin').classList.add('active');
+  document.getElementById('set-invited').value = getInv();
+  loadContentSettings();
+  refreshAdmin();
+  loadPhotoSettingsUI();
+  loadMusicSettingsUI();
+  // 同步觸發 Firebase 登入（設定 _isAdmin，讓 fbSaveConfig 可以寫入）
+  if(window.fbAdminLogin){
+    try {
+      const emailEl = document.getElementById('adm-email-inp');
+      const email = emailEl ? emailEl.value.trim() : ADMIN_EMAIL;
+      const ok = await window.fbAdminLogin(email, enteredPwd);
+      if(!ok) console.warn('[Admin] Firebase 登入未成功，照片/設定將僅存本地');
+    } catch(e){ console.warn('[Admin] Firebase 登入錯誤:', e.message); }
   }
 }
 function exitAdmin(){
@@ -5714,39 +5728,6 @@ function startConfigListener() {
 }
 
 // ═══ 後台登入包裝（Firebase module 就緒後執行）═══
-setTimeout(() => {
-  // 包裝後台登入
-  const _origCheckAdmLogin = window.checkAdmLogin;
-  if(_origCheckAdmLogin) {
-    window.checkAdmLogin = async function() {
-      const emailEl = document.getElementById('adm-email-inp');
-      const pwdEl = document.getElementById('adm-pwd-inp');
-      const email = emailEl ? emailEl.value.trim() : ADMIN_EMAIL;
-      const pwd = pwdEl ? pwdEl.value : document.getElementById('adm-pwd-inp').value;
-
-      const ok = await window.fbAdminLogin(email, pwd);
-      if(ok) {
-        document.getElementById('adm-login-ov').classList.remove('show');
-        document.getElementById('view-inv').classList.remove('active');
-        document.getElementById('view-admin').classList.add('active');
-        document.getElementById('set-invited').value = window.getInv ? window.getInv() : 80;
-        if(window.loadContentSettings) window.loadContentSettings();
-        if(window.loadMusicSettingsUI) window.loadMusicSettingsUI();
-        if(window.refreshAdmin) window.refreshAdmin();
-      } else {
-        const inp = document.getElementById('adm-pwd-inp');
-        inp.classList.add('err');
-        const err = document.getElementById('adm-err');
-        if(err) err.classList.add('show');
-        inp.value = '';
-        setTimeout(()=>inp.classList.remove('err'),400);
-      }
-    };
-  }
-
-
-}, 500);
-
 // ═══ 修改後台密碼 ═══
 window.changeAdminPassword = async function() {
   const current = document.getElementById('set-pwd-current').value;
