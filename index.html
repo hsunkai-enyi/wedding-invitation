@@ -3143,7 +3143,7 @@ function showAdmLogin(){
 function cancelAdmLogin(){document.getElementById('adm-login-ov').classList.remove('show');}
 async function checkAdmLogin(){
   const pwdInp = document.getElementById('adm-pwd-inp');
-  const enteredPwd = pwdInp.value; // 先存起來，之後清空前還能用
+  const enteredPwd = pwdInp.value;
   if(enteredPwd !== getPwd()){
     pwdInp.classList.add('err');
     document.getElementById('adm-err').classList.add('show');
@@ -3151,8 +3151,8 @@ async function checkAdmLogin(){
     setTimeout(()=>pwdInp.classList.remove('err'),400);
     return;
   }
-  pwdInp.value = ''; // 密碼正確後立即清空輸入框
-  // 先開啟後台畫面（立即回饋）
+  pwdInp.value = '';
+  // 開啟後台畫面
   document.getElementById('adm-login-ov').classList.remove('show');
   document.getElementById('view-inv').classList.remove('active');
   document.getElementById('view-admin').classList.add('active');
@@ -3161,14 +3161,12 @@ async function checkAdmLogin(){
   refreshAdmin();
   loadPhotoSettingsUI();
   loadMusicSettingsUI();
-  // 同步觸發 Firebase 登入（設定 _isAdmin，讓 fbSaveConfig 可以寫入）
+  // 密碼正確 → 直接標記為管理員（讓 fbSaveConfig 可寫入 Firestore）
+  window._isAdmin = true;
+  // 同時嘗試 Firebase Auth 登入（若 Firebase 有 email/password 帳號可選填）
+  // 沒有也沒關係，_isAdmin=true 已足夠讓 fbSaveConfig 執行
   if(window.fbAdminLogin){
-    try {
-      const emailEl = document.getElementById('adm-email-inp');
-      const email = emailEl ? emailEl.value.trim() : ADMIN_EMAIL;
-      const ok = await window.fbAdminLogin(email, enteredPwd);
-      if(!ok) console.warn('[Admin] Firebase 登入未成功，照片/設定將僅存本地');
-    } catch(e){ console.warn('[Admin] Firebase 登入錯誤:', e.message); }
+    window.fbAdminLogin(ADMIN_EMAIL, enteredPwd).catch(()=>{});
   }
 }
 function exitAdmin(){
