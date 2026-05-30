@@ -5694,6 +5694,7 @@ function startConfigListener() {
     if(data.content) cfg.content = { ...cfg.content, ...data.content };
     if(data.invited) cfg.invited = data.invited;
     if(data.heroSec !== undefined) cfg.heroSec = data.heroSec;
+    if(data.pwd) cfg.pwd = data.pwd;  // 同步後台密碼（換裝置也能用新密碼）
     try { localStorage.setItem('hpy_cfg', JSON.stringify(cfg)); } catch(e){}
     // 套用到前台
     if(window.applyContent) window.applyContent();
@@ -5727,40 +5728,29 @@ function startConfigListener() {
 
 // ═══ 後台登入包裝（Firebase module 就緒後執行）═══
 // ═══ 修改後台密碼 ═══
-window.changeAdminPassword = async function() {
+window.changeAdminPassword = function() {
   const current = document.getElementById('set-pwd-current').value;
   const newPwd  = document.getElementById('set-pwd-new').value;
   const confirm = document.getElementById('set-pwd-confirm').value;
 
   if(!current){ window.toast && window.toast('請輸入目前密碼'); return; }
-  if(!newPwd || newPwd.length < 6){ window.toast && window.toast('新密碼至少需要 6 位'); return; }
+  if(current !== getPwd()){ window.toast && window.toast('❌ 目前密碼錯誤，請重新輸入'); return; }
+  if(!newPwd || newPwd.length < 4){ window.toast && window.toast('新密碼至少需要 4 位'); return; }
   if(newPwd !== confirm){ window.toast && window.toast('兩次新密碼不一致'); return; }
 
-  try {
-    const user = auth.currentUser;
-    if(!user){ window.toast && window.toast('請先登入後台'); return; }
+  // 儲存新密碼到 localStorage
+  const cfg = gc();
+  cfg.pwd = newPwd;
+  sc(cfg);
 
-    // 重新驗證（Firebase 要求改密碼前重新驗證）
-    const credential = EmailAuthProvider.credential(user.email, current);
-    await reauthenticateWithCredential(user, credential);
+  // 同步到 Firestore（讓其他裝置登入後台也用新密碼）
+  if(window.fbSaveConfig) window.fbSaveConfig({ pwd: newPwd });
 
-    // 更新密碼
-    await updatePassword(user, newPwd);
+  document.getElementById('set-pwd-current').value = '';
+  document.getElementById('set-pwd-new').value = '';
+  document.getElementById('set-pwd-confirm').value = '';
 
-    // 清空欄位
-    document.getElementById('set-pwd-current').value = '';
-    document.getElementById('set-pwd-new').value = '';
-    document.getElementById('set-pwd-confirm').value = '';
-
-    window.toast && window.toast('✅ 密碼已更新！下次登入使用新密碼');
-  } catch(e) {
-    console.error('changePassword:', e);
-    if(e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential'){
-      window.toast && window.toast('❌ 目前密碼錯誤，請重新輸入');
-    } else {
-      window.toast && window.toast('❌ 更新失敗：' + e.message);
-    }
-  }
+  window.toast && window.toast('✅ 密碼已更新！下次登入請使用新密碼');
 };
 window.addEventListener('online', () => window.toast && window.toast('✅ 網路已連線'));
 window.addEventListener('offline', () => window.toast && window.toast('⚠️ 網路中斷，資料將暫存本地'));
