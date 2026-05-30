@@ -4327,6 +4327,8 @@ function deletePhoto(key) {
     const el = document.getElementById(map[key]);
     if (el) { el.style.backgroundImage = ''; }
     updatePhotoCount();
+    // 從 Firestore 刪除（賓客端即時同步）
+    if(window.fbDeletePhoto) window.fbDeletePhoto(key);
     toast('✓ 照片已刪除');
   } catch(e) { toast('刪除失敗：' + e.message); }
 }
@@ -5523,7 +5525,7 @@ async function doSubmitBless(name, text){
 <!-- ═══ FIREBASE SDK ═══ -->
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, setDoc, getDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, setDoc, getDoc, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getAuth, signInWithEmailAndPassword, signInAnonymously, onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 
@@ -5628,6 +5630,7 @@ onAuthStateChanged(auth, user => {
 // ═══ 所有人（包含賓客）都監聽設定變更 ═══
 // 這樣後台一改，賓客端也即時更新
 startConfigListener();
+startPhotosListener();
 
 // ═══ Admin 即時監聽 Firestore ═══
 let unsubRsvp = null, unsubBless = null;
@@ -5695,20 +5698,68 @@ window.fbSaveConfig = async function(partial) {
     console.warn('[fbSaveConfig] 未登入管理員，略過寫入。_isAdmin=', window._isAdmin, '_fbUser=', window._fbUser?.email);
     return;
   }
+  // *** 照片不寫進 config/main（會超過 Firestore 單文件 1MB 上限）***
+  // 照片改由 fbSavePhoto 分別存到 photos collection
+  if(partial.photos){
+    const photos = partial.photos;
+    delete partial.photos;
+    // 把每張照片分開存
+    Object.keys(photos).forEach(k => {
+      if(photos[k]) window.fbSavePhoto(k, photos[k]);
+    });
+    if(Object.keys(partial).length === 0) return; // 只有照片就不用寫 config
+  }
   try {
-    // merge with existing config
     const snap = await getDoc(doc(db, 'config', 'main'));
     const existing = snap.exists() ? snap.data() : {};
-    // deep merge content
     const merged = { ...existing, ...partial };
     if(partial.content && existing.content) {
       merged.content = { ...existing.content, ...partial.content };
     }
+    // 保險：移除任何殘留的 photos 欄位
+    delete merged.photos;
     console.log('[fbSaveConfig] 正在寫入 Firestore，keys:', Object.keys(partial));
     await setDoc(doc(db, 'config', 'main'), merged);
     console.log('[fbSaveConfig] 寫入成功');
   } catch(e) { console.error('[fbSaveConfig] 寫入失敗:', e.code, e.message); }
 };
+
+// ═══ 照片分文件存取（每張一個 Firestore 文件，避免 1MB 上限）═══
+window.fbSavePhoto = async function(key, dataUrl) {
+  if(!window._isAdmin) { console.warn('[fbSavePhoto] 未登入管理員，略過'); return; }
+  if(!key || !dataUrl) return;
+  try {
+    await setDoc(doc(db, 'photos', key), { data: dataUrl, updatedAt: Date.now() });
+    console.log('[fbSavePhoto] 已存照片:', key, '大小:', Math.round(dataUrl.length/1024)+'KB');
+  } catch(e) { console.error('[fbSavePhoto] 失敗:', key, e.code, e.message); }
+};
+
+window.fbDeletePhoto = async function(key) {
+  if(!window._isAdmin) return;
+  try { await deleteDoc(doc(db, 'photos', key)); } catch(e) { console.error('[fbDeletePhoto]', e); }
+};
+
+// 賓客端即時監聽所有照片
+function startPhotosListener() {
+  onSnapshot(collection(db, 'photos'), (snapshot) => {
+    let photos = {};
+    try { photos = JSON.parse(localStorage.getItem('hpy_photos') || '{}'); } catch(e){}
+    let changed = false;
+    snapshot.forEach(docSnap => {
+      const d = docSnap.data();
+      if(d && d.data){ photos[docSnap.id] = d.data; changed = true; }
+    });
+    if(!changed) return;
+    // 存回 localStorage（可能超 5MB，失敗也沒關係，直接套用畫面）
+    try { localStorage.setItem('hpy_photos', JSON.stringify(photos)); } catch(e){
+      console.warn('照片太大無法全部存入 localStorage，直接套用畫面');
+    }
+    if(window.applyPhotosDirectly) window.applyPhotosDirectly(photos);
+    if(window.applyCropToFrontend) window.applyCropToFrontend();
+    if(typeof window.restartHeroSlide === 'function'){ try{ window.restartHeroSlide(); }catch(e){} }
+  });
+}
+
 
 window.fbUploadMusicFile = async function(file) {
   if(!window._isAdmin) throw new Error('請先登入管理員再上傳音樂');
@@ -5755,16 +5806,7 @@ function startConfigListener() {
     if(data.photoSettings) {
       try { localStorage.setItem('hpy_photo_settings', JSON.stringify(data.photoSettings)); } catch(e){}
     }
-    // ═══ 同步照片本身（base64）═══
-    if(data.photos) {
-      // *** 修正：先直接套用到畫面，再嘗試存 localStorage（避免超過 5MB 導致破圖）***
-      try { localStorage.setItem('hpy_photos', JSON.stringify(data.photos)); } catch(e){
-        console.warn('照片資料太大無法存入 localStorage，直接套用到畫面');
-      }
-      // 無論 localStorage 是否成功，直接用 Firestore 的資料套用
-      if(window.applyPhotosDirectly) window.applyPhotosDirectly(data.photos);
-      if(window.applyCropToFrontend) window.applyCropToFrontend();
-    }
+    // 註：照片本身（base64）已改由 startPhotosListener 從 photos collection 讀取
   });
 }
 
