@@ -85,24 +85,24 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-sans);co
 .icard::before{content:'';position:absolute;inset:0;border-radius:22px;background:linear-gradient(145deg,rgba(255,255,255,.55) 0%,transparent 55%);pointer-events:none;}
 /* ═══ 三層視差堆疊 Hero（對稱中央版）═══ */
 .hero-stack{position:relative;height:280px;padding:24px 18px 30px;}
-.hstack-layer{position:absolute;border-radius:14px;background-size:cover;background-position:center;transition:all .8s cubic-bezier(.4,0,.2,1);will-change:auto;}
+.hstack-layer{position:absolute;border-radius:14px;background-size:cover;background-position:center;transition:all .8s cubic-bezier(.4,0,.2,1);will-change:transform;}
 
 /* 背層左：左側伸出旋轉 */
-.hstack-back{top:32px;left:0;right:78%;bottom:34px;opacity:.5;transform:rotate(-8deg) translateZ(0);box-shadow:0 6px 18px rgba(200,90,50,.18);}
+.hstack-back{top:24px;left:0;right:72%;bottom:28px;opacity:.55;transform:rotate(-8deg) translateZ(0);box-shadow:0 6px 18px rgba(200,90,50,.2);}
 
-/* 背層右：右側伸出旋轉（中層改為右側） */
-.hstack-mid{top:32px;left:78%;right:0;bottom:34px;opacity:.5;transform:rotate(8deg) translateZ(0);box-shadow:0 6px 18px rgba(200,90,50,.18);}
+/* 中層右：右側伸出旋轉 */
+.hstack-mid{top:24px;left:72%;right:0;bottom:28px;opacity:.55;transform:rotate(8deg) translateZ(0);box-shadow:0 6px 18px rgba(200,90,50,.2);}
 
-/* 主層：完全置中橫滿 84% 寬 */
+/* 主層：置中橫滿 84% 寬 */
 .hstack-front{top:8px;left:8%;right:8%;bottom:8px;border-radius:14px;overflow:hidden;box-shadow:0 14px 36px rgba(200,90,50,.32),0 0 0 4px white,0 0 0 5px rgba(249,180,150,.4);transform:translateZ(0);background:#fff;}
 
-.hslide{position:absolute;inset:0;opacity:0;transition:opacity 1.4s cubic-bezier(.4,0,.2,1);background-size:cover;background-position:center;background-color:#f5ede5;}.hslide.on{opacity:1;}
+.hslide{position:absolute;inset:0;opacity:0;transition:opacity 1.2s ease-in-out;background-size:cover;background-position:center;background-color:#f5ede5;}
 .hslide.on{opacity:1;}
 .hslide-ov{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 60%,rgba(20,8,4,.18) 100%);pointer-events:none;z-index:2;}
 
 /* 圓點指示器 */
-.hsdots{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:5;}
-.hsd{width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.5);box-shadow:0 1px 4px rgba(0,0,0,.3);transition:all .4s;}
+.hsdots{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:5;}
+.hsd{width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.45);box-shadow:0 1px 4px rgba(0,0,0,.3);transition:all .4s;}
 .hsd.on{background:white;width:18px;}
 
 /* 飄落小裝飾 */
@@ -111,19 +111,16 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-sans);co
 @keyframes floatTwinkle{0%,100%{transform:translateY(0) scale(1);opacity:.6;}50%{transform:translateY(-8px) scale(1.15);opacity:1;}}
 
 /* Hover 互動：對稱展開 */
-.hero-stack:hover .hstack-back{transform:rotate(-12deg) translate(-12px,2px);opacity:.65;}
-.hero-stack:hover .hstack-mid{transform:rotate(12deg) translate(12px,2px);opacity:.65;}
+.hero-stack:hover .hstack-back{transform:rotate(-12deg) translate(-10px,2px);opacity:.7;}
+.hero-stack:hover .hstack-mid{transform:rotate(12deg) translate(10px,2px);opacity:.7;}
 .hero-stack:hover .hstack-front{transform:translateY(-4px) scale(1.02);box-shadow:0 18px 44px rgba(200,90,50,.4),0 0 0 4px white,0 0 0 5px rgba(249,180,150,.5);}
 
 @media(max-width:480px){
   .hero-stack{height:240px;padding:20px 12px 26px;}
-  .hstack-back{top:28px;left:0;right:82%;bottom:30px;}
-  .hstack-mid{top:28px;left:82%;right:0;bottom:30px;}
+  .hstack-back{top:22px;left:0;right:76%;bottom:24px;}
+  .hstack-mid{top:22px;left:76%;right:0;bottom:24px;}
   .hstack-front{top:6px;left:6%;right:6%;bottom:6px;}
 }
-.hsdots{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:6px;}
-.hsd{width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.35);transition:all .4s;}
-.hsd.on{background:white;width:16px;}
 .hero-text{padding:30px 20px 34px;text-align:center;}
 .pre-text{font-family:var(--font-script);font-size:28px;letter-spacing:4px;color:var(--peach);margin-bottom:8px;font-weight:400;line-height:1;}
 .pre-text-zh{font-family:var(--font-sans);font-size:11px;letter-spacing:7px;color:var(--muted);margin-bottom:14px;font-weight:500;text-transform:uppercase;}
@@ -219,11 +216,11 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-sans);co
 .collage-mini-1{grid-column:2;grid-row:1;}
 .collage-mini-2{grid-column:2;grid-row:2;align-self:stretch;}
 .collage-wide{grid-column:1/-1;grid-row:3;}
-
 .collage-hero,.collage-mini,.collage-wide{position:relative;border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(200,90,50,.15);transition:all .35s cubic-bezier(.4,0,.2,1);cursor:pointer;}
 .collage-hero{aspect-ratio:auto;min-height:260px;grid-row:1/3;align-self:stretch;}
 .collage-mini{aspect-ratio:1/1;min-height:125px;width:100%;align-self:start;flex-shrink:0;display:flex;}
-.collage-wide{height:280px;min-height:280px;aspect-ratio:auto;overflow:hidden;}
+.collage-wide{height:auto;min-height:0;aspect-ratio:auto;overflow:hidden;}
+.collage-wide .gallery-img{position:relative;inset:auto;width:100%;padding-top:0;background-size:contain;background-repeat:no-repeat;background-position:center;min-height:200px;}
 
 .collage-hero:hover,.collage-mini:hover,.collage-wide:hover{transform:translateY(-4px) scale(1.01);box-shadow:0 10px 30px rgba(200,90,50,.25);}
 
@@ -3022,12 +3019,31 @@ IMGS.map = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFB
 
 // Setup image src
 // *** 修正：直接從資料套用照片，不依賴 localStorage ***
+// pg3（最美笑容）依原圖比例完整顯示的 helper
+function applyWideContain(el, src){
+  el.style.backgroundImage = "url('" + src + "')";
+  el.style.backgroundSize = 'contain';
+  el.style.backgroundPosition = 'center center';
+  el.style.backgroundRepeat = 'no-repeat';
+  const tmp = new Image();
+  tmp.onload = function(){
+    const container = el.closest('.collage-wide');
+    if(!container) return;
+    const w = container.offsetWidth || 320;
+    const h = Math.round(w * tmp.naturalHeight / tmp.naturalWidth);
+    el.style.height = h + 'px';
+    container.style.height = h + 'px';
+  };
+  tmp.src = src;
+}
+
 window.applyPhotosDirectly = function applyPhotosDirectly(photos) {
   if(!photos) return;
   const setBg = (id, src) => {
     if (!src || src.length < 50) return;
     const el = document.getElementById(id);
     if (!el) return;
+    if (id === 'pg3') { applyWideContain(el, src); return; }
     el.style.backgroundImage = "url('" + src + "')";
     el.style.backgroundSize = 'cover';
     el.style.backgroundPosition = 'center center';
@@ -3055,6 +3071,7 @@ function initImages() {
     if (!src || src.length < 50) return;
     const el = document.getElementById(id);
     if (!el) return;
+    if (id === 'pg3') { applyWideContain(el, src); return; }
     el.style.backgroundImage = "url('" + src + "')";
     el.style.backgroundSize = 'cover';
     el.style.backgroundPosition = 'center center';
@@ -3175,56 +3192,79 @@ function exitAdmin(){
 }
 
 // SLIDESHOWS
-// HERO SLIDESHOW
-const hSlides=document.querySelectorAll('.hslide'),hDots=document.querySelectorAll('.hsd');
+// HERO SLIDESHOW — 完整重寫，修正 5 張切換 + 視差 + 閃爍問題
 let hCur=0, hTimer=null;
-// 取得 Hero 自動切換秒數（後台可設定，預設 5 秒，限制 1~60 秒）
+
 function getHeroSec(){
   let s = parseFloat(gc().heroSec);
   if(!s || isNaN(s) || s < 1) s = 5;
   if(s > 60) s = 60;
   return s;
 }
-function startHeroSlide(){
-  const keys = ['h_kiss','h_fun','h_full','h_close','h_extra'];
-  const ids  = ['hs0','hs1','hs2','hs3','hs4'];
-  // 取得最新照片（優先讀 DOM 元素的 backgroundImage，fallback 到 IMGS）
-  const getImg = (idx) => {
-    const el = document.getElementById(ids[idx]);
-    if(el && el.style.backgroundImage && el.style.backgroundImage !== 'none' && el.style.backgroundImage !== '') {
-      return el.style.backgroundImage.replace(/^url\(['"]?/, '').replace(/['"]?\)$/, '');
-    }
-    const baseFallbacks = ['kiss','fun','full','close',''];
-    return IMGS[keys[idx]] || IMGS[baseFallbacks[idx]] || '';
-  };
-  // ▼ 立刻設定背層與中層，不等第一次 interval（修正：進入即可見視差）
-  (function initBackMid(){
-    const back = document.getElementById('hs-back');
-    const mid  = document.getElementById('hs-mid');
-    const backIdx = (hCur + 2) % keys.length;
-    const midIdx  = (hCur + 1) % keys.length;
-    if(back) back.style.backgroundImage = `url('${getImg(backIdx)}')`;
-    if(mid)  mid.style.backgroundImage  = `url('${getImg(midIdx)}')`;
-  })();
 
-  if(hTimer) clearInterval(hTimer);
-  hTimer = setInterval(()=>{
-    hSlides[hCur].classList.remove('on');
-    hDots[hCur].classList.remove('on');
-    hCur=(hCur+1)%hSlides.length;
-    hSlides[hCur].classList.add('on');
-    hDots[hCur].classList.add('on');
-    // 同步輪轉背層與中層 — 視差效果（讀最新照片）
-    const back = document.getElementById('hs-back');
-    const mid = document.getElementById('hs-mid');
-    const backIdx = (hCur+2) % keys.length;
-    const midIdx = (hCur+1) % keys.length;
-    if(back) back.style.backgroundImage = `url('${getImg(backIdx)}')`;
-    if(mid) mid.style.backgroundImage = `url('${getImg(midIdx)}')`;
-  }, getHeroSec()*1000);
+function getHeroImg(idx){
+  const ids  = ['hs0','hs1','hs2','hs3','hs4'];
+  const keys = ['h_kiss','h_fun','h_full','h_close','h_extra'];
+  const bfb  = ['kiss','fun','full','close',''];
+  if(idx < 0 || idx >= ids.length) return '';
+  const el = document.getElementById(ids[idx]);
+  if(el && el.style.backgroundImage && el.style.backgroundImage !== 'none'){
+    return el.style.backgroundImage.replace(/^url\(['"]?/,'').replace(/['"]?\)$/,'');
+  }
+  return IMGS[keys[idx]] || IMGS[bfb[idx]] || '';
 }
-// 後台修改秒數後可呼叫此函式即時套用新的切換速度
-function restartHeroSlide(){ startHeroSlide(); }
+
+function heroGo(next){
+  // 在函式內才抓，確保 DOM 已就緒
+  const slides = document.querySelectorAll('.hslide');
+  const dots   = document.querySelectorAll('.hsd');
+  const n = slides.length; // 應為 5
+  if(!n) return;
+
+  // 關掉目前
+  slides[hCur].classList.remove('on');
+  if(dots[hCur]) dots[hCur].classList.remove('on');
+
+  // 切到下一張
+  hCur = (next !== undefined ? next : (hCur + 1)) % n;
+  slides[hCur].classList.add('on');
+  if(dots[hCur]) dots[hCur].classList.add('on');
+
+  // 視差層：背層 = hCur+2，中層 = hCur+1
+  const back = document.getElementById('hs-back');
+  const mid  = document.getElementById('hs-mid');
+  const backImg = getHeroImg((hCur + 2) % n);
+  const midImg  = getHeroImg((hCur + 1) % n);
+  if(back && backImg) back.style.backgroundImage = `url('${backImg}')`;
+  if(mid  && midImg)  mid.style.backgroundImage  = `url('${midImg}')`;
+}
+
+function startHeroSlide(){
+  const slides = document.querySelectorAll('.hslide');
+  const dots   = document.querySelectorAll('.hsd');
+  const n = slides.length;
+  if(!n) return;
+
+  // 確保第 0 張是 on，其他清掉
+  slides.forEach((s,i)=>{ s.classList.toggle('on', i===hCur); });
+  dots.forEach((d,i)=>{ d.classList.toggle('on', i===hCur); });
+
+  // 初始化視差層
+  const back = document.getElementById('hs-back');
+  const mid  = document.getElementById('hs-mid');
+  if(back) back.style.backgroundImage = `url('${getHeroImg((hCur+2)%n)}')`;
+  if(mid)  mid.style.backgroundImage  = `url('${getHeroImg((hCur+1)%n)}')`;
+
+  // 清掉舊 timer 再啟動
+  if(hTimer) clearInterval(hTimer);
+  hTimer = setInterval(() => heroGo(), getHeroSec() * 1000);
+}
+
+function restartHeroSlide(){
+  if(hTimer) clearInterval(hTimer);
+  hTimer = null;
+  startHeroSlide();
+}
 
 // REFRESH INVITATION
 function refreshInv(){
@@ -4251,6 +4291,8 @@ window.applyCropToFrontend = function applyCropToFrontend() {
   Object.entries(map).forEach(([key, id]) => {
     const el = document.getElementById(id);
     if (!el) return;
+    // pg3（最美笑容）使用 contain 完整顯示，不走 cover 裁切邏輯
+    if (id === 'pg3') return;
     const crop = s[key] && s[key].crop;
     // backgroundSize 永遠 cover（照片填滿格子，不失真）
     el.style.backgroundSize = 'cover';
