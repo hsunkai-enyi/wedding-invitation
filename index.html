@@ -3007,6 +3007,18 @@ div.photo-slot .photo-pos-badge {
 </div>
 <div class="overlay" id="m-addguest"><div class="modal"><button class="m-close" onclick="cm('m-addguest')">×</button><div class="m-ttl">新增賓客</div><div class="m-sub">手動新增出席賓客</div><input class="m-field" id="ag-name" type="text" placeholder="賓客姓名 *" maxlength="20"/><div class="m-frow"><input class="m-field" id="ag-count" type="number" placeholder="人數" min="1" max="20" value="1" style="max-width:90px;"/><input class="m-field" id="ag-diet" type="text" placeholder="飲食注意事項（選填）"/></div><button class="m-btn" onclick="addGuest()">新增 ✦</button></div></div>
 
+<div class="overlay" id="m-editguest"><div class="modal"><button class="m-close" onclick="cm('m-editguest')">×</button><div class="m-ttl">✎ 編輯賓客資料</div><div class="m-sub">修改後即時同步雲端</div>
+  <input type="hidden" id="eg-id"/>
+  <input class="m-field" id="eg-name" type="text" placeholder="賓客姓名 *" maxlength="20"/>
+  <input class="m-field" id="eg-phone" type="text" placeholder="聯絡電話" maxlength="20"/>
+  <input class="m-field" id="eg-rel" type="text" placeholder="與新人關係" maxlength="20"/>
+  <div class="m-frow"><input class="m-field" id="eg-count" type="number" placeholder="成人" min="0" max="20" value="1" style="max-width:90px;"/><input class="m-field" id="eg-kids" type="number" placeholder="兒童" min="0" max="20" value="0" style="max-width:90px;"/></div>
+  <div class="m-frow"><input class="m-field" id="eg-meat" type="number" placeholder="葷食" min="0" max="40" value="0" style="max-width:90px;"/><input class="m-field" id="eg-veg" type="number" placeholder="素食" min="0" max="40" value="0" style="max-width:90px;"/></div>
+  <div class="m-frow"><input class="m-field" id="eg-chair" type="number" placeholder="嬰兒座椅" min="0" max="20" value="0" style="max-width:120px;"/></div>
+  <input class="m-field" id="eg-note" type="text" placeholder="備註（選填）" maxlength="100"/>
+  <button class="m-btn" onclick="saveEditGuest()">儲存變更 ✦</button>
+</div></div>
+
 <script>
 // IMAGES — injected at runtime
 const IMGS = {
@@ -3184,6 +3196,10 @@ async function checkAdmLogin(){
   // 沒有也沒關係，_isAdmin=true 已足夠讓 fbSaveConfig 執行
   if(window.fbAdminLogin){
     window.fbAdminLogin(ADMIN_EMAIL, enteredPwd).catch(()=>{});
+  }
+  // 啟動 Firestore 即時監聽（同步賓客/留言，並讓清除能刪到雲端資料的 _id）
+  if(window.startAdminListeners){
+    try { window.startAdminListeners(); } catch(e){ console.warn('startAdminListeners:', e); }
   }
 }
 function exitAdmin(){
@@ -3409,7 +3425,7 @@ function renderAdmGuests(resetPage){
       ${numCell(x.chair||0)}
       <td class="td-note" title="${x.note||''}">${x.note||'—'}</td>
       <td class="td-time">${x.t||'—'}</td>
-      <td><button class="td-del" onclick="deleteGuest('${x._id||''}','${x.n}')">✕</button></td>
+      <td style="white-space:nowrap;"><button class="td-del" onclick="openEditGuest('${x._id||''}')" style="background:linear-gradient(135deg,#f0a050,#d07020);margin-right:4px;">✎</button><button class="td-del" onclick="deleteGuest('${x._id||''}','${x.n}')">✕</button></td>
     </tr>`;
     }).join('');
   }
@@ -3573,14 +3589,65 @@ async function clearBlessings(){
   d.b=[]; sd(d); refreshAdmin(); refreshInv(); toast('已清除所有祝福留言');
 }
 function openAddGuest(){['ag-name','ag-diet'].forEach(id=>document.getElementById(id).value='');document.getElementById('ag-count').value='1';om('m-addguest');setTimeout(()=>document.getElementById('ag-name').focus(),280);}
-function addGuest(){
+async function addGuest(){
   const name=document.getElementById('ag-name').value.trim();
   const count=parseInt(document.getElementById('ag-count').value)||1;
   const diet=document.getElementById('ag-diet').value.trim();
   if(!name){document.getElementById('ag-name').style.borderColor='var(--red)';return;}
   const d=gd();if(d.r.find(x=>x.n===name)){toast('該賓客已存在');return;}
-  d.r.push({n:name,c:count,d:diet,t:new Date().toLocaleString('zh-TW')});sd(d);
-  cm('m-addguest');refreshAdmin();refreshInv();toast(`✓ 已新增 ${name}`);
+  const rsvp={n:name, ph:'—', r:'手動新增', c:count, k:0, chair:0, meat:0, veg:0, note:diet, t:new Date().toLocaleString('zh-TW')};
+  // 寫進 Firestore（取得 _id），失敗則僅存本機
+  let newId=null;
+  if(window.fbAddRsvp){ newId=await window.fbAddRsvp(rsvp); }
+  d.r.push({...rsvp, _id:newId||undefined}); sd(d);
+  cm('m-addguest');refreshAdmin();refreshInv();
+  toast(newId ? `✓ 已新增 ${name}（已同步雲端）` : `✓ 已新增 ${name}（僅本機，雲端同步失敗）`);
+}
+
+// 開啟編輯賓客彈窗，帶入現有資料
+function openEditGuest(fbId){
+  const d=gd();
+  const x = d.r.find(g => (g._id||'')===fbId);
+  if(!x){ toast('找不到該筆資料'); return; }
+  document.getElementById('eg-id').value = fbId;
+  document.getElementById('eg-name').value = x.n||'';
+  document.getElementById('eg-phone').value = (x.ph && x.ph!=='—')?x.ph:'';
+  document.getElementById('eg-rel').value = x.r||'';
+  document.getElementById('eg-count').value = x.c??1;
+  document.getElementById('eg-kids').value = x.k??0;
+  document.getElementById('eg-meat').value = x.meat??0;
+  document.getElementById('eg-veg').value = x.veg??0;
+  document.getElementById('eg-chair').value = x.chair??0;
+  document.getElementById('eg-note').value = x.note||'';
+  om('m-editguest');
+  setTimeout(()=>document.getElementById('eg-name').focus(),280);
+}
+
+// 儲存編輯，同步 Firestore + 本機
+async function saveEditGuest(){
+  const fbId = document.getElementById('eg-id').value;
+  const name = document.getElementById('eg-name').value.trim();
+  if(!name){ document.getElementById('eg-name').style.borderColor='var(--red)'; return; }
+  const fields = {
+    n: name,
+    ph: document.getElementById('eg-phone').value.trim() || '—',
+    r:  document.getElementById('eg-rel').value.trim() || '—',
+    c:  parseInt(document.getElementById('eg-count').value)||0,
+    k:  parseInt(document.getElementById('eg-kids').value)||0,
+    meat: parseInt(document.getElementById('eg-meat').value)||0,
+    veg:  parseInt(document.getElementById('eg-veg').value)||0,
+    chair:parseInt(document.getElementById('eg-chair').value)||0,
+    note: document.getElementById('eg-note').value.trim()
+  };
+  // 更新 Firestore
+  let ok=false;
+  if(fbId && window.fbUpdateRsvp){ ok = await window.fbUpdateRsvp(fbId, fields); }
+  // 更新本機
+  const d=gd();
+  const idx = d.r.findIndex(g => (g._id||'')===fbId);
+  if(idx>=0){ d.r[idx] = { ...d.r[idx], ...fields }; sd(d); }
+  cm('m-editguest'); refreshAdmin(); refreshInv();
+  toast(ok ? '✓ 已更新（已同步雲端）' : (fbId ? '✓ 已更新（僅本機，雲端同步失敗）' : '✓ 已更新（本機）'));
 }
 function exportCSV(){
   const d=gd();if(d.r.length===0){toast('尚無資料可匯出');return;}
@@ -5525,7 +5592,7 @@ async function doSubmitBless(name, text){
 <!-- ═══ FIREBASE SDK ═══ -->
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, setDoc, getDoc, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, setDoc, getDoc, getDocs, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getAuth, signInWithEmailAndPassword, signInAnonymously, onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 
@@ -5622,8 +5689,8 @@ onAuthStateChanged(auth, user => {
   window._isAdmin = user && user.email === ADMIN_EMAIL;
 
   // 如果是 admin，啟用即時監聽
-  if(window._isAdmin) {
-    startAdminListeners();
+  if(window._isAdmin && window.startAdminListeners) {
+    window.startAdminListeners();
   }
 });
 
@@ -5635,7 +5702,7 @@ startPhotosListener();
 // ═══ Admin 即時監聽 Firestore ═══
 let unsubRsvp = null, unsubBless = null;
 
-function startAdminListeners() {
+window.startAdminListeners = function startAdminListeners() {
   // 監聽 RSVP
   if(unsubRsvp) unsubRsvp();
   unsubRsvp = onSnapshot(collection(db, 'rsvps'), snapshot => {
@@ -5685,6 +5752,25 @@ function startAdminListeners() {
 window.fbDeleteRsvp = async function(id) {
   if(!id) return;
   try { await deleteDoc(doc(db, 'rsvps', id)); } catch(e) { console.error(e); }
+};
+
+// 後台新增賓客 → 寫進 Firestore，回傳新文件 id
+window.fbAddRsvp = async function(rsvp) {
+  try {
+    const ref = await addDoc(collection(db, 'rsvps'), { ...rsvp, createdAt: serverTimestamp() });
+    console.log('[fbAddRsvp] 已新增:', ref.id);
+    return ref.id;
+  } catch(e) { console.error('[fbAddRsvp]', e.code, e.message); return null; }
+};
+
+// 後台編輯賓客 → 更新 Firestore 既有文件
+window.fbUpdateRsvp = async function(id, fields) {
+  if(!id) return false;
+  try {
+    await updateDoc(doc(db, 'rsvps', id), fields);
+    console.log('[fbUpdateRsvp] 已更新:', id);
+    return true;
+  } catch(e) { console.error('[fbUpdateRsvp]', e.code, e.message); return false; }
 };
 
 window.fbDeleteBless = async function(id) {
