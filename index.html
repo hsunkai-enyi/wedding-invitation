@@ -94,7 +94,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-sans);co
 .hstack-mid{top:24px;left:72%;right:0;bottom:28px;opacity:.55;transform:rotate(8deg) translateZ(0);box-shadow:0 6px 18px rgba(200,90,50,.2);}
 
 /* 主層：置中橫滿 84% 寬 */
-.hstack-front{top:8px;left:8%;right:8%;bottom:8px;border-radius:14px;overflow:hidden;box-shadow:0 14px 36px rgba(200,90,50,.32),0 0 0 4px white,0 0 0 5px rgba(249,180,150,.4);transform:translateZ(0);background:#fff;}
+.hstack-front{top:8px;left:8%;right:8%;bottom:8px;border-radius:14px;overflow:hidden;box-shadow:0 10px 30px rgba(200,90,50,.25),0 0 0 4px white;transform:translateZ(0);background:#fff;}
 
 .hslide{position:absolute;inset:0;opacity:0;transition:opacity 1.2s ease-in-out;background-size:cover;background-position:center;background-color:#f5ede5;}
 .hslide.on{opacity:1;}
@@ -3144,7 +3144,10 @@ function openEnvelope(){
   BGM.start();
   document.getElementById('env-flap').classList.add('open');
   setTimeout(()=>{
-    document.getElementById('st-env').classList.remove('on');
+    const envStage = document.getElementById('st-env');
+    envStage.classList.remove('on');
+    // 完全隱藏信封（停止 sealPulse 等背景動畫，釋放 GPU）
+    setTimeout(()=>{ envStage.style.display = 'none'; }, 700);
     document.getElementById('st-main').classList.add('on');
     ['fd1','fd2','fd3','fd4'].forEach(id=>document.getElementById(id).style.display='block');
     invStage=2;startHeroSlide();refreshInv();burst();
