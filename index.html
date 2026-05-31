@@ -3197,10 +3197,18 @@ async function checkAdmLogin(){
   if(window.fbAdminLogin){
     window.fbAdminLogin(ADMIN_EMAIL, enteredPwd).catch(()=>{});
   }
-  // 啟動 Firestore 即時監聽（同步賓客/留言，並讓清除能刪到雲端資料的 _id）
-  if(window.startAdminListeners){
-    try { window.startAdminListeners(); } catch(e){ console.warn('startAdminListeners:', e); }
-  }
+  // 啟動 Firestore 即時監聽（同步賓客/留言）
+  // module script 可能尚未載入完成，輪詢等待就緒再啟動，確保一定會接上
+  (function ensureListeners(tries){
+    if(window.startAdminListeners){
+      try { window.startAdminListeners(); console.log('[Admin] 即時監聽已啟動'); }
+      catch(e){ console.warn('startAdminListeners:', e); }
+    } else if(tries < 40){
+      setTimeout(()=>ensureListeners(tries+1), 250); // 最多等 10 秒
+    } else {
+      console.warn('[Admin] startAdminListeners 一直未就緒');
+    }
+  })(0);
 }
 function exitAdmin(){
   document.getElementById('view-admin').classList.remove('active');
@@ -5747,6 +5755,9 @@ window.startAdminListeners = function startAdminListeners() {
     if(window.refreshAdmin) window.refreshAdmin();
   });
 }
+// 頁面載入即啟動 RSVP/留言監聽（不只後台），確保後台打開時資料已即時同步
+try { startAdminListeners(); console.log('[FB] RSVP/留言監聽已於載入時啟動'); }
+catch(e){ console.warn('初始 startAdminListeners 失敗:', e); }
 
 // ═══ 刪除賓客（Firestore）═══
 window.fbDeleteRsvp = async function(id) {
